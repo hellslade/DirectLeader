@@ -1,0 +1,11 @@
+<resources>
+
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="gray">#B3B3B3</color>
+    <color name="gray33">#333333</color>
+    <color name="gray80">#808080</color>
+	<color name="red">#D92B29</color>
+    <color name="yellow">#F7C44A</color>
+
+</resources>

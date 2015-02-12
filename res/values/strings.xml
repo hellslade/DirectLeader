@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">DirectLeader</string>
+    
+    <string name="actionbar_title">DirectLeader</string>
+    
+    <!-- Заголовки кнопок главного экрана -->
+    <string name="tasks_important_text">ВАЖНЫЕ\nЗАДАЧИ</string>
+    <string name="tasks_my_text">МОИ\nЗАДАЧИ</string>
+    <string name="tasks_staff_text">ЗАДАЧИ\nСОТРУДНИКОВ</string>
+    <string name="documents_text">ДОКУМЕНТЫ</string>
+    <string name="staff_text">СОТРУДНИКИ</string>
+    <string name="report_text">ОТЧЕТЫ</string>
+    <string name="calendar_text">КАЛЕНДАРЬ</string>
+    
+    <string name="hello_world">Hello world!</string>
+    
+    <!-- Тексты меню -->
+    <string name="action_search">Поиск</string>
+    <string name="action_settings">Настройки</string>
+    <string name="action_add">Добавить</string>
+
+    
+    <!-- Окно авторизации -->
+    <string name="login_fragment_login_hint_text">Логин или e-mail</string>
+    <string name="login_fragment_login_button_text">Войти</string>
+    <string name="authorize_failed_message_text">Не удалось авторизоваться под текущим именем пользователя</string>
+    <string name="authorize_process_message_text">Авторизация, пожалуйста, подождите...</string>
+    
+    <!-- Окно списка задач -->
+    <string name="myjob_fragment_header_title_text">Тема, Создано, Инициатор</string>
+    <string name="myjob_fragment_header_date_text">Срок</string>
+    <string name="myjob_fragment_listitem_attachment_text" formatted="false">Вложения: %s</string>
+    <string name="myjob_fragment_listitem_subtask_text" formatted="false">Подзадач: %s</string>
+    
+    
+    <!-- Тексты ProgressDialog -->
+    <string name="task_loading_data_text">Загрузка данных, пожалуйста, подождите..</string>
+</resources>

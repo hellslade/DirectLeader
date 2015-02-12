@@ -1,0 +1,58 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="0dp"
+    android:background="@drawable/main_background"
+    tools:context="ru.tasu.directleader.MainFragment"
+    xmlns:app="http://schemas.android.com/apk/res/ru.tasu.directleader">
+
+    <RelativeLayout 
+        android:id="@+id/topBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/top_bar"
+        >
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/actionbar_title" 
+            android:textColor="@color/white"
+            android:textSize="@dimen/textSizeActionBar"
+            android:textStyle="bold"
+            android:padding="10dp"
+            />
+    </RelativeLayout>
+    <LinearLayout
+        android:id="@+id/topShadowLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/top_shadow"
+        android:layout_below="@id/topBarLayout"
+        android:orientation="horizontal">
+        
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/buttonsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="80dp"
+        android:paddingRight="80dp"
+        android:minHeight="50dp"
+        android:layout_below="@id/topBarLayout"
+        >
+        
+    </LinearLayout>
+    <ListView
+        android:id="@+id/jobsListView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:headerDividersEnabled="false"
+        android:layout_below="@id/buttonsLayout"
+        android:background="@color/white"
+    />
+        
+</RelativeLayout>

@@ -1,0 +1,210 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="0dp"
+    android:background="@drawable/main_background"
+    tools:context="ru.tasu.directleader.MainFragment"
+    xmlns:app="http://schemas.android.com/apk/res/ru.tasu.directleader">
+
+    <RelativeLayout 
+        android:id="@+id/topBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/top_bar"
+        >
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/actionbar_title" 
+            android:textColor="@color/white"
+            android:textSize="@dimen/textSizeActionBar"
+            android:textStyle="bold"
+            android:padding="10dp"
+            />
+    </RelativeLayout>
+    <LinearLayout 
+        android:id="@+id/topShadowLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/top_shadow"
+        android:layout_below="@id/topBarLayout"
+        android:orientation="horizontal">
+        
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/buttonsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="80dp"
+        android:paddingRight="80dp"
+        android:layout_below="@id/topBarLayout"
+        >
+        
+    </LinearLayout>
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingTop="100dp"
+        android:paddingLeft="80dp"
+        android:paddingRight="80dp"
+        android:layout_below="@id/buttonsLayout">
+        <LinearLayout 
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:orientation="horizontal"
+	        android:paddingLeft="20dp"
+	        android:paddingBottom="40dp"
+	        >
+            
+            <ru.tasu.directleader.BookCompoundView
+	            xmlns:app="http://schemas.android.com/apk/res-auto"
+	            android:id="@+id/jobImportantView"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_weight="1"
+	            app:drawableBackground="@drawable/stopka07"
+	            app:drawableForeground="@drawable/stopka_overlay"
+	            
+	            app:firstBMDrawable="@drawable/svetofor_green"
+	            app:secondBMDrawable="@drawable/svetofor_yel"
+	            app:thirdBMDrawable="@drawable/svetofor_red"
+	            
+	            app:firstBMTextColor="@color/white"
+	            app:secondBMTextColor="@color/black"
+	            app:thirdBMTextColor="@color/white"
+	            
+	            app:captionDrawable="@drawable/folder_icon1"
+	            app:captionText="@string/tasks_important_text"
+	            app:captionTextSize="@dimen/textSizeCaptionBig"
+	            app:captionTextColor="@color/white"
+	            />
+            
+	        <ru.tasu.directleader.BookCompoundView
+	            xmlns:app="http://schemas.android.com/apk/res-auto"
+	            android:id="@+id/myJobView"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_weight="1"
+	            app:drawableBackground="@drawable/stopka06"
+	            app:drawableForeground="@drawable/stopka_overlay"
+	            
+	            app:firstBMDrawable="@drawable/svetofor_green"
+                app:secondBMDrawable="@drawable/svetofor_yel"
+                app:thirdBMDrawable="@drawable/svetofor_red"
+                
+	            app:firstBMTextColor="@color/white"
+	            app:secondBMTextColor="@color/black"
+	            app:thirdBMTextColor="@color/white"
+
+                app:captionDrawable="@drawable/folder_icon2"
+                app:captionText="@string/tasks_my_text"
+                app:captionTextSize="@dimen/textSizeCaptionBig"
+                app:captionTextColor="@color/white"
+                />
+        </LinearLayout>
+        <LinearLayout 
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:paddingLeft="20dp"
+            android:paddingBottom="40dp"
+            >
+	        
+            <ru.tasu.directleader.BookCompoundView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/myStaffTaskView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:drawableBackground="@drawable/stopka04"
+                app:drawableForeground="@drawable/stopka_overlay"
+                
+                app:firstBMDrawable="@drawable/svetofor_green"
+                
+                app:firstBMTextColor="@color/white"
+                
+                app:captionDrawable="@drawable/folder_icon4"
+                app:captionText="@string/tasks_staff_text"
+                app:captionTextSize="@dimen/textSizeCaptionBig"
+                app:captionTextColor="@color/white"
+                />
+            <ru.tasu.directleader.BookCompoundView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/documentsView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:drawableBackground="@drawable/stopka05"
+                app:drawableForeground="@drawable/stopka_overlay"
+                
+                app:firstBMDrawable="@drawable/svetofor_green"
+                
+                app:firstBMTextColor="@color/white"
+               
+                app:captionDrawable="@drawable/folder_icon3"
+                app:captionText="@string/documents_text"
+                app:captionTextSize="@dimen/textSizeCaptionBig"
+                app:captionTextColor="@color/white"
+                />
+        </LinearLayout>
+        <LinearLayout 
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            >
+            
+            <ru.tasu.directleader.BookCompoundView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/staffView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:drawableBackground="@drawable/stopka03"
+                app:drawableForeground="@drawable/stopka_overlay"
+                
+                app:captionDrawable="@drawable/folder_icon5"
+                app:captionText="@string/staff_text"
+                app:captionTextSize="@dimen/textSizeCaptionMedium"
+                app:captionTextColor="@color/white"
+                />
+            <ru.tasu.directleader.BookCompoundView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/reportView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:drawableBackground="@drawable/stopka02"
+                app:drawableForeground="@drawable/stopka_overlay"
+                
+                app:captionDrawable="@drawable/folder_icon6"
+                app:captionText="@string/report_text"
+                app:captionTextSize="@dimen/textSizeCaptionMedium"
+                app:captionTextColor="@color/white"
+                />
+            <ru.tasu.directleader.BookCompoundView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/calendarView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:drawableBackground="@drawable/stopka01"
+                app:drawableForeground="@drawable/stopka_overlay"
+                
+                app:captionDrawable="@drawable/folder_icon7"
+                app:captionText="@string/calendar_text"
+                app:captionTextSize="@dimen/textSizeCaptionMedium"
+                app:captionTextColor="@color/white"
+                />
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>

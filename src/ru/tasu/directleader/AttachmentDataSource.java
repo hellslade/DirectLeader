@@ -1,0 +1,143 @@
+package ru.tasu.directleader;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
+public class AttachmentDataSource {
+    // Database fields
+    private SQLiteDatabase database;
+    private DBHelper dbHelper;
+    private String[] allColumns = {DBHelper.ATTACHMENT__ID, DBHelper.ATTACHMENT_AUTHOR_NAME, DBHelper.ATTACHMENT_CTITLE, DBHelper.ATTACHMENT_CREATED, 
+            DBHelper.ATTACHMENT_EXT, DBHelper.ATTACHMENT_ID, DBHelper.ATTACHMENT_MODIFIED, DBHelper.ATTACHMENT_NAME, DBHelper.ATTACHMENT_SIGNED, 
+            DBHelper.ATTACHMENT_SIZE, DBHelper.ATTACHMENT_VERSION, DBHelper.ATTACHMENT_TASK_ID};
+    
+    public AttachmentDataSource(Context context) {
+        dbHelper = DBHelper.getInstance(context);
+    }
+    public void open() throws SQLException {
+        database = dbHelper.getWritableDatabase();
+    }
+    public void close() {
+        dbHelper.close();
+    }
+    public Attachment createAttachment(Attachment new_attachment) {
+        ContentValues values = new ContentValues();
+//        values.put(DBHelper.ATTACHMENT__ID, new_attachment.getId());
+        values.put(DBHelper.ATTACHMENT_AUTHOR_NAME, new_attachment.getAuthorName());
+        values.put(DBHelper.ATTACHMENT_CTITLE, new_attachment.getCTitle());
+        values.put(DBHelper.ATTACHMENT_CREATED, new_attachment.getCreated());
+        values.put(DBHelper.ATTACHMENT_EXT, new_attachment.getExt());
+        values.put(DBHelper.ATTACHMENT_ID, new_attachment.getId());
+        values.put(DBHelper.ATTACHMENT_MODIFIED, new_attachment.getModified());
+        values.put(DBHelper.ATTACHMENT_NAME, new_attachment.getName());
+        values.put(DBHelper.ATTACHMENT_SIGNED, new_attachment.getSigned());
+        values.put(DBHelper.ATTACHMENT_SIZE, new_attachment.getSize());
+        values.put(DBHelper.ATTACHMENT_VERSION, new_attachment.getVersion());
+        values.put(DBHelper.ATTACHMENT_TASK_ID, new_attachment.getTaskId());
+        long insertId = database.insert(DBHelper.ATTACHMENT_TABLE, null, values);
+        
+        Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
+                allColumns, DBHelper.ATTACHMENT__ID + " = " + insertId, null,
+                null, null, null);
+        cursor.moveToFirst();
+        Attachment newAttachment = cursorToAttachment(cursor);
+        cursor.close();
+        return newAttachment;
+    }
+    public void deleteAttachment(Attachment attachment) {
+        long id = attachment.getId();
+        System.out.println("Attachment deleted with id: " + id);
+        database.delete(DBHelper.ATTACHMENT_TABLE, DBHelper.ATTACHMENT_ID
+                + " = " + id, null);
+    }
+    public Attachment getAttachmentById(int id) {
+        Attachment attachment = null;
+        Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
+                allColumns, DBHelper.ATTACHMENT_ID + " = " + id, null, null, null, null);
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+            attachment = cursorToAttachment(cursor);
+        }
+        cursor.close();
+        return attachment;
+    }
+    public Attachment[] getAttachmentsByTaskId(long taskId) {
+        Attachment[] attachments = null;
+        Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
+                allColumns, DBHelper.ATTACHMENT_TASK_ID + " = " + taskId, null, null, null, null);
+        cursor.moveToFirst();
+        attachments = new Attachment[cursor.getCount()];
+        int i = 0;
+        while (!cursor.isAfterLast()) {
+            attachments[i++] = (cursorToAttachment(cursor));
+            cursor.moveToNext();
+        }
+        cursor.close();
+        return attachments;
+    }
+    public int getAttachmentsCountByTaskId(long taskId) {
+        int count = 0;
+        Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
+                new String[]{DBHelper.ATTACHMENT__ID}, DBHelper.ATTACHMENT_TASK_ID + " = " + taskId, null, null, null, null);
+//        cursor.moveToFirst();
+        count = cursor.getCount();
+        cursor.close();
+        return count;
+    }
+    public List<Attachment> getAllAttachments() {
+        List<Attachment> attachments = new ArrayList<Attachment>();
+
+        Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
+                allColumns, null, null, null, null, null);
+
+        cursor.moveToFirst();
+        Attachment attachment = null;
+        while (!cursor.isAfterLast()) {
+            attachment = cursorToAttachment(cursor);
+            attachments.add(attachment);
+            cursor.moveToNext();
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        return attachments;
+    }
+    public int deleteAllAttachments() {
+        int count = database.delete(DBHelper.ATTACHMENT_TABLE, "1", null);
+        return count;
+    }
+    /**
+     * ѕолучить общее количество документов
+     * @return
+     */
+    public int getCountOfAttachments() {
+        int count = 0;
+        Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
+                new String[]{DBHelper.ATTACHMENT__ID}, null, null, null, null, null);
+//        cursor.moveToFirst();
+        count = cursor.getCount();
+        
+        // Make sure to close the cursor
+        cursor.close();
+        return count;
+    }
+
+    private Attachment cursorToAttachment(Cursor cursor) {
+        //int id, String address, String point, String work_hours, int brand, String last_modified
+//        DBHelper.ATTACHMENT__ID, DBHelper.ATTACHMENT_AUTHOR_NAME, DBHelper.ATTACHMENT_CTITLE, DBHelper.ATTACHMENT_CREATED, 
+//        DBHelper.ATTACHMENT_EXT, DBHelper.ATTACHMENT_ID, DBHelper.ATTACHMENT_MODIFIED, DBHelper.ATTACHMENT_NAME, DBHelper.ATTACHMENT_SIGNED, 
+//        DBHelper.ATTACHMENT_SIZE, DBHelper.ATTACHMENT_VERSION, DBHelper.ATTACHMENT_TASK_ID
+        boolean signed = cursor.getInt(8) == 1;
+//        String author_name, String ctitle, String created, String ext, long id, String modified, String name, boolean signed, long size, int version, long task_id
+        Attachment attachment = new Attachment(cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getLong(5), cursor.getString(6), cursor.getString(7),
+                signed, cursor.getLong(9), cursor.getInt(10), cursor.getLong(11));
+//      Log.v("cursorToStore", cursor.getInt(0)+" "+cursor.getString(1)+" "+cursor.getString(2)+" "+cursor.getString(3)+" "+cursor.getInt(4)+" "+cursor.getString(5));
+        return attachment;
+    }
+}
