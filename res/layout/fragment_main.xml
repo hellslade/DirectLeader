@@ -102,7 +102,7 @@
 	            app:secondBMTextColor="@color/black"
 	            app:thirdBMTextColor="@color/white"
 
-                app:captionDrawable="@drawable/folder_icon2"
+                app:captionDrawable="@drawable/folder_icon1"
                 app:captionText="@string/tasks_my_text"
                 app:captionTextSize="@dimen/textSizeCaptionBig"
                 app:captionTextColor="@color/white"
@@ -127,10 +127,14 @@
                 app:drawableForeground="@drawable/stopka_overlay"
                 
                 app:firstBMDrawable="@drawable/svetofor_green"
+                app:secondBMDrawable="@drawable/svetofor_yel"
+                app:thirdBMDrawable="@drawable/svetofor_red"
                 
                 app:firstBMTextColor="@color/white"
+                app:secondBMTextColor="@color/black"
+                app:thirdBMTextColor="@color/white"
                 
-                app:captionDrawable="@drawable/folder_icon4"
+                app:captionDrawable="@drawable/folder_icon2"
                 app:captionText="@string/tasks_staff_text"
                 app:captionTextSize="@dimen/textSizeCaptionBig"
                 app:captionTextColor="@color/white"

@@ -4,27 +4,10 @@
     android:layout_height="match_parent"
     android:padding="0dp"
     android:background="@drawable/main_background"
-    tools:context="ru.tasu.directleader.MainFragment"
+    tools:context="ru.tasu.directleader.JobMyFragment"
     xmlns:app="http://schemas.android.com/apk/res/ru.tasu.directleader">
 
-    <RelativeLayout 
-        android:id="@+id/topBarLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/top_bar"
-        >
-        <TextView
-            android:id="@+id/titleTextView"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="@string/actionbar_title" 
-            android:textColor="@color/white"
-            android:textSize="@dimen/textSizeActionBar"
-            android:textStyle="bold"
-            android:padding="10dp"
-            />
-    </RelativeLayout>
+    <include layout="@layout/top_bar_layout" android:id="@+id/topBarLayout"/>
     <LinearLayout
         android:id="@+id/topShadowLayout"
         android:layout_width="match_parent"
@@ -34,25 +17,98 @@
         android:orientation="horizontal">
         
     </LinearLayout>
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/buttonsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingLeft="80dp"
-        android:paddingRight="80dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:minHeight="50dp"
+        android:gravity="center_vertical"
         android:layout_below="@id/topBarLayout"
         >
-        
-    </LinearLayout>
+        <ImageButton
+            android:id="@+id/sortDirectionView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_transparent_selector"
+            android:src="@drawable/ic_sort_direction"
+            android:padding="10dp"
+            />
+        <LinearLayout
+            android:id="@+id/textSizeLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_alignTop="@id/sortDirectionView"
+            android:layout_alignBottom="@id/sortDirectionView"
+            android:orientation="horizontal" >
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+            
+            <CheckedTextView
+                android:id="@+id/sortStateView"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@drawable/button_transparent_left_selector"
+                android:textColor="@color/white"
+                android:textSize="@dimen/textSizeCaptionMedium"
+                android:text="@string/myjob_fragment_sort_state_text"
+                android:clickable="true"
+                android:gravity="center_vertical"
+                android:padding="10dp"
+                />
+            <CheckedTextView 
+                android:id="@+id/sortReadedView"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@drawable/button_transparent_center_selector"
+                android:textColor="@color/white"
+                android:textSize="@dimen/textSizeCaptionMedium"
+                android:text="@string/myjob_fragment_sort_readed_text"
+                android:clickable="true"
+                android:gravity="center_vertical"
+                android:padding="10dp"
+                />
+            <CheckedTextView
+                android:id="@+id/sortDateView"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@drawable/button_transparent_center_selector"
+                android:textColor="@color/white"
+                android:textSize="@dimen/textSizeCaptionMedium"
+                android:text="@string/myjob_fragment_sort_date_text"
+                android:clickable="true"
+                android:gravity="center_vertical"
+                android:padding="10dp"
+                />
+            <CheckedTextView 
+                android:id="@+id/sortTitleView"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@drawable/button_transparent_right_selector"
+                android:textColor="@color/white"
+                android:textSize="@dimen/textSizeCaptionMedium"
+                android:text="@string/myjob_fragment_sort_title_text"
+                android:clickable="true"
+                android:gravity="center_vertical"
+                android:padding="10dp"
+                />
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+       </LinearLayout>
+    </RelativeLayout>
     <ListView
         android:id="@+id/jobsListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:headerDividersEnabled="false"
         android:layout_below="@id/buttonsLayout"
-        android:background="@color/white"
     />
         
 </RelativeLayout>

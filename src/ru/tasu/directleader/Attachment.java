@@ -1,5 +1,9 @@
 package ru.tasu.directleader;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.json.JSONObject;
 
 import android.os.Parcel;
@@ -22,6 +26,7 @@ public class Attachment implements Parcelable {
     private long _size;
     private int _version;
     private long _task_id;
+    private String _task_title;
     /*
     {
         AuthorName: "Administrator",
@@ -73,6 +78,7 @@ public class Attachment implements Parcelable {
         this._size = in.readLong();
         this._version = in.readInt();
         this._task_id = in.readLong();
+        this._task_title = in.readString();
     }
     public void updateData(JSONObject data) {
         this._author_name = data.optString("AuthorName");
@@ -102,7 +108,22 @@ public class Attachment implements Parcelable {
         return this._ctitle;
     }
     public String getCreated() {
-        return this._created;
+        return getCreated(false);
+    }
+    public String getCreated(boolean formatted) {
+        if (formatted) {
+            SimpleDateFormat  format = new SimpleDateFormat("dd.MM.yyyy", Utils.mLocale);
+            try {
+                Date deadline = format.parse(this._created);
+                SimpleDateFormat formatOutput =  new SimpleDateFormat("dd/MM/yyyy");
+                return  formatOutput.format(deadline);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return this._created;
+            }
+        } else {
+            return this._created;
+        }
     }
     public String getExt() {
         return this._ext;
@@ -111,7 +132,22 @@ public class Attachment implements Parcelable {
         return this._id;
     }
     public String getModified() {
-        return this._modified;
+        return getModified(false);
+    }
+    public String getModified(boolean formatted) {
+        if (formatted) {
+            SimpleDateFormat  format = new SimpleDateFormat("dd.MM.yyyy", Utils.mLocale);
+            try {
+                Date deadline = format.parse(this._modified);
+                SimpleDateFormat formatOutput =  new SimpleDateFormat("dd/MM/yyyy");
+                return  formatOutput.format(deadline);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return this._modified;
+            }
+        } else {
+            return this._modified;
+        }
     }
     public String getName() {
         return this._name;
@@ -124,6 +160,12 @@ public class Attachment implements Parcelable {
     }
     public int getVersion() {
         return this._version;
+    }
+    public void setTaskTitle(String title) {
+        this._task_title = title;
+    }
+    public String getTaskTitle() {
+        return this._task_title;
     }
     
     public static final Parcelable.Creator<Attachment> CREATOR = new Parcelable.Creator<Attachment>() {
@@ -155,5 +197,6 @@ public class Attachment implements Parcelable {
         parcel.writeLong(this._size);
         parcel.writeInt(this._version);
         parcel.writeLong(this._task_id);
+        parcel.writeString(this._task_title);
     }
 }

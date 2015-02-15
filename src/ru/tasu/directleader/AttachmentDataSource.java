@@ -14,12 +14,14 @@ public class AttachmentDataSource {
     // Database fields
     private SQLiteDatabase database;
     private DBHelper dbHelper;
+    private Context mContext;
     private String[] allColumns = {DBHelper.ATTACHMENT__ID, DBHelper.ATTACHMENT_AUTHOR_NAME, DBHelper.ATTACHMENT_CTITLE, DBHelper.ATTACHMENT_CREATED, 
             DBHelper.ATTACHMENT_EXT, DBHelper.ATTACHMENT_ID, DBHelper.ATTACHMENT_MODIFIED, DBHelper.ATTACHMENT_NAME, DBHelper.ATTACHMENT_SIGNED, 
             DBHelper.ATTACHMENT_SIZE, DBHelper.ATTACHMENT_VERSION, DBHelper.ATTACHMENT_TASK_ID};
     
     public AttachmentDataSource(Context context) {
         dbHelper = DBHelper.getInstance(context);
+        mContext = context;
     }
     public void open() throws SQLException {
         database = dbHelper.getWritableDatabase();
@@ -62,8 +64,11 @@ public class AttachmentDataSource {
         Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
                 allColumns, DBHelper.ATTACHMENT_ID + " = " + id, null, null, null, null);
         cursor.moveToFirst();
+        TaskDataSource tds = new TaskDataSource(mContext);
+        tds.open();
         if (cursor.getCount() > 0) {
             attachment = cursorToAttachment(cursor);
+            attachment.setTaskTitle(tds.getTaskTitleById(attachment.getTaskId()));
         }
         cursor.close();
         return attachment;
@@ -74,9 +79,13 @@ public class AttachmentDataSource {
                 allColumns, DBHelper.ATTACHMENT_TASK_ID + " = " + taskId, null, null, null, null);
         cursor.moveToFirst();
         attachments = new Attachment[cursor.getCount()];
+        TaskDataSource tds = new TaskDataSource(mContext);
+        tds.open();
         int i = 0;
         while (!cursor.isAfterLast()) {
-            attachments[i++] = (cursorToAttachment(cursor));
+            final Attachment attachment = cursorToAttachment(cursor);
+            attachment.setTaskTitle(tds.getTaskTitleById(attachment.getTaskId()));
+            attachments[i++] = (attachment);
             cursor.moveToNext();
         }
         cursor.close();
@@ -98,12 +107,15 @@ public class AttachmentDataSource {
                 allColumns, null, null, null, null, null);
 
         cursor.moveToFirst();
-        Attachment attachment = null;
+        TaskDataSource tds = new TaskDataSource(mContext);
+        tds.open();
         while (!cursor.isAfterLast()) {
-            attachment = cursorToAttachment(cursor);
+            final Attachment attachment = cursorToAttachment(cursor);
+            attachment.setTaskTitle(tds.getTaskTitleById(attachment.getTaskId()));
             attachments.add(attachment);
             cursor.moveToNext();
         }
+        tds.close();
         // Make sure to close the cursor
         cursor.close();
         return attachments;

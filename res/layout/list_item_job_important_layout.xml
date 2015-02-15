@@ -12,24 +12,20 @@
         android:orientation="horizontal"
         android:layout_centerVertical="true"
         android:gravity="center_vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="30dp"
         >
         <ImageView
             android:id="@+id/statusImportance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/icon_task_ex"
+            android:src="@drawable/ic_important_task"
             />
         <ImageView
-            android:id="@+id/statusIcon2"
+            android:id="@+id/statusReaded"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/icon_circle_task_orange"
-            />
-        <ImageView
-            android:id="@+id/statusIcon3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/icon_circle_task_alarm"
+            android:src="@drawable/ic_task_readed_selector"
             />
     </LinearLayout>
 
@@ -47,48 +43,18 @@
             android:id="@+id/titleTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="5dp"
+            android:maxLines="1"
+            android:singleLine="true"
             android:textColor="@color/black"
             android:text="Документооборот в Тюменьэнерго"
             />
         <TextView
-            android:id="@+id/dateCreatedTextView"
+            android:id="@+id/propertyTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/titleTextView"
-            android:padding="5dp"
             android:textColor="@color/gray80"
             android:text="08/02/2015"
-            />
-        <TextView
-            android:id="@+id/usernameTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/titleTextView"
-            android:layout_toRightOf="@id/dateCreatedTextView"
-            android:padding="5dp"
-            android:textColor="@color/gray80"
-            android:text="А.Б.Красносолнышко"
-            />
-        <TextView
-            android:id="@+id/attachmentTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/titleTextView"
-            android:layout_toRightOf="@id/usernameTextView"
-            android:padding="5dp"
-            android:textColor="@color/gray80"
-            android:text="@string/myjob_fragment_listitem_attachment_text"
-            />
-        <TextView
-            android:id="@+id/subtaskTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/titleTextView"
-            android:layout_toRightOf="@id/attachmentTextView"
-            android:padding="5dp"
-            android:textColor="@color/gray80"
-            android:text="@string/myjob_fragment_listitem_subtask_text"
             />
     </RelativeLayout>
     
@@ -100,6 +66,7 @@
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
         android:gravity="center_vertical"
+        android:layout_marginLeft="10dp"
         >
         <TextView
             android:id="@+id/dateTextView"
@@ -114,7 +81,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            android:src="@drawable/disclosure_grey"
+            android:src="@drawable/ic_disclosure_grey"
             />
     </LinearLayout>
 </RelativeLayout>

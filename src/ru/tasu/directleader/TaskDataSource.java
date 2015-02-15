@@ -199,6 +199,20 @@ public class TaskDataSource {
         cursor.close();
         return count;
     }
+    public String getTaskTitleById(long taskId) {
+        String title = "";
+
+        Cursor cursor = database.query(DBHelper.TASK_TABLE,
+                new String[]{DBHelper.TASK_TITLE}, DBHelper.TASK_ID + " = " + taskId, null, null, null, null);
+
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+            title = cursor.getString(0);
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        return title;
+    }
     
     public int deleteAllTasks() {
         AttachmentDataSource attachment_ds = new AttachmentDataSource(mContext);

@@ -1,6 +1,7 @@
 package ru.tasu.directleader;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -8,6 +9,7 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -17,9 +19,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.CheckedTextView;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.AdapterView.OnItemClickListener;
 
 public class JobMyFragment extends Fragment implements OnClickListener {
     private static final String TAG = "JobMyFragment";
@@ -47,6 +54,7 @@ public class JobMyFragment extends Fragment implements OnClickListener {
             }
             mAdapter.clear();
             mAdapter.addAll(result);
+            mAdapter.sort(comp);
             mAdapter.notifyDataSetChanged();
             super.onPostExecute(result);
         }
@@ -59,6 +67,9 @@ public class JobMyFragment extends Fragment implements OnClickListener {
     private ListView jobListView;
     private JobMyListAdapter mAdapter;
     private RelativeLayout listViewHeader;
+    private CheckedTextView sortStateView, sortReadedView, sortDateView, sortTitleView;
+    private ImageButton sortDirectionView;
+    private boolean sortDesc = false;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,6 +81,21 @@ public class JobMyFragment extends Fragment implements OnClickListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_job_my, container, false);
 
+        ((ImageView)rootView.findViewById(R.id.homeImageView)).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    getFragmentManager().popBackStack(getFragmentManager().getBackStackEntryAt(0).getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                }
+            }
+        });
+
+        sortStateView = (CheckedTextView) rootView.findViewById(R.id.sortStateView);
+        sortReadedView = (CheckedTextView) rootView.findViewById(R.id.sortReadedView);
+        sortDateView = (CheckedTextView) rootView.findViewById(R.id.sortDateView);
+        sortTitleView = (CheckedTextView) rootView.findViewById(R.id.sortTitleView);
+        sortDirectionView = (ImageButton) rootView.findViewById(R.id.sortDirectionView);
+
         jobListView = (ListView) rootView.findViewById(R.id.jobsListView);
 
         listViewHeader = (RelativeLayout)getActivity().getLayoutInflater().inflate(R.layout.list_header_job_important_layout, null);
@@ -78,9 +104,26 @@ public class JobMyFragment extends Fragment implements OnClickListener {
         
         mAdapter = new JobMyListAdapter(getActivity(), new ArrayList<Job>(), jobListView);
         jobListView.setAdapter(mAdapter);
+        jobListView.setOnItemClickListener(itemClickListener);
+        
+        setFonts();
+        
+        sortStateView.setOnClickListener(sortClickListener);
+        sortReadedView.setOnClickListener(sortClickListener);
+        sortDateView.setOnClickListener(sortClickListener);
+        sortTitleView.setOnClickListener(sortClickListener);
+        sortDirectionView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sortDesc = !sortDesc;
+                mAdapter.sort(comp);
+                mAdapter.notifyDataSetChanged();
+            }
+        });
+        
+        sortStateView.performClick();
         
         new GetJobAsyncTask().execute();
-        setFonts();
         return rootView;
     }
     private void setFonts() {
@@ -92,6 +135,83 @@ public class JobMyFragment extends Fragment implements OnClickListener {
             }
         }
     }
+    OnClickListener sortClickListener = new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            CheckedTextView view = (CheckedTextView)v;
+            // Если кликнули по тому, который уже выделен, то ничего не делать.
+            if (view.isChecked()) {
+                return;
+            }
+            //Снять выделение со всех
+            for (CheckedTextView cv : new CheckedTextView[]{sortStateView, sortReadedView, sortDateView, sortTitleView}) {
+                cv.setChecked(false);
+            }
+            view.setChecked(true);
+            mAdapter.sort(comp);
+            mAdapter.notifyDataSetChanged();
+        }
+    };
+    final private Comparator<Job> comp = new Comparator<Job>() {
+        public int compare(Job j1, Job j2) {
+            int result = 0;
+            if (sortStateView.isChecked()) {
+                boolean b1 = j1.getState();
+                boolean b2 = j2.getState();
+                if (b1 && !b2) {
+                    result = 1;
+                } else if (!b1 && b2) {
+                    result = -1;
+                } else {
+                    result = 0;
+                }
+                if (sortDesc) {
+                    return -result;
+                } else {
+                    return result;
+                }
+            }
+            if (sortReadedView.isChecked()) {
+                boolean b1 = j1.getReaded();
+                boolean b2 = j2.getReaded();
+                if (b1 && !b2) {
+                    result = 1;
+                } else if (!b1 && b2) {
+                    result = -1;
+                } else {
+                    result = 0;
+                }
+                if (sortDesc) {
+                    return -result;
+                } else {
+                    return result;
+                }
+            }
+            if (sortDateView.isChecked()) {
+                result = j1.getEndDate().compareTo(j2.getEndDate());
+            }
+            if (sortTitleView.isChecked()) {
+                result = j1.getSubject().toUpperCase(Utils.mLocale).compareTo(j2.getSubject().toUpperCase(Utils.mLocale));
+            }
+            if (sortDesc) {
+                return -result;
+            } else {
+                return result;
+            }
+        }
+    };
+    OnItemClickListener itemClickListener = new OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
+            if (mListener != null) {
+                Job job = mAdapter.getItem(pos-1);
+                Log.v(TAG, "job.date_created " + job.getStartDate(true));
+                Bundle args = new Bundle();
+                args.putParcelable(JobDetailFragment.JOB_KEY, job);
+                mListener.OnOpenFragment(JobDetailFragment.class.getName(), args);
+            }
+        }
+    };
     @Override
     public void onClick(View v) {
         if (mListener != null) {
@@ -106,4 +226,5 @@ public class JobMyFragment extends Fragment implements OnClickListener {
             throw new ClassCastException(activity.toString() + " must implement OnLoginListener");
         }
     }
+    
 }

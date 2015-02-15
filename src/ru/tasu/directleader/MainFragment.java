@@ -173,10 +173,10 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
                 case R.id.myJobView:
                     mListener.OnOpenFragment(JobMyFragment.class.getName());
                     break;
-                case R.id.myStaffTaskView:
-//                    mListener.OnOpenFragment(JobImportantFragment.class.getName());
-                    break;
                 case R.id.documentsView:
+                    mListener.OnOpenFragment(DocumentsFragment.class.getName());
+                    break;
+                case R.id.myStaffTaskView:
 //                    mListener.OnOpenFragment(JobImportantFragment.class.getName());
                     break;
                 case R.id.staffView:
@@ -213,5 +213,6 @@ abstract interface OnUpdateDataListener {
 }
 abstract interface OnOpenFragmentListener {
     public void OnOpenFragment(String fragmentClassName);
+    public void OnOpenFragment(String fragmentClassName, Bundle args);
 }
 

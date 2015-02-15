@@ -15,9 +15,11 @@ public class HistoryDataSource {
     private SQLiteDatabase database;
     private DBHelper dbHelper;
     private String[] allColumns = {DBHelper.HISTORY__ID, DBHelper.HISTORY_AUTHOR_CODE, DBHelper.HISTORY_DATE, DBHelper.HISTORY_MESSAGE, DBHelper.HISTORY_TASK_ID};
+    private Context mContext;
 
     public HistoryDataSource(Context context) {
         dbHelper = DBHelper.getInstance(context);
+        mContext = context;
     }
     public void open() throws SQLException {
         database = dbHelper.getWritableDatabase();
@@ -48,11 +50,16 @@ public class HistoryDataSource {
                 allColumns, DBHelper.HISTORY_TASK_ID + " = " + taskId, null, null, null, null);
         cursor.moveToFirst();
         histories = new History[cursor.getCount()];
+        RabotnicDataSource rds = new RabotnicDataSource(mContext);
+        rds.open();
         int i = 0;
         while (!cursor.isAfterLast()) {
-            histories[i++] = (cursorToHistory(cursor));
+            final History history = cursorToHistory(cursor);
+            history.setUser(rds.getRabotnicByCode(history.getAuthorCode()));
+            histories[i++] = (history);
             cursor.moveToNext();
         }
+        rds.close();
         cursor.close();
         return histories;
     }
@@ -63,12 +70,15 @@ public class HistoryDataSource {
                 allColumns, null, null, null, null, null);
 
         cursor.moveToFirst();
-        History history = null;
+        RabotnicDataSource rds = new RabotnicDataSource(mContext);
+        rds.open();
         while (!cursor.isAfterLast()) {
-            history = cursorToHistory(cursor);
+            final History history = cursorToHistory(cursor);
+            history.setUser(rds.getRabotnicByCode(history.getAuthorCode()));
             historys.add(history);
             cursor.moveToNext();
         }
+        rds.close();
         // Make sure to close the cursor
         cursor.close();
         return historys;

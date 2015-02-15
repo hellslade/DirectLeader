@@ -1,5 +1,9 @@
 package ru.tasu.directleader;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.json.JSONObject;
 
 import android.os.Parcel;
@@ -12,7 +16,8 @@ public class History implements Parcelable {
     private String _author_code;
     private String _date;
     private String _message;
-    private long _task_id; 
+    private long _task_id;
+    private Rabotnic _user;
     /*
     {
         AuthorCode: "Ä000086",
@@ -37,6 +42,7 @@ public class History implements Parcelable {
         this._date = in.readString();
         this._message = in.readString();
         this._task_id = in.readLong();
+        this._user = in.readParcelable(Rabotnic.class.getClassLoader());
     }
     public void updateData(JSONObject data) {
         this._author_code = data.optString("AuthorCode");
@@ -50,13 +56,34 @@ public class History implements Parcelable {
         this._task_id = task_id;
     }
     public String getDate() {
-        return this._date;
+        return getDate(false);
+    }
+    public String getDate(boolean formatted) {
+        if (formatted) {
+            SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
+            try {
+                Date deadline = format.parse(this._date);
+                SimpleDateFormat formatOutput =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                return  formatOutput.format(deadline);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return this._date;
+            }
+        } else {
+            return this._date;
+        }
     }
     public String getMessage() {
         return this._message;
     }
     public long getTaskId() {
         return this._task_id;
+    }
+    public void setUser(Rabotnic user) {
+        this._user = user;
+    }
+    public Rabotnic getUser() {
+        return this._user;
     }
     public static final Parcelable.Creator<History> CREATOR = new Parcelable.Creator<History>() {
 
@@ -78,5 +105,6 @@ public class History implements Parcelable {
         parcel.writeString(this._date);
         parcel.writeString(this._message);
         parcel.writeLong(this._task_id);
+        parcel.writeParcelable(_user, flags);
     }
 }

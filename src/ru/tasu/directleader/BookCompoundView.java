@@ -77,7 +77,7 @@ public class BookCompoundView extends RelativeLayout implements OnClickListener 
                 BookCompoundView.this.getViewTreeObserver().removeOnPreDrawListener(this);
                 // captionImageView должен быть вдвое меньше bookOverlayLayout
                 int width = bookOverlayLayout.getMeasuredWidth();
-                Log.v(TAG, "bookOverlayLayout.getWidth() " + width);
+//                Log.v(TAG, "bookOverlayLayout.getWidth() " + width);
                 captionImageView.getLayoutParams().width = width/2;
                 return false;
             }

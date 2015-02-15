@@ -1,16 +1,17 @@
 package ru.tasu.directleader;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -26,6 +27,13 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
 		super(context, 0, items);
 		this.listView = listView;
 		mDirect = (DirectLeaderApplication)((Activity)context).getApplication();
+	}
+	public List<Job> getItems() {
+	    List<Job> jobs = new ArrayList<Job>();
+	    for (int i = 0; i < this.getCount(); i++) {
+	        jobs.add(this.getItem(i));
+	    }
+	    return jobs;
 	}
 	@Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -47,17 +55,13 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
     	
     	TextView titleTextView = viewHolder.getTitleTextView();
     	TextView dateTextView = viewHolder.getDateTextView();
-    	TextView dateCreatedTextView = viewHolder.getDateCreatedTextView();
-    	TextView attachmentTextView = viewHolder.getAttachmentTextView();
-        TextView subtaskTextView = viewHolder.getSubtaskTextView();
-        TextView usernameTextView = viewHolder.getUsernameTextView();
+    	TextView propertyTextView = viewHolder.getPropertyTextView();
+        ImageView statusImportance = viewHolder.getStatusImportanceView();
+        ImageView statusReaded = viewHolder.getStatusReadedView();
         
         titleTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
         dateTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-        dateCreatedTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        attachmentTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        subtaskTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        usernameTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
+        propertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     	
     	dateTextView.setTextColor(Color.parseColor(activity.getResources().getString(R.color.gray33)));
     	if (job.isOverdue()) {
@@ -69,29 +73,18 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
     	    dateTextView.setBackgroundResource(android.R.color.transparent);
     	}
     	
-    	// Делать здесь запрос в БД не вариант, тормозить интерфейс будет. Нужно в класс Job добавить дополнительные поля 
-        int acount = job.getAttachmentCount();
-        int scount = job.getSubtaskCount();
-        String attachmentCount = String.format(activity.getResources().getString(R.string.myjob_fragment_listitem_attachment_text), acount);
-        String subtaskCount = String.format(activity.getResources().getString(R.string.myjob_fragment_listitem_subtask_text), scount);
+    	String propertyText = String.format(activity.getResources().getString(R.string.myjob_fragment_listitem_property_text), job.getStartDate(true), job.getUser().getName());
         
     	titleTextView.setText(job.getSubject());
     	dateTextView.setText(job.getEndDate(true));
-    	dateCreatedTextView.setText(job.getStartDate(true));
-    	attachmentTextView.setText(attachmentCount);
-        subtaskTextView.setText(subtaskCount);
-        usernameTextView.setText(job.getUser().getName());
+    	propertyTextView.setText(propertyText);
         
-        if (acount == 0) {
-            attachmentTextView.setVisibility(View.GONE);
+        if (job.getImportance().equalsIgnoreCase("Высокая")) {
+            statusImportance.setVisibility(View.VISIBLE);
         } else {
-            attachmentTextView.setVisibility(View.VISIBLE);
+            statusImportance.setVisibility(View.INVISIBLE);
         }
-        if (scount == 0) {
-            subtaskTextView.setVisibility(View.GONE);
-        } else {
-            subtaskTextView.setVisibility(View.VISIBLE);
-        }
+        statusReaded.setEnabled(job.getReaded());
         
         return rowView;
     }
@@ -101,10 +94,9 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
 		
 		private TextView titleTextView;
 		private TextView dateTextView;
-		private TextView dateCreatedTextView;
-		private TextView attachmentTextView;
-        private TextView subtaskTextView;
-        private TextView usernameTextView;
+		private TextView propertyTextView;
+        private ImageView statusImportance; 
+        private ImageView statusReaded; 
 		
 		public ViewHolder(View base) {
 			this.baseView = base;
@@ -121,29 +113,23 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
             }
             return dateTextView;
         }
-	    public TextView getDateCreatedTextView() {
-            if (dateCreatedTextView == null) {
-                dateCreatedTextView = (TextView)baseView.findViewById(R.id.dateCreatedTextView);
+	    public TextView getPropertyTextView() {
+            if (propertyTextView == null) {
+                propertyTextView = (TextView)baseView.findViewById(R.id.propertyTextView);
             }
-            return dateCreatedTextView;
+            return propertyTextView;
         }
-        public TextView getUsernameTextView() {
-            if (usernameTextView == null) {
-                usernameTextView = (TextView)baseView.findViewById(R.id.usernameTextView);
+        public ImageView getStatusImportanceView() {
+            if (statusImportance == null) {
+                statusImportance = (ImageView)baseView.findViewById(R.id.statusImportance);
             }
-            return usernameTextView;
+            return statusImportance;
         }
-        public TextView getAttachmentTextView() {
-            if (attachmentTextView == null) {
-                attachmentTextView = (TextView)baseView.findViewById(R.id.attachmentTextView);
+        public ImageView getStatusReadedView() {
+            if (statusReaded == null) {
+                statusReaded = (ImageView)baseView.findViewById(R.id.statusReaded);
             }
-            return attachmentTextView;
-        }
-        public TextView getSubtaskTextView() {
-            if (subtaskTextView == null) {
-                subtaskTextView = (TextView)baseView.findViewById(R.id.subtaskTextView);
-            }
-            return subtaskTextView;
+            return statusReaded;
         }
 	}
 }

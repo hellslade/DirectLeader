@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:background="@drawable/listview_back_selector"
+    android:clickable="true"
+    >
+    <ImageView 
+        android:id="@+id/photoIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:layout_centerVertical="true"
+        android:src="@drawable/ic_nophoto"/>
+    <TextView 
+        android:id="@+id/authorNameTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/photoIcon"
+        android:layout_alignTop="@id/photoIcon"
+        android:layout_toLeftOf="@+id/dataTextView"
+        android:gravity="left"
+        android:maxLines="1"
+        android:layout_marginBottom="10dp"
+        android:singleLine="true"
+        android:text="Иванов Иван Иванович"/>
+    <TextView 
+        android:id="@+id/commentTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@id/authorNameTextView"
+        android:layout_toLeftOf="@+id/dataTextView"
+        android:layout_below="@id/authorNameTextView"
+        android:gravity="left"
+        android:text="Выполнено"/>
+    <TextView 
+        android:id="@id/dataTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@id/photoIcon"
+        android:text="2015-02-15 15:29:37"/>
+</RelativeLayout>

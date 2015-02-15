@@ -6,8 +6,8 @@
     <string name="actionbar_title">DirectLeader</string>
     
     <!-- Заголовки кнопок главного экрана -->
-    <string name="tasks_important_text">ВАЖНЫЕ\nЗАДАЧИ</string>
-    <string name="tasks_my_text">МОИ\nЗАДАЧИ</string>
+    <string name="tasks_important_text">ВАЖНЫЕ\nЗАДАНИЯ</string>
+    <string name="tasks_my_text">МОИ\nЗАДАНИЯ</string>
     <string name="tasks_staff_text">ЗАДАЧИ\nСОТРУДНИКОВ</string>
     <string name="documents_text">ДОКУМЕНТЫ</string>
     <string name="staff_text">СОТРУДНИКИ</string>
@@ -25,7 +25,7 @@
     <!-- Окно авторизации -->
     <string name="login_fragment_login_hint_text">Логин или e-mail</string>
     <string name="login_fragment_login_button_text">Войти</string>
-    <string name="authorize_failed_message_text">Не удалось авторизоваться под текущим именем пользователя</string>
+    <string name="authorize_failed_message_text">Ошибка авторизации. Проверьте подключение к Интернет и введенные данные.</string>
     <string name="authorize_process_message_text">Авторизация, пожалуйста, подождите...</string>
     
     <!-- Окно списка задач -->
@@ -33,7 +33,40 @@
     <string name="myjob_fragment_header_date_text">Срок</string>
     <string name="myjob_fragment_listitem_attachment_text" formatted="false">Вложения: %s</string>
     <string name="myjob_fragment_listitem_subtask_text" formatted="false">Подзадач: %s</string>
+    <string name="myjob_fragment_sort_state_text">Невыполненные</string>
+    <string name="myjob_fragment_sort_readed_text">Новые</string>
+    <string name="myjob_fragment_sort_date_text">Срок</string>
+    <string name="myjob_fragment_sort_title_text">Название</string>
     
+    <string name="myjob_fragment_listitem_property_text" formatted="false">Дата\u00A0начала:\u00A0%s, Инициатор:\u00A0%s</string>
+    
+    <!-- Окно карточка задания (Job)-->
+    <string name="job_detail_fragment_actions_text">Выполнить</string>
+    <string name="job_detail_fragment_subtask_text">Подзадача</string>
+    <string name="job_detail_fragment_property_text" formatted="false">Инициатор:\u00A0%s, Создана:\u00A0%s, Изменена:\u00A0%s</string>
+    
+    <string name="job_detail_fragment_performer_text">Исполнитель</string>
+    <string name="job_detail_fragment_date_text">Срок</string>
+    <string name="job_detail_fragment_state_text">Состояние</string>
+    <string name="job_detail_fragment_importance_text">Важность</string>
+    <string name="job_detail_fragment_flag_text">Флаг</string>
+    <string name="job_detail_fragment_documents_text">Документов</string>
+    <string name="job_detail_fragment_startdate_text">Начало</string>
+    <string name="job_detail_fragment_documentslist_text">Документы:</string>
+    <string name="job_detail_fragment_comment_text">Комментарий:</string>
+    <string name="job_detail_fragment_history_text">История:</string>
+    
+    
+    
+    <!-- Окно списка документов -->
+    <string name="documents_fragment_header_title_text">Название</string>
+    <string name="documents_fragment_header_date_text">Изменено</string>
+    <string name="documents_fragment_listitem_attachment_text" formatted="false">Автор:\u00A0%s, Дата\u00A0создания:\u00A0%s, Версия:\u00A0%s, Расширение:\u00A0%s</string>
+    
+    <string name="documents_fragment_sort_date_text">Дата</string>
+    <string name="documents_fragment_sort_title_text">Название</string>
+    <string name="documents_fragment_sort_author_text">Автор</string>
+    <string name="documents_fragment_sort_type_text">Тип</string>
     
     <!-- Тексты ProgressDialog -->
     <string name="task_loading_data_text">Загрузка данных, пожалуйста, подождите..</string>

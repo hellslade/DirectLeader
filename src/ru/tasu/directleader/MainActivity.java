@@ -1,9 +1,6 @@
 package ru.tasu.directleader;
 
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,6 +11,7 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -102,6 +100,8 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
 //            new UpdateDBRabotnicAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
 //            new UpdateDBTaskAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
         }
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+        Log.v(TAG, "metrics.density " + metrics.density);
     }
 
     @Override
@@ -141,8 +141,17 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
     }
     @Override
     public void OnOpenFragment(String fragmentClassName) {
+        OnOpenFragment(fragmentClassName, null);
+//        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+//        Fragment fragment = Fragment.instantiate(this, fragmentClassName);
+//        transaction.replace(R.id.container, fragment);
+//        transaction.addToBackStack(null);
+//        transaction.commit();
+    }
+    @Override
+    public void OnOpenFragment(String fragmentClassName, Bundle args) {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        Fragment fragment = Fragment.instantiate(this, fragmentClassName);
+        Fragment fragment = Fragment.instantiate(this, fragmentClassName, args);
         transaction.replace(R.id.container, fragment);
         transaction.addToBackStack(null);
         transaction.commit();

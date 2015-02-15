@@ -1,5 +1,6 @@
 package ru.tasu.directleader;
 
+import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -9,7 +10,7 @@ import android.util.Log;
 public class Utils {
     private static final String TAG = "Utils";
     
-    public static final Locale mLocale = Locale.US;
+    public static final Locale mLocale = new Locale("ru","RU");;
     
     private static String reverseString(String s) {
         String newString = "";
@@ -52,5 +53,10 @@ public class Utils {
 
         return cal;                                  // return the date part
     }
-    
+    public static String formatFileSize(long size) {
+        if(size <= 0) return "0";
+        final String[] units = new String[] { "ב", "ךב", "לב", "דב", "עב" };
+        int digitGroups = (int) (Math.log10(size)/Math.log10(1024));
+        return new DecimalFormat("#,##0.#").format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+    }
 }

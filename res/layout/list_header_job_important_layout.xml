@@ -17,21 +17,14 @@
             android:id="@+id/statusImportance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/icon_task_ex"
+            android:src="@drawable/ic_important_task"
             android:visibility="invisible"
             />
         <ImageView
-            android:id="@+id/statusIcon2"
+            android:id="@+id/statusReaded"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/icon_circle_task_orange"
-            android:visibility="invisible"
-            />
-        <ImageView
-            android:id="@+id/statusIcon3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/icon_circle_task_alarm"
+            android:src="@drawable/ic_task_readed_orange"
             android:visibility="invisible"
             />
     </LinearLayout>

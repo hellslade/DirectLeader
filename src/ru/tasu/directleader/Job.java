@@ -29,10 +29,12 @@ private static final String TAG = "Job";
     private boolean _state;
     private String _state_title;
     private String _subject;
-    private Rabotnic _user; // ИСполнитель задания 
+    private Rabotnic _user; // Исполнитель задания
+    private Rabotnic _author; // Исполнитель задания
     // Служебные поля, незаписываемые в БД
     private int _attachment_count = 0;
     private int _subtask_count = 0;
+    private String _importance;
     
     /*
     {
@@ -92,8 +94,10 @@ private static final String TAG = "Job";
         this._state_title = in.readString();
         this._subject = in.readString();
         this._user = in.readParcelable(Rabotnic.class.getClassLoader());
+        this._author = in.readParcelable(Rabotnic.class.getClassLoader());
         this._attachment_count = in.readInt();
         this._subtask_count = in.readInt();
+        this._importance = in.readString();
     }
     public void updateData(JSONObject data) {
         this._action_list = data.optJSONArray("ActionList");
@@ -120,7 +124,7 @@ private static final String TAG = "Job";
             SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
             try {
                 Date deadline = format.parse(this._end_date);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("dd/MM/yyyy");
+                SimpleDateFormat formatOutput =  new SimpleDateFormat("yyyy-MM-dd");
                 return  formatOutput.format(deadline);
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -138,7 +142,7 @@ private static final String TAG = "Job";
             SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
             try {
                 Date deadline = format.parse(this._final_date);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("dd/MM/yyyy");
+                SimpleDateFormat formatOutput =  new SimpleDateFormat("yyyy-MM-dd");
                 return  formatOutput.format(deadline);
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -171,7 +175,7 @@ private static final String TAG = "Job";
             SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
             try {
                 Date deadline = format.parse(this._start_date);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("dd/MM/yyyy");
+                SimpleDateFormat formatOutput =  new SimpleDateFormat("yyyy-MM-dd");
                 return  formatOutput.format(deadline);
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -249,6 +253,18 @@ private static final String TAG = "Job";
     public void setUser(Rabotnic user) {
         this._user = user;
     }
+    public Rabotnic getAuthor() {
+        return this._author;
+    }
+    public void setAuthor(Rabotnic author) {
+        this._author = author;
+    }
+    public void setImportance(String importance) {
+        this._importance = importance;
+    }
+    public String getImportance() {
+        return this._importance;
+    }
     
     public static final Parcelable.Creator<Job> CREATOR = new Parcelable.Creator<Job>() {
 
@@ -279,7 +295,9 @@ private static final String TAG = "Job";
         parcel.writeString(this._state_title);
         parcel.writeString(this._subject);
         parcel.writeParcelable(this._user, flags);
+        parcel.writeParcelable(this._author, flags);
         parcel.writeInt(this._attachment_count);
         parcel.writeInt(this._subtask_count);
+        parcel.writeString(this._importance);
     }
 }

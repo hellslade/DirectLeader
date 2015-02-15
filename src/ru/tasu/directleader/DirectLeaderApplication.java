@@ -149,7 +149,7 @@ public class DirectLeaderApplication extends Application {
         String url = GET_CHECK_AUTH;
         HttpResponse response = sendAuthorizeData(url);
         if (response == null) {
-            return null;
+            return new JSONObject();
         }
         // Обработка ответа
         JSONObject data = new JSONObject();
@@ -251,7 +251,9 @@ public class DirectLeaderApplication extends Application {
      * @return HttpResponse
      */
     private HttpResponse sendAuthorizeData(String url) {
-        // TODO: Добавить проверку на наличие интернета
+        if (!isOnline()) {
+            return null;
+        }
         Log.v(TAG, url);
         HttpClient httpclient = new DefaultHttpClient();
         HttpGet httpquery = new HttpGet(url);
