@@ -54,7 +54,7 @@ public class DirectLeaderApplication extends Application {
     private static final String GET_EXPORT_DOCUMENT = DIRECTLEADER_SERVICE + "/ExportDocument?docId=%s"; //?docId={DOCID}
     private static final String GET_CLIENT_SETTINGS = DIRECTLEADER_SERVICE + "/GetClientSettings";
     private static final String GET_DOC_IMGS = DIRECTLEADER_SERVICE + "/GetDocImgs?docId=%s"; //?docId={DOCID}
-    private static final String GET_DOCUMENT = DIRECTLEADER_SERVICE + "/GetDocument?docId=%s"; //?docId={DOCID}
+    public static final String GET_DOCUMENT = DIRECTLEADER_SERVICE + "/GetDocument?docId=%s"; //?docId={DOCID}
     private static final String GET_HEADER_INFO = DIRECTLEADER_SERVICE + "/GetHeaderInfo";
     private static final String GET_MY_TASKS = DIRECTLEADER_SERVICE + "/GetMyTasks"; //?lastSyncDate={LASTSYNCDATE}&onlyInput={ONLYINPUT}&onlyMyJobs={ONLYMYJOBS}
     private static final String GET_RABOTNIC = DIRECTLEADER_SERVICE + "/GetRabotnic"; //?lastSyncDate={LASTSYNCDATE}&podr={PODR}
@@ -130,6 +130,31 @@ public class DirectLeaderApplication extends Application {
         }
         Log.v(TAG, "userName " + mUserName);
         return mUserName;
+    }
+    
+    /**
+     * Вернет путь к каталогу переданного атачмента
+     * 
+     * Хранение документа осуществляется по пути
+     * ApplicationCacheDir/task_id/doc_id/version/
+     */
+    public String getDocumentPath(Attachment doc) {
+        return String.format("%s/%s/%s/%s", getApplicationCacheDir(this), doc.getTaskId(), doc.getId(), doc.getVersion());
+    }
+    public String normalizeFilename(String name) {
+        return name.replace("/", "").replace("#", "");
+    }
+    /**
+     * Проверить, есть ли документ текущей версии в файловой системе
+     * @param doc
+     * @return
+     */
+    public boolean checkDocumentExist(Attachment doc) {
+        String dirPath = getDocumentPath(doc);
+        // ИмяФайла состоит из ID документа. Потому что возможны длинные имена файлов со спец.символами
+        String filename = String.format("%s.%s", normalizeFilename(doc.getName()), doc.getExt());
+        File path = new File(dirPath, filename);
+        return path.exists();
     }
     
     /**

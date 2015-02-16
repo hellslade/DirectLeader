@@ -1,8 +1,13 @@
 package ru.tasu.directleader;
 
+import java.io.File;
+import java.io.IOException;
+
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -240,8 +245,30 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
             // Загрузка и открытие документа.
             Attachment doc = (Attachment)v.getTag();
             Log.v(TAG, "documentClickListener " + doc.getName());
+            boolean exist = mDirect.checkDocumentExist(doc);
+            Log.v(TAG, "doc exist " + exist);
+            if (exist) {
+                Log.v(TAG, "open document");
+                File fileFolder = new File(mDirect.getDocumentPath(doc));
+                String filename = mDirect.normalizeFilename(doc.getName());
+                File myFile = new File(fileFolder, String.format("%s.%s", filename, doc.getExt()));
+                try {
+                    FileOpen.openFile(getActivity(), myFile);
+                } catch (IOException e) {
+                    Log.v(TAG, "Неудалось открыть документ " + e.getMessage());
+//                    e.printStackTrace();
+                }
+            } else {
+                showDownloadDialog(doc);
+            }
         }
     };
+    private void showDownloadDialog(Attachment doc) {
+        Log.v(TAG, "showDownloadDialog " + doc.getName());
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        DialogFragment newFragment = DocumentDownloadDialogFragment.newInstance(doc);
+        newFragment.show(ft, "download_dialog");
+    }
     @Override
     public void onClick(View v) {
         if (mListener != null) {

@@ -26,6 +26,7 @@ public class AuthorizeFragment extends Fragment implements OnClickListener {
             super.onPreExecute();
             pg = new ProgressDialog(getActivity(), ProgressDialog.THEME_HOLO_LIGHT);
             pg.setMessage(getResources().getString(R.string.authorize_process_message_text));
+            pg.setCancelable(false);
             pg.show();
         };
         @Override

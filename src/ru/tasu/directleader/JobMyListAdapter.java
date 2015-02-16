@@ -76,7 +76,7 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
     	String propertyText = String.format(activity.getResources().getString(R.string.myjob_fragment_listitem_property_text), job.getStartDate(true), job.getUser().getName());
         
     	titleTextView.setText(job.getSubject());
-    	dateTextView.setText(job.getEndDate(true));
+    	dateTextView.setText(job.getFinalDate(true));
     	propertyTextView.setText(propertyText);
         
         if (job.getImportance().equalsIgnoreCase("Высокая")) {

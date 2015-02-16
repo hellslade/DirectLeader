@@ -56,6 +56,14 @@
     <string name="job_detail_fragment_comment_text">Комментарий:</string>
     <string name="job_detail_fragment_history_text">История:</string>
     
+    <!-- Окно диалог загрузки документа -->
+    <string name="document_download_fragment_title_text">Документ отсутствует на устройстве.\nЗагрузить документ?</string>
+    <string name="document_download_fragment_button_yes_text">Да</string>
+    <string name="document_download_fragment_button_no_text">Нет</string>
+    <string name="document_download_fragment_button_cancel_text">Отмена</string>
+    <string name="document_download_fragment_button_restart_text">Повторить</string>
+    <string name="document_download_fragment_failed_text">Ошибка при загрузке файла</string>
+    <string name="document_download_fragment_success_text">Файл загружен</string>
     
     
     <!-- Окно списка документов -->
