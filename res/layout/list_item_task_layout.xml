@@ -71,8 +71,18 @@
             android:id="@+id/attachmentIcon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
+            android:paddingLeft="10dp"
+            android:paddingTop="10dp"
+            android:paddingRight="5dp"
             android:src="@drawable/ic_attachment"
+            />
+        <ImageView
+            android:id="@+id/discussionIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:paddingRight="10dp"
+            android:src="@drawable/ic_discussion_orange"
             />
         <TextView
             android:id="@+id/dateTextView"

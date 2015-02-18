@@ -1,0 +1,183 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="0dp"
+    android:background="@drawable/main_background"
+    tools:context="ru.tasu.directleader.TaskDetailFragment"
+    xmlns:app="http://schemas.android.com/apk/res/ru.tasu.directleader">
+
+    <include layout="@layout/top_bar_layout" android:id="@+id/topBarLayout"/>
+    
+    <LinearLayout
+        android:id="@+id/topShadowLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/top_shadow"
+        android:layout_below="@id/topBarLayout"
+        android:orientation="horizontal">
+        
+    </LinearLayout>
+    <RelativeLayout
+        android:id="@+id/buttonsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:minHeight="50dp"
+        android:gravity="center_vertical"
+        android:layout_below="@id/topBarLayout"
+        >
+        <Button
+            android:id="@+id/actionsView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_transparent_selector"
+            android:text="@string/task_detail_fragment_actions_text"
+            android:textColor="@color/white"
+            android:textSize="@dimen/textSizeCaptionMedium"
+            android:padding="10dp"
+            android:layout_marginRight="20dp"
+            />
+    </RelativeLayout>
+    
+    <ScrollView 
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/buttonsLayout"
+        android:fillViewport="true">
+        <LinearLayout 
+            
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="0dp"
+            android:background="@drawable/paper_background"
+            >
+            
+            <RelativeLayout
+                android:id="@+id/propertyLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="30dp"
+                android:paddingRight="30dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp"
+                >
+                <ImageView
+                    android:id="@+id/taskImageVIew"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_task" 
+                    android:layout_marginRight="20dp"
+                    />
+                <LinearLayout
+                    android:id="@+id/iconsLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" 
+                    android:layout_toRightOf="@id/taskImageVIew"
+                    >
+                    <ImageView 
+                        android:id="@+id/importanceView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_importance"
+                        />
+                    <ImageView 
+                        android:id="@+id/flagView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_flag"
+                        />
+                    <ImageView 
+                        android:id="@+id/attachmentView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_attachment"
+                        />
+                    <ImageView 
+                        android:id="@+id/discussionView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_discussion_orange"
+                        />
+                    <!-- Еще иконки -->
+                    <TextView
+                        android:id="@+id/propertyTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/task_detail_fragment_property_text"
+                        android:layout_marginLeft="10dp"
+                        android:textColor="@color/gray80"
+                        />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/taskTitleTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@id/taskImageVIew"
+                    android:layout_below="@id/iconsLayout"
+                    android:text="Наименование задачи"
+                    />
+            </RelativeLayout>
+            
+            <include android:id="@+id/detailLayout" layout="@layout/task_detail_layout"/>
+            
+            <TextView 
+                android:id="@+id/performersListLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp"
+                android:text="@string/task_detail_fragment_performerslist_text"
+                android:textColor="@color/gray80"/>
+            <LinearLayout 
+                android:id="@+id/performersLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/white">
+            </LinearLayout>
+            
+            <TextView 
+                android:id="@+id/documentsListLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp"
+                android:text="@string/task_detail_fragment_documentslist_text"
+                android:textColor="@color/gray80"/>
+            <LinearLayout 
+                android:id="@+id/documentsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/white">
+            </LinearLayout>
+            
+            <TextView 
+                android:id="@+id/historiesLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp"
+                android:text="@string/task_detail_fragment_history_text"
+                android:textColor="@color/gray80"/>
+            <LinearLayout 
+                android:id="@+id/historiesLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/white">
+            </LinearLayout>
+            
+            
+            
+        </LinearLayout>
+    </ScrollView>    
+        
+</RelativeLayout>

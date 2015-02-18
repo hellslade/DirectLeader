@@ -79,11 +79,15 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         @Override
         protected void onPostExecute(JSONObject result) {
             super.onPostExecute(result);
+            MainFragment fragment = (MainFragment)getFragmentManager().findFragmentByTag("main_fragment");
+            if (fragment != null) {
+                ((OnUpdateDataListener)fragment).OnUpdateData();
+            }
         }
     }
     
     private static DirectLeaderApplication mDirect;
-    private List<Task> mMyTasks;
+//    private List<Task> mMyTasks;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,12 +127,6 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         return super.onOptionsItemSelected(item);
     }
 
-    private void openFragment(Fragment fragment) {
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.container, fragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
     @Override
     public void OnLogin() {
         startMainMenuFragment();
@@ -136,17 +134,12 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
     private void startMainMenuFragment() {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         Fragment fragment = Fragment.instantiate(this, MainFragment.class.getName());
-        transaction.replace(R.id.container, fragment);
+        transaction.replace(R.id.container, fragment, "main_fragment");
         transaction.commit();
     }
     @Override
     public void OnOpenFragment(String fragmentClassName) {
         OnOpenFragment(fragmentClassName, null);
-//        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-//        Fragment fragment = Fragment.instantiate(this, fragmentClassName);
-//        transaction.replace(R.id.container, fragment);
-//        transaction.addToBackStack(null);
-//        transaction.commit();
     }
     @Override
     public void OnOpenFragment(String fragmentClassName, Bundle args) {
@@ -156,7 +149,9 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         transaction.addToBackStack(null);
         transaction.commit();
     }
-    public List<Task> getMyTasks() {
-        return mMyTasks;
+    @Override
+    public void OnRefreshData() {
+      new UpdateDBRabotnicAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
+      new UpdateDBTaskAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
     }
 }

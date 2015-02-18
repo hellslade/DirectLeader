@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -15,6 +16,8 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.util.Base64;
+import android.util.Base64InputStream;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -72,6 +75,7 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
         @Override
         protected String doInBackground(String... sUrl) {
             InputStream input = null;
+            Base64InputStream binput = null;
             OutputStream output = null;
             HttpURLConnection connection = null;
             try {
@@ -92,12 +96,13 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
 
                 // download the file
                 input = connection.getInputStream();
+                binput = new Base64InputStream(input, 0);
                 output = new FileOutputStream(fileOutputPath);
-
+//                boutput = new Base64OutputStream(output, Base64.NO_WRAP);
                 byte data[] = new byte[4096];
                 long total = 0;
                 int count;
-                while ((count = input.read(data)) != -1) {
+                while ((count = binput.read(data)) != -1) {
                     // allow canceling with back button
                     if (isCancelled()) {
                         input.close();
@@ -113,6 +118,8 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
                 return e.toString();
             } finally {
                 try {
+                    if (binput != null)
+                        binput.close();
                     if (output != null)
                         output.close();
                     if (input != null)
@@ -258,6 +265,7 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
                         Log.v(TAG, "Не удалось создать файл");
                         e.printStackTrace();
                     }
+                    // */
                     break;
                 case R.id.buttonNo:
                     Log.v(TAG, "No");

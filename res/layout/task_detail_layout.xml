@@ -5,54 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@color/white">
-    <!-- Строка Исполнитель -->
-    <RelativeLayout 
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="15dp"
-        android:background="@drawable/listview_back_selector"
-        >
-        <ImageView 
-            android:id="@+id/performerIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
-            android:layout_marginRight="30dp"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_performer"/>
-        <TextView 
-            android:id="@+id/performerLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/performerIcon"
-            android:layout_centerVertical="true"
-            android:text="@string/job_detail_fragment_performer_text"/>
-        <TextView 
-            android:id="@+id/performerTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="30dp"
-            android:layout_toRightOf="@id/performerLabel"
-            android:layout_toLeftOf="@+id/disclosureIcon1"
-            android:gravity="right"
-            android:layout_centerVertical="true"
-            android:text="Иванов Иван Иванович"/>
-        <ImageView 
-            android:id="@id/disclosureIcon1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="30dp"
-            android:layout_marginRight="15dp"
-            android:layout_centerVertical="true"
-            android:layout_alignParentRight="true"
-            android:visibility="invisible"
-            android:src="@drawable/ic_disclosure_grey"/>
-    </RelativeLayout>
-    <View 
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/gray80"
-        android:layout_marginLeft="20dp"/>
+    
     <!-- Строка Срок -->
     <RelativeLayout 
         android:layout_width="match_parent"
@@ -293,7 +246,8 @@
         android:layout_height="1dp"
         android:background="@color/gray80"
         android:layout_marginLeft="20dp"/>
-    <!-- Строка Начало -->
+    
+    <!-- Строка Заданий -->
     <RelativeLayout 
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -301,32 +255,128 @@
         android:background="@drawable/listview_back_selector"
         >
         <ImageView 
-            android:id="@+id/startDateIcon"
+            android:id="@+id/jobsIcon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="30dp"
             android:layout_centerVertical="true"
-            android:src="@drawable/ic_calendar_gray"/>
+            android:src="@drawable/ic_jobs_orange"/>
         <TextView 
-            android:id="@+id/startDateLabel"
+            android:id="@+id/jobsLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/startDateIcon"
+            android:layout_toRightOf="@id/jobsIcon"
             android:layout_centerVertical="true"
-            android:text="@string/job_detail_fragment_startdate_text"/>
+            android:text="@string/task_detail_fragment_jobs_text"/>
         <TextView 
-            android:id="@+id/startDateTextView"
+            android:id="@+id/jobsTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="30dp"
-            android:layout_toRightOf="@id/startDateLabel"
+            android:layout_toRightOf="@id/jobsLabel"
             android:layout_toLeftOf="@+id/disclosureIcon7"
             android:gravity="right"
             android:layout_centerVertical="true"
-            android:text="2015-02-15"/>
+            android:text="15"/>
         <ImageView 
             android:id="@id/disclosureIcon7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="15dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_disclosure_grey"/>
+    </RelativeLayout>
+    <View 
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray80"
+        android:layout_marginLeft="20dp"/>
+    
+    <!-- Строка Подзадач -->
+    <RelativeLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="15dp"
+        android:background="@drawable/listview_back_selector"
+        >
+        <ImageView 
+            android:id="@+id/subtasksIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="30dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_jobs_orange"/>
+        <TextView 
+            android:id="@+id/subtasksLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/subtasksIcon"
+            android:layout_centerVertical="true"
+            android:text="@string/task_detail_fragment_subtasks_text"/>
+        <TextView 
+            android:id="@+id/subtasksTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_toRightOf="@id/subtasksLabel"
+            android:layout_toLeftOf="@+id/disclosureIcon8"
+            android:gravity="right"
+            android:layout_centerVertical="true"
+            android:text="3"/>
+        <ImageView 
+            android:id="@id/disclosureIcon8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="15dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_disclosure_grey"/>
+    </RelativeLayout>
+    <View 
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray80"
+        android:layout_marginLeft="20dp"/>
+    
+    <!-- Строка Комментариев -->
+    <RelativeLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="15dp"
+        android:background="@drawable/listview_back_selector"
+        >
+        <ImageView 
+            android:id="@+id/commentsIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="30dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_discussion_orange"/>
+        <TextView 
+            android:id="@+id/commentsLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/commentsIcon"
+            android:layout_centerVertical="true"
+            android:text="@string/task_detail_fragment_comments_text"/>
+        <TextView 
+            android:id="@+id/commentsTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_toRightOf="@id/commentsLabel"
+            android:layout_toLeftOf="@+id/disclosureIcon9"
+            android:gravity="right"
+            android:layout_centerVertical="true"
+            android:text="6"/>
+        <ImageView 
+            android:id="@id/disclosureIcon9"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="30dp"

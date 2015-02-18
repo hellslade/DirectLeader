@@ -32,22 +32,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/button_transparent_selector"
-            android:text="Выполнить"
+            android:text="@string/task_detail_fragment_actions_text"
             android:textColor="@color/white"
             android:textSize="@dimen/textSizeCaptionMedium"
             android:padding="10dp"
             android:layout_marginRight="40dp"
-            />
-        <Button
-            android:id="@+id/subtaskView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/button_transparent_selector"
-            android:text="Подзадача"
-            android:layout_toRightOf="@id/actionsView"
-            android:textColor="@color/white"
-            android:textSize="@dimen/textSizeCaptionMedium"
-            android:padding="10dp"
             />
     </RelativeLayout>
     <ScrollView 
@@ -105,12 +94,6 @@
 	                    android:layout_height="wrap_content"
 	                    android:src="@drawable/ic_attachment"
 	                    />
-	                <ImageView 
-                        android:id="@+id/discussionView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/ic_discussion_orange"
-                        />
 	                <!-- Еще иконки -->
 	                <TextView
 	                    android:id="@+id/propertyTextView"
@@ -131,8 +114,25 @@
 	                />
 	        </RelativeLayout>
 	        
-	        <include android:id="@+id/detailLayout" layout="@layout/job_detail_layout"/>
+	        <include android:id="@+id/detailLayout" layout="@layout/task_detail_layout"/>
 	        
+	        <TextView 
+                android:id="@+id/performersListLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp"
+                android:text="@string/task_detail_fragment_performerslist_text"
+                android:textColor="@color/gray80"/>
+            <LinearLayout 
+                android:id="@+id/performersLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/white">
+            </LinearLayout>
+            
 	        <TextView 
 	            android:id="@+id/documentsListLabel"
 	            android:layout_width="wrap_content"
@@ -148,31 +148,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:background="@color/white">
-            </LinearLayout>
-	        
-	        <TextView 
-                android:id="@+id/commentLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="30dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="10dp"
-                android:text="@string/job_detail_fragment_comment_text"
-                android:textColor="@color/gray80"/>
-	        <LinearLayout 
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@color/white">
-		        <EditText
-		            android:id="@+id/commentEditText"
-		            android:layout_width="match_parent"
-		            android:layout_height="wrap_content" 
-		            android:lines="5"
-		            android:gravity="top"
-		            android:layout_margin="10dp"
-		            android:background="@drawable/edittext_background_rounded"
-		            />
             </LinearLayout>
 	        
 	        <TextView 

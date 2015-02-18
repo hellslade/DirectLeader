@@ -67,6 +67,8 @@ public class Task implements Parcelable {
     private long[] _subtask_ids;
     private String _title;
     private Rabotnic _author;
+    private int _attachment_count;
+    private int _history_count;
 //    private ?? _user_status; // непонятная херня
     
     public Task(JSONObject json) {
@@ -156,6 +158,8 @@ public class Task implements Parcelable {
         this._state = in.readString();
         this._title = in.readString();
         this._author = in.readParcelable(Rabotnic.class.getClassLoader());
+        this._attachment_count = in.readInt();
+        this._history_count = in.readInt();
         
         int len = in.readInt(); // Сначала читаем длину списка 
         this._attachments = new Attachment[len];
@@ -415,6 +419,18 @@ public class Task implements Parcelable {
         }
         return false;
     }
+    public void setAttachmentCount(int count) {
+        this._attachment_count = count;
+    }
+    public void setHistoryCount(int count) {
+        this._history_count = count;
+    }
+    public int getAttachmentCount() {
+        return this._attachment_count;
+    }
+    public int getHistoryCount() {
+        return this._history_count;
+    }
     
     public static final Parcelable.Creator<Task> CREATOR = new Parcelable.Creator<Task>() {
 
@@ -443,6 +459,8 @@ public class Task implements Parcelable {
         parcel.writeString(this._state);
         parcel.writeString(_title);
         parcel.writeParcelable(this._author, flags);
+        parcel.writeInt(this._attachment_count);
+        parcel.writeInt(this._history_count);
         
         parcel.writeInt(this._attachments.length); // Длина списка. Нужно чтобы потом создать правильной длины список
         parcel.writeTypedArray(this._attachments, flags);

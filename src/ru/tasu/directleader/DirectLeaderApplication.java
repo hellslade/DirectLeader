@@ -270,6 +270,34 @@ public class DirectLeaderApplication extends Application {
         return data;
     }
     
+    public String downloadDocument(Attachment doc) {
+        String file = "";
+        String url = String.format(GET_DOCUMENT, doc.getId());
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpGet httpquery = new HttpGet(url);
+        HttpResponse result = null;
+        try {
+            //sets a request header so the page receving the request
+            //will know what to do with it
+            // Обязательные заголовки
+            // При checkAuth заголовки не передавать, иначе 400 Bad Request
+            httpquery.setHeader(mQUERY_UdidKey, getDeviceId());
+//            httpquery.setHeader(mQUERY_UserName, getUserCode());
+//            httpquery.setHeader(mQUERY_Password, "");
+//            httpquery.setHeader(mQUERY_Domain, "");
+            
+            result = httpclient.execute(httpquery);
+            file = ReadResponse(result);
+        } catch (ClientProtocolException e) {
+            Log.v(TAG, "ClientProtocolException " + e.getLocalizedMessage());
+        } catch (IOException e) {
+            Log.v(TAG, "IOException " + e.getLocalizedMessage());
+        }
+        httpclient = null;
+        httpquery = null;
+        return file;
+    }
+    
     /**
      * Отправка данных методом GET
      * @param url Строка адреса

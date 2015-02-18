@@ -30,10 +30,10 @@ import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class JobDetailFragment extends Fragment implements OnClickListener {
-    private static final String TAG = "JobDetailFragment";
+public class TaskDetailFragment extends Fragment implements OnClickListener {
+    private static final String TAG = "TaskDetailFragment";
     
-    class GetJobAsyncTask extends AsyncTask<Void, Void, Job> {
+    class GetJobsAsyncTask extends AsyncTask<Void, Void, Job[]> {
         ProgressDialog pg;
         protected void onPreExecute() {
             super.onPreExecute();
@@ -42,19 +42,35 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
             pg.show();
         };
         @Override
-        protected Job doInBackground(Void... params) {
+        protected Job[] doInBackground(Void... params) {
             JobDataSource jds = new JobDataSource(mDirect);
             jds.open();
-            Job job = jds.getJobById(mJob.getId());
+            Job[] jobs = jds.getJobsByTaskId(mTask.getId());
             jds.close();
-            return job;
+            return jobs;
         }
         @Override
-        protected void onPostExecute(Job result) {
+        protected void onPostExecute(Job[] jobs) {
             if (pg != null) {
                 pg.dismiss();
             }
-            super.onPostExecute(result);
+            jobsTextView.setText(String.valueOf(jobs.length));
+            
+            // Исполнители
+            for (Job j : jobs) {
+                final RelativeLayout itemLayout = (RelativeLayout) getActivity().getLayoutInflater().inflate(R.layout.performer_item_layout, null);
+                final TextView performerNameTextView = (TextView) itemLayout.findViewById(R.id.performerNameTextView);
+                
+                performerNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+                performerNameTextView.setText(j.getUser().getName());
+                itemLayout.setTag(j);
+//                itemLayout.setOnClickListener(performerClickListener);
+                performersLayout.addView(itemLayout);
+            }
+            if (jobs.length == 0) {
+                performersLayout.setVisibility(View.GONE);
+            }
+            super.onPostExecute(jobs);
         }
     }
     class GetDocumentsAsyncTask extends AsyncTask<Void, Void, Attachment[]> {
@@ -62,7 +78,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         protected Attachment[] doInBackground(Void... params) {
             AttachmentDataSource ds = new AttachmentDataSource(mDirect);
             ds.open();
-            return ds.getAttachmentsByTaskId(mJob.getMainTaskJob());
+            return ds.getAttachmentsByTaskId(mTask.getId());
         }
         @Override
         protected void onPostExecute(Attachment[] attachments) {
@@ -88,7 +104,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         protected History[] doInBackground(Void... params) {
             HistoryDataSource ds = new HistoryDataSource(mDirect);
             ds.open();
-            return ds.getHistoriesByTaskId(mJob.getMainTaskJob());
+            return ds.getHistoriesByTaskId(mTask.getId());
         }
         @Override
         protected void onPostExecute(History[] histories) {
@@ -118,6 +134,8 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
             if (histories.length == 0) {
                 historiesLayout.setVisibility(View.GONE);
             }
+            
+            commentsTextView.setText(String.valueOf(histories.length));
         }
     }
     //*/
@@ -126,23 +144,21 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
     private static DirectLeaderApplication mDirect;
     private OnOpenFragmentListener mListener;
     
-    public static final String JOB_KEY = "job_key";
-    private Job mJob= null;
+    public static final String TASK_KEY = "task_key";
+    private Task mTask= null;
     
-    private Button actionsView, subtaskView;
+    private Button actionsView;
     private TextView taskTitleTextView, propertyTextView;
     // 
-    private TextView performerTextView, dateTextView, stateTextView, importanceTextView, flagTextView, documentsTextView, startDateTextView;
+    private TextView dateTextView, stateTextView, importanceTextView, flagTextView, documentsTextView, jobsTextView, subtasksTextView, commentsTextView;
     
-    private TextView documentsListLabel, historiesLabel;
-    private LinearLayout documentsLayout, historiesLayout;
-    
-    private EditText commentEditText;
+    private TextView documentsListLabel, historiesLabel, performersListLabel;
+    private LinearLayout documentsLayout, historiesLayout, performersLayout;
     
     private ImageView importanceView, attachmentView;
     
     public static Fragment newInstance(Bundle args) {  // must pass some args
-        JobDetailFragment f = new JobDetailFragment();
+        TaskDetailFragment f = new TaskDetailFragment();
         f.setArguments(args);
         return f;
     }
@@ -154,7 +170,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_job_detail, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_task_detail, container, false);
         
         ((ImageView)rootView.findViewById(R.id.homeImageView)).setOnClickListener(new OnClickListener() {
             @Override
@@ -166,14 +182,13 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         });
         
         Bundle args = getArguments();
-        mJob = args.getParcelable(JOB_KEY);
-        if (mJob == null) {
+        mTask = args.getParcelable(TASK_KEY);
+        if (mTask == null) {
             // Закрыть фрагмент?
         }
-        Log.v(TAG, "mJob " + mJob.getStartDate());
+        Log.v(TAG, "mTask " + mTask.getCreated(true));
         
         actionsView = (Button)rootView.findViewById(R.id.actionsView);
-        subtaskView = (Button)rootView.findViewById(R.id.subtaskView);
         taskTitleTextView = (TextView)rootView.findViewById(R.id.taskTitleTextView);
         propertyTextView = (TextView)rootView.findViewById(R.id.propertyTextView);
         
@@ -184,32 +199,34 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         return rootView;
     }
     private void initViews(View v) {
-        ((TextView) v.findViewById(R.id.performerLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.dateLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.stateLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.importanceLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.flagLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.documentsLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        ((TextView) v.findViewById(R.id.startDateLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        ((TextView) v.findViewById(R.id.commentLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        //((TextView) v.findViewById(R.id.jobsLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        ((TextView) v.findViewById(R.id.subtasksLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        ((TextView) v.findViewById(R.id.commentsLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         
         documentsListLabel = (TextView) v.findViewById(R.id.documentsListLabel);
-        documentsListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);;
+        documentsListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         historiesLabel = (TextView) v.findViewById(R.id.historiesLabel);
-        historiesLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);;
+        historiesLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        performersListLabel = (TextView) v.findViewById(R.id.performersListLabel);
+        performersListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         
-        performerTextView = (TextView) v.findViewById(R.id.performerTextView);
         dateTextView = (TextView) v.findViewById(R.id.dateTextView);
         stateTextView = (TextView) v.findViewById(R.id.stateTextView);
         importanceTextView = (TextView) v.findViewById(R.id.importanceTextView);
         flagTextView = (TextView) v.findViewById(R.id.flagTextView);
         documentsTextView = (TextView) v.findViewById(R.id.documentsTextView);
-        startDateTextView = (TextView) v.findViewById(R.id.startDateTextView);
+        jobsTextView = (TextView) v.findViewById(R.id.jobsTextView);
+        subtasksTextView = (TextView) v.findViewById(R.id.subtasksTextView);
+        commentsTextView = (TextView) v.findViewById(R.id.commentsTextView);
         
         documentsLayout = (LinearLayout) v.findViewById(R.id.documentsLayout);
         historiesLayout = (LinearLayout) v.findViewById(R.id.historiesLayout);
-        
-        commentEditText = (EditText) v.findViewById(R.id.commentEditText);
+        performersLayout = (LinearLayout) v.findViewById(R.id.performersLayout);
         
         importanceView = (ImageView) v.findViewById(R.id.importanceView);
         attachmentView = (ImageView) v.findViewById(R.id.attachmentView);
@@ -218,32 +235,33 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
     }
     private void setFonts() {
         actionsView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        subtaskView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+//        subtaskView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         taskTitleTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
         propertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         
-        for (TextView tv : new TextView[]{performerTextView, dateTextView, stateTextView, importanceTextView,
-                flagTextView, documentsTextView, startDateTextView}) {
+        for (TextView tv : new TextView[]{dateTextView, stateTextView, importanceTextView,
+                flagTextView, documentsTextView, jobsTextView, subtasksTextView, commentsTextView}) {
             tv.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         }
-        commentEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     }
     private void updateData() {
-        taskTitleTextView.setText(mJob.getSubject());
-        String property = String.format(getResources().getString(R.string.job_detail_fragment_property_text), mJob.getAuthor().getName(), mJob.getStartDate(true), mJob.getFinalDate(true));
+        taskTitleTextView.setText(mTask.getTitle());
+        String property = String.format(getResources().getString(R.string.task_detail_fragment_property_text), mTask.getAuthor().getName(), mTask.getCreated(true), mTask.getDeadline(true));
         propertyTextView.setText(property);
         
-        performerTextView.setText(mJob.getUser().getName());
-        dateTextView.setText(mJob.getEndDate(true));
-        stateTextView.setText(mJob.getStateTitle());
-        importanceTextView.setText(mJob.getImportance());
+        dateTextView.setText(mTask.getDeadline(true));
+        stateTextView.setText(mTask.getState());
+        importanceTextView.setText(mTask.getImportance());
         flagTextView.setText("Что за нафиг флаг??");
-        documentsTextView.setText(String.valueOf(mJob.getAttachmentCount()));
-        startDateTextView.setText(mJob.getStartDate(true));
+        documentsTextView.setText(String.valueOf(mTask.getAttachmentCount()));
+        jobsTextView.setText("0");
+        subtasksTextView.setText(String.valueOf(mTask.getSubtaskCount()));
+        commentsTextView.setText("0");
         
-        importanceView.setVisibility(mJob.getImportance().equalsIgnoreCase("Высокая") ? View.VISIBLE : View.INVISIBLE);
-        attachmentView.setVisibility(mJob.getAttachmentCount() > 0 ? View.VISIBLE : View.INVISIBLE);
+        importanceView.setVisibility(mTask.getImportance().equalsIgnoreCase("Высокая") ? View.VISIBLE : View.INVISIBLE);
+        attachmentView.setVisibility(mTask.getAttachmentCount() > 0 ? View.VISIBLE : View.INVISIBLE);
         
+        new GetJobsAsyncTask().execute();
         new GetDocumentsAsyncTask().execute();
         new GetHistoriesAsyncTask().execute();
     }
@@ -254,7 +272,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
 //            menu.getMenu().add("titleRes");
             Menu menu = popup.getMenu();
             try {
-                JSONArray actions = new JSONArray(mJob.getActionList());
+                JSONArray actions = new JSONArray(mTask.getActionList());
                 for (int i=0; i<actions.length(); i++) {
                     final JSONObject action = actions.getJSONObject(i);
                     final String name = action.optString("Name");
@@ -269,19 +287,6 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
             popup.show();
         }
     };
-    private void initActions() {
-        try {
-            JSONArray actions = new JSONArray(mJob.getActionList());
-            for (int i=0; i<actions.length(); i++) {
-                final JSONObject action = actions.getJSONObject(i);
-                final String name = action.optString("Name");
-                final String title = action.optString("Title");
-                // Добавить в popupMenu
-            }
-        } catch (JSONException e) {
-            Log.v(TAG, "Ошибка при парсинге Actions " + e.getMessage());
-        }
-    }
     OnClickListener documentClickListener = new OnClickListener() {
         @Override
         public void onClick(View v) {

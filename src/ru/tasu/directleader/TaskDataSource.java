@@ -105,7 +105,8 @@ public class TaskDataSource {
         cursor.close();
         return task;
     }
-    public List<Task> getAllTasks() {
+    public List<Task> getAllTasksWithoutJobs() {
+        Log.v("TaskDataSource", "START getAllTasksWithoutJobs");
         List<Task> tasks = new ArrayList<Task>();
 
         Cursor cursor = database.query(DBHelper.TASK_TABLE,
@@ -115,18 +116,18 @@ public class TaskDataSource {
         Task task = null;
         AttachmentDataSource attachment_ds = new AttachmentDataSource(mContext);
         HistoryDataSource history_ds = new HistoryDataSource(mContext);
-        JobDataSource job_ds = new JobDataSource(mContext);
+//        JobDataSource job_ds = new JobDataSource(mContext);
         RabotnicDataSource rabotnic_ds = new RabotnicDataSource(mContext);
         attachment_ds.open();
         history_ds.open();
-        job_ds.open();
+//        job_ds.open();
         rabotnic_ds.open();
         while (!cursor.isAfterLast()) {
             task = cursorToTask(cursor);
             // Получить attachement, history, job для текущей task
             task.setAttachment(attachment_ds.getAttachmentsByTaskId(task.getId()));
             task.setHistory(history_ds.getHistoriesByTaskId(task.getId()));
-            task.setJob(job_ds.getJobsByTaskId(task.getId()));
+//            task.setJob(job_ds.getJobsByTaskId(task.getId()));
             // Получить автора задания
             task.setAuthor(rabotnic_ds.getRabotnicByCode(task.getAuthorCode()));
             tasks.add(task);
@@ -134,6 +135,37 @@ public class TaskDataSource {
         }
         // Make sure to close the cursor
         cursor.close();
+        Log.v("TaskDataSource", "END getAllTasksWithoutJobs");
+        return tasks;
+    }
+    public List<Task> getAllTasksWithoutJobsSQL() {
+        Log.v("TaskDataSource", "START getAllTasksWithoutJobsSQL");
+        List<Task> tasks = new ArrayList<Task>();
+
+        String sql = String.format("SELECT task.*, count(attachment.id) as a FROM " +
+        		"(SELECT task.*, count(history._id) as h FROM task LEFT OUTER JOIN history ON task.id=history.task_id GROUP BY (task.id)) as task " +
+        		"LEFT OUTER JOIN attachment ON task.id=attachment.task_id GROUP BY (task.id);", 
+                null);
+        
+        Cursor cursor = database.rawQuery(sql, null);
+
+        cursor.moveToFirst();
+        RabotnicDataSource rabotnic_ds = new RabotnicDataSource(mContext);
+//        job_ds.open();
+        rabotnic_ds.open();
+        while (!cursor.isAfterLast()) {
+            final Task task = cursorToTask(cursor);
+            // Получить attachement, history для текущей task
+            task.setAttachmentCount(cursor.getInt(15));
+            task.setHistoryCount(cursor.getInt(14));
+            // Получить автора задания
+            task.setAuthor(rabotnic_ds.getRabotnicByCode(task.getAuthorCode()));
+            tasks.add(task);
+            cursor.moveToNext();
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        Log.v("TaskDataSource", "END getAllTasksWithoutJobsSQL");
         return tasks;
     }
     public List<Task> getAllTasksWithoutJobsHistory() {

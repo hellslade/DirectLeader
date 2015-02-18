@@ -59,7 +59,7 @@ public class HistoryDataSource {
             histories[i++] = (history);
             cursor.moveToNext();
         }
-        rds.close();
+        //rds.close();
         cursor.close();
         return histories;
     }
@@ -78,7 +78,7 @@ public class HistoryDataSource {
             historys.add(history);
             cursor.moveToNext();
         }
-        rds.close();
+        //rds.close();
         // Make sure to close the cursor
         cursor.close();
         return historys;

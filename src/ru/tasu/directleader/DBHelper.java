@@ -166,7 +166,7 @@ private static final String TAG = "DBHelper";
     static public File getCacheDir(Context context) {
         File cache = null;
         String state = Environment.getExternalStorageState();
-        Log.v(TAG, "storage state is " + state);
+//        Log.v(TAG, "storage state is " + state);
         if (Environment.MEDIA_MOUNTED.equals(state)) {
             // SD карта в наличии, будем писать на нее
             cache = context.getExternalCacheDir();
@@ -178,7 +178,7 @@ private static final String TAG = "DBHelper";
                 cache = new File("/data/data/ru.tasu.directleader/cache/");
             }
         }
-        Log.v(TAG, "DBHelper.java cache dir " + cache);
+//        Log.v(TAG, "DBHelper.java cache dir " + cache);
         return cache;
     }
     public static DBHelper getInstance(Context context) {

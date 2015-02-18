@@ -1,13 +1,10 @@
 package ru.tasu.directleader;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 import android.app.Activity;
-import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -20,8 +17,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CheckedTextView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -29,10 +26,10 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class DocumentsFragment extends Fragment implements OnClickListener {
-    private static final String TAG = "DocumentsFragment";
+public class TaskFragment extends Fragment implements OnClickListener {
+    private static final String TAG = "JobImportantFragment";
     
-    class GetAttachmentAsyncTask extends AsyncTask<Void, Void, List<Attachment>> {
+    class GetTaskAsyncTask extends AsyncTask<Void, Void, List<Task>> {
         ProgressDialog pg;
         protected void onPreExecute() {
             super.onPreExecute();
@@ -41,20 +38,21 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
             pg.show();
         };
         @Override
-        protected List<Attachment> doInBackground(Void... params) {
-            AttachmentDataSource ads = new AttachmentDataSource(mDirect);
-            ads.open();
-            List<Attachment> attachments = ads.getAllAttachments();
-            ads.close();
-            return attachments;
+        protected List<Task> doInBackground(Void... params) {
+            TaskDataSource tds = new TaskDataSource(mDirect);
+            tds.open();
+            List<Task> tasks = tds.getAllTasksWithoutJobsSQL();
+            tds.close();
+            return tasks;
         }
         @Override
-        protected void onPostExecute(List<Attachment> result) {
+        protected void onPostExecute(List<Task> result) {
             if (pg != null) {
                 pg.dismiss();
             }
             mAdapter.clear();
             mAdapter.addAll(result);
+            mAdapter.sort(comp);
             mAdapter.notifyDataSetChanged();
             super.onPostExecute(result);
         }
@@ -64,10 +62,10 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
     private static DirectLeaderApplication mDirect;
     private OnOpenFragmentListener mListener;
     
-    private ListView docsListView;
-    private DocumentsListAdapter mAdapter;
+    private ListView taskListView;
+    private TaskListAdapter mAdapter;
     private RelativeLayout listViewHeader;
-    private CheckedTextView sortDateView, sortTitleView, sortAuthorView, sortTypeView;
+    private CheckedTextView sortStateView, sortReadedView, sortDateView, sortTitleView;
     private ImageButton sortDirectionView;
     private boolean sortDesc = false;
     
@@ -79,8 +77,8 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_documents, container, false);
-
+        View rootView = inflater.inflate(R.layout.fragment_task, container, false);
+        
         ((ImageView)rootView.findViewById(R.id.homeImageView)).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -90,27 +88,28 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
             }
         });
 
+        sortStateView = (CheckedTextView) rootView.findViewById(R.id.sortStateView);
+        sortReadedView = (CheckedTextView) rootView.findViewById(R.id.sortReadedView);
         sortDateView = (CheckedTextView) rootView.findViewById(R.id.sortDateView);
         sortTitleView = (CheckedTextView) rootView.findViewById(R.id.sortTitleView);
-        sortAuthorView = (CheckedTextView) rootView.findViewById(R.id.sortAuthorView);
-        sortTypeView = (CheckedTextView) rootView.findViewById(R.id.sortTypeView);
         sortDirectionView = (ImageButton) rootView.findViewById(R.id.sortDirectionView);
-        
-        docsListView = (ListView) rootView.findViewById(R.id.docsListView);
 
-        listViewHeader = (RelativeLayout)getActivity().getLayoutInflater().inflate(R.layout.list_header_documents_layout, null);
-        docsListView.addHeaderView(listViewHeader, null, false);
-        docsListView.setHeaderDividersEnabled(false);
+        taskListView = (ListView) rootView.findViewById(R.id.taskListView);
+
+        listViewHeader = (RelativeLayout)getActivity().getLayoutInflater().inflate(R.layout.list_header_job_important_layout, null);
+        taskListView.addHeaderView(listViewHeader, null, false);
+        taskListView.setHeaderDividersEnabled(false);
         
-        mAdapter = new DocumentsListAdapter(getActivity(), new ArrayList<Attachment>(), docsListView);
-        docsListView.setAdapter(mAdapter);
+        mAdapter = new TaskListAdapter(getActivity(), new ArrayList<Task>(), taskListView);
+        taskListView.setAdapter(mAdapter);
+        taskListView.setOnItemClickListener(itemClickListener);
         
         setFonts();
         
+        sortStateView.setOnClickListener(sortClickListener);
+        sortReadedView.setOnClickListener(sortClickListener);
         sortDateView.setOnClickListener(sortClickListener);
         sortTitleView.setOnClickListener(sortClickListener);
-        sortAuthorView.setOnClickListener(sortClickListener);
-        sortTypeView.setOnClickListener(sortClickListener);
         sortDirectionView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -120,11 +119,9 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
             }
         });
         
-        sortDateView.performClick();
+        sortStateView.performClick();
         
-        docsListView.setOnItemClickListener(itemClickListener);
-        
-        new GetAttachmentAsyncTask().execute();
+        new GetTaskAsyncTask().execute();
         return rootView;
     }
     private void setFonts() {
@@ -135,40 +132,11 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
                 ((TextView)view).setTypeface(mDirect.mPFDinDisplayPro_Reg);
             }
         }
+        
+        sortStateView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        sortReadedView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortDateView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortTitleView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        sortAuthorView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        sortTypeView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-    }
-    OnItemClickListener itemClickListener = new OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
-            // Загрузка и открытие документа.
-            Attachment doc = mAdapter.getItem(pos-1);
-//            Log.v(TAG, "documentClickListener " + doc.getName());
-            boolean exist = mDirect.checkDocumentExist(doc);
-//            Log.v(TAG, "doc exist " + exist);
-            if (exist) {
-//                Log.v(TAG, "open document");
-                File fileFolder = new File(mDirect.getDocumentPath(doc));
-                String filename = mDirect.normalizeFilename(doc.getName());
-                File myFile = new File(fileFolder, String.format("%s.%s", filename, doc.getExt()));
-                try {
-                    FileOpen.openFile(getActivity(), myFile);
-                } catch (IOException e) {
-                    Log.v(TAG, "Неудалось открыть документ " + e.getMessage());
-//                    e.printStackTrace();
-                }
-            } else {
-                showDownloadDialog(doc);
-            }
-        }
-    };
-    private void showDownloadDialog(Attachment doc) {
-        Log.v(TAG, "showDownloadDialog " + doc.getName());
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        DialogFragment newFragment = DocumentDownloadDialogFragment.newInstance(doc);
-        newFragment.show(ft, "download_dialog");
     }
     OnClickListener sortClickListener = new OnClickListener() {
         @Override
@@ -179,7 +147,7 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
                 return;
             }
             //Снять выделение со всех
-            for (CheckedTextView cv : new CheckedTextView[]{sortDateView, sortTitleView, sortAuthorView, sortTypeView}) {
+            for (CheckedTextView cv : new CheckedTextView[]{sortStateView, sortReadedView, sortDateView, sortTitleView}) {
                 cv.setChecked(false);
             }
             view.setChecked(true);
@@ -187,25 +155,36 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
             mAdapter.notifyDataSetChanged();
         }
     };
-    final private Comparator<Attachment> comp = new Comparator<Attachment>() {
-        public int compare(Attachment a1, Attachment a2) {
+    final private Comparator<Task> comp = new Comparator<Task>() {
+        public int compare(Task t1, Task t2) {
             int result = 0;
+            if (sortStateView.isChecked()) {
+                result = 0;
+            }
+            if (sortReadedView.isChecked()) {
+                result = 0;
+            }
             if (sortDateView.isChecked()) {
-                result = a1.getModified().compareTo(a2.getModified());
+                result = t1.getDeadline().compareTo(t2.getDeadline());
             }
             if (sortTitleView.isChecked()) {
-                result = a1.getCTitle().compareTo(a2.getCTitle());
-            }
-            if (sortAuthorView.isChecked()) {
-                result = a1.getAuthorName().compareTo(a2.getAuthorName());
-            }
-            if (sortTypeView.isChecked()) {
-                result = a1.getExt().compareTo(a2.getExt());
+                result = t1.getTitle().toUpperCase(Utils.mLocale).compareTo(t2.getTitle().toUpperCase(Utils.mLocale));
             }
             if (sortDesc) {
                 return -result;
             } else {
                 return result;
+            }
+        }
+    };
+    OnItemClickListener itemClickListener = new OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
+            if (mListener != null) {
+                Task task = mAdapter.getItem(pos-1);
+                Bundle args = new Bundle();
+                args.putParcelable(TaskDetailFragment.TASK_KEY, task);
+                mListener.OnOpenFragment(TaskDetailFragment.class.getName(), args);
             }
         }
     };

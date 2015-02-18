@@ -1,6 +1,5 @@
 package ru.tasu.directleader;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
@@ -15,37 +14,30 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class JobMyListAdapter extends ArrayAdapter<Job> {
-    private static final String TAG = "JobImportantListAdapter";
+public class TaskListAdapter extends ArrayAdapter<Task> {
+    private static final String TAG = "TaskListAdapter";
     
 	private ListView listView;
 	private DirectLeaderApplication mDirect;
 	
 	private OnClickListener toolsClickListener;
 	
-	public JobMyListAdapter(Context context, List<Job> items, ListView listView) {
+	public TaskListAdapter(Context context, List<Task> items, ListView listView) {
 		super(context, 0, items);
 		this.listView = listView;
 		mDirect = (DirectLeaderApplication)((Activity)context).getApplication();
 	}
-	public List<Job> getItems() {
-	    List<Job> jobs = new ArrayList<Job>();
-	    for (int i = 0; i < this.getCount(); i++) {
-	        jobs.add(this.getItem(i));
-	    }
-	    return jobs;
-	}
 	@Override
     public View getView(int position, View convertView, ViewGroup parent) {
         final Activity activity = (Activity) getContext();
-        final Job job = getItem(position);
+        final Task task = getItem(position);
         // Inflate the views from XML
         View rowView = convertView;
         ViewHolder viewHolder;
     	
     	if (rowView == null) {
     		LayoutInflater inflater = activity.getLayoutInflater();
-        	rowView = inflater.inflate(R.layout.list_item_job_important_layout, null);
+        	rowView = inflater.inflate(R.layout.list_item_task_layout, null);
             viewHolder = new ViewHolder(rowView);
             rowView.setTag(viewHolder);
         } else {
@@ -55,38 +47,36 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
     	TextView titleTextView = viewHolder.getTitleTextView();
     	TextView dateTextView = viewHolder.getDateTextView();
     	TextView propertyTextView = viewHolder.getPropertyTextView();
-        ImageView statusImportance = viewHolder.getStatusImportanceView();
-        ImageView statusReaded = viewHolder.getStatusReadedView();
-        ImageView attachmentIcon = viewHolder.getAttachmentView();
-        
-        titleTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-        dateTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-        propertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+    	ImageView statusImportance = viewHolder.getStatusImportanceView();
+    	ImageView statusReaded = viewHolder.getStatusReadedView();
+    	ImageView attachmentIcon = viewHolder.getAttachmentView();
+    	ImageView discussionIcon = viewHolder.getDiscussionView();
+    	
+    	titleTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
+    	dateTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
+    	propertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     	
     	dateTextView.setTextColor(Color.parseColor(activity.getResources().getString(R.color.gray33)));
-    	if (job.isOverdue()) {
+    	if (task.isOverdue()) {
     	    dateTextView.setBackgroundResource(R.color.red);
     	    dateTextView.setTextColor(Color.parseColor(activity.getResources().getString(R.color.white)));
-    	} else if (job.isCurrent()) {
+    	} else if (task.isCurrent()) {
     	    dateTextView.setBackgroundResource(R.color.yellow);
     	} else {
     	    dateTextView.setBackgroundResource(android.R.color.transparent);
     	}
     	
-    	String propertyText = String.format(activity.getResources().getString(R.string.myjob_fragment_listitem_property_text), job.getStartDate(true), job.getUser().getName());
-        
-    	titleTextView.setText(job.getSubject());
-    	dateTextView.setText(job.getFinalDate(true));
+    	String propertyText = String.format(activity.getResources().getString(R.string.task_fragment_listitem_property_text), task.getCreated(true), task.getAuthor().getName());
+    	
+    	titleTextView.setText(task.getTitle());
+    	dateTextView.setText(task.getDeadline(true));
     	propertyTextView.setText(propertyText);
+    	
+        statusReaded.setEnabled(false); // Чтобы иконка оранжевая была
         
-        if (job.getImportance().equalsIgnoreCase("Высокая")) {
-            statusImportance.setVisibility(View.VISIBLE);
-        } else {
-            statusImportance.setVisibility(View.INVISIBLE);
-        }
-        statusReaded.setEnabled(job.getReaded());
-        
-        attachmentIcon.setVisibility(job.getAttachmentCount() > 0 ? View.VISIBLE : View.INVISIBLE);
+        statusImportance.setVisibility(task.getImportance().equalsIgnoreCase("Высокая") ? View.VISIBLE : View.INVISIBLE);
+        attachmentIcon.setVisibility(task.getAttachmentCount() > 0 ? View.VISIBLE : View.INVISIBLE);
+        discussionIcon.setVisibility(task.getHistoryCount() > 0 ? View.VISIBLE : View.INVISIBLE);
         
         return rowView;
     }
@@ -97,9 +87,10 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
 		private TextView titleTextView;
 		private TextView dateTextView;
 		private TextView propertyTextView;
-        private ImageView statusImportance; 
-        private ImageView statusReaded; 
-        private ImageView attachmentIcon;
+		private ImageView statusImportance; 
+		private ImageView statusReaded;
+		private ImageView attachmentIcon;
+		private ImageView discussionIcon;
 		
 		public ViewHolder(View base) {
 			this.baseView = base;
@@ -122,23 +113,29 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
             }
             return propertyTextView;
         }
-        public ImageView getStatusImportanceView() {
+	    public ImageView getStatusImportanceView() {
             if (statusImportance == null) {
                 statusImportance = (ImageView)baseView.findViewById(R.id.statusImportance);
             }
             return statusImportance;
         }
-        public ImageView getStatusReadedView() {
+	    public ImageView getStatusReadedView() {
             if (statusReaded == null) {
                 statusReaded = (ImageView)baseView.findViewById(R.id.statusReaded);
             }
             return statusReaded;
         }
-        public ImageView getAttachmentView() {
+	    public ImageView getAttachmentView() {
             if (attachmentIcon == null) {
                 attachmentIcon = (ImageView)baseView.findViewById(R.id.attachmentIcon);
             }
             return attachmentIcon;
+        }
+	    public ImageView getDiscussionView() {
+            if (discussionIcon == null) {
+                discussionIcon = (ImageView)baseView.findViewById(R.id.discussionIcon);
+            }
+            return discussionIcon;
         }
 	}
 }

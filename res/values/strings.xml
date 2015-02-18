@@ -28,7 +28,7 @@
     <string name="authorize_failed_message_text">Ошибка авторизации. Проверьте подключение к Интернет и введенные данные.</string>
     <string name="authorize_process_message_text">Авторизация, пожалуйста, подождите...</string>
     
-    <!-- Окно списка задач -->
+    <!-- Окно списка заданий (Job) -->
     <string name="myjob_fragment_header_title_text">Тема, Создано, Инициатор</string>
     <string name="myjob_fragment_header_date_text">Срок</string>
     <string name="myjob_fragment_listitem_attachment_text" formatted="false">Вложения: %s</string>
@@ -56,6 +56,23 @@
     <string name="job_detail_fragment_comment_text">Комментарий:</string>
     <string name="job_detail_fragment_history_text">История:</string>
     
+    <!-- Окно карточка задачи (Task)-->
+    <string name="task_detail_fragment_actions_text">Действие</string>
+    <string name="task_detail_fragment_property_text" formatted="false">Инициатор:\u00A0%s, Создана:\u00A0%s, Изменена:\u00A0%s</string>
+    
+    <string name="task_detail_fragment_date_text">Срок</string>
+    <string name="task_detail_fragment_state_text">Состояние</string>
+    <string name="task_detail_fragment_importance_text">Важность</string>
+    <string name="task_detail_fragment_flag_text">Флаг</string>
+    <string name="task_detail_fragment_documents_text">Документов</string>
+    <string name="task_detail_fragment_jobs_text">Заданий</string>
+    <string name="task_detail_fragment_subtasks_text">Подзадач</string>
+    <string name="task_detail_fragment_comments_text">Комментариев</string>
+    <string name="task_detail_fragment_performerslist_text">Исполнители:</string>
+    <string name="task_detail_fragment_documentslist_text">Документы:</string>
+    <string name="task_detail_fragment_comment_text">Комментарий:</string>
+    <string name="task_detail_fragment_history_text">История:</string>
+    
     <!-- Окно диалог загрузки документа -->
     <string name="document_download_fragment_title_text">Документ отсутствует на устройстве.\nЗагрузить документ?</string>
     <string name="document_download_fragment_button_yes_text">Да</string>
@@ -65,6 +82,8 @@
     <string name="document_download_fragment_failed_text">Ошибка при загрузке файла</string>
     <string name="document_download_fragment_success_text">Файл загружен</string>
     
+    <!-- Окно списка задачи (Task) -->
+    <string name="task_fragment_listitem_property_text" formatted="false">Создана:\u00A0%s, Инициатор:\u00A0%s</string>
     
     <!-- Окно списка документов -->
     <string name="documents_fragment_header_title_text">Название</string>

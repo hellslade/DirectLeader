@@ -115,7 +115,7 @@ public class AttachmentDataSource {
             attachments.add(attachment);
             cursor.moveToNext();
         }
-        tds.close();
+        //tds.close();
         // Make sure to close the cursor
         cursor.close();
         return attachments;

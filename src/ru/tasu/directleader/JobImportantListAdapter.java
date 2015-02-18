@@ -35,7 +35,6 @@ public class JobImportantListAdapter extends ArrayAdapter<Job> {
         View rowView = convertView;
         ViewHolder viewHolder;
     	
-    	int type = getItemViewType(position);
     	if (rowView == null) {
     		LayoutInflater inflater = activity.getLayoutInflater();
         	rowView = inflater.inflate(R.layout.list_item_job_important_layout, null);
@@ -50,6 +49,7 @@ public class JobImportantListAdapter extends ArrayAdapter<Job> {
     	TextView propertyTextView = viewHolder.getPropertyTextView();
 //    	ImageView statusImportance = viewHolder.getStatusImportanceView(); // Тут все задачи важные
     	ImageView statusReaded = viewHolder.getStatusReadedView();
+    	ImageView attachmentIcon = viewHolder.getAttachmentView();
     	
     	titleTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
     	dateTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
@@ -73,6 +73,8 @@ public class JobImportantListAdapter extends ArrayAdapter<Job> {
     	
         statusReaded.setEnabled(job.getReaded());
         
+        attachmentIcon.setVisibility(job.getAttachmentCount() > 0 ? View.VISIBLE : View.INVISIBLE);
+        
         return rowView;
     }
 	private class ViewHolder {
@@ -83,7 +85,8 @@ public class JobImportantListAdapter extends ArrayAdapter<Job> {
 		private TextView dateTextView;
 		private TextView propertyTextView;
 		private ImageView statusImportance; 
-		private ImageView statusReaded; 
+		private ImageView statusReaded;
+		private ImageView attachmentIcon;
 		
 		public ViewHolder(View base) {
 			this.baseView = base;
@@ -117,6 +120,12 @@ public class JobImportantListAdapter extends ArrayAdapter<Job> {
                 statusReaded = (ImageView)baseView.findViewById(R.id.statusReaded);
             }
             return statusReaded;
+        }
+	    public ImageView getAttachmentView() {
+            if (attachmentIcon == null) {
+                attachmentIcon = (ImageView)baseView.findViewById(R.id.attachmentIcon);
+            }
+            return attachmentIcon;
         }
 	}
 }

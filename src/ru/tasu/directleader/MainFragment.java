@@ -1,7 +1,5 @@
 package ru.tasu.directleader;
 
-import java.util.List;
-
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
@@ -15,6 +13,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.Toast;
 
 public class MainFragment extends Fragment implements OnClickListener, OnUpdateDataListener {
     private static final String TAG = "MainFragment";
@@ -112,11 +112,8 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
     private SharedPreferences mSettings;
     private static DirectLeaderApplication mDirect;
     private OnOpenFragmentListener mListener;
-    
-    private List<Task> mMyTasks;
-    private int greenCount = 0;
-    private int yellowCount = 0;
-    private int redCount = 0;
+
+    private ImageButton refreshDataView;
     
     private BookCompoundView jobImportantView, myJobView, myStaffTaskView, documentsView, staffView, reportView, calendarView;
     
@@ -147,12 +144,18 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
         reportView.setOnClickListener(this);
         calendarView.setOnClickListener(this);
         
+        refreshDataView = (ImageButton) rootView.findViewById(R.id.refreshDataView);
+        refreshDataView.setOnClickListener(this);
+        
         setFonts();
+        updateData();
+        return rootView;
+    }
+    private void updateData() {
         new GetCountOfImportantJobAsyncTask().execute();
         new GetCountOfJobAsyncTask().execute();
         new GetCountOfAttachments().execute();
         new GetCountOfStaffTasks().execute();
-        return rootView;
     }
     private void setFonts() {
         jobImportantView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
@@ -177,7 +180,7 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
                     mListener.OnOpenFragment(DocumentsFragment.class.getName());
                     break;
                 case R.id.myStaffTaskView:
-//                    mListener.OnOpenFragment(JobImportantFragment.class.getName());
+                    mListener.OnOpenFragment(TaskFragment.class.getName());
                     break;
                 case R.id.staffView:
 //                    mListener.OnOpenFragment(JobImportantFragment.class.getName());
@@ -189,6 +192,9 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
                     Intent i = new Intent(Intent.ACTION_VIEW);
                     i.setData(Uri.parse("content://com.android.calendar/time"));
                     startActivity(i);
+                    break;
+                case R.id.refreshDataView:
+                    mListener.OnRefreshData();
                     break;
             }
         }
@@ -203,16 +209,19 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
         }
     }
     @Override
-    public void OnUpdateData(List<Task> tasks) {
+    public void OnUpdateData() {
         Log.v(TAG, "OnUpdateData");
+        updateData();
+        Toast.makeText(getActivity(), "updated", Toast.LENGTH_LONG).show();
     }
 
 }
 abstract interface OnUpdateDataListener {
-    public void OnUpdateData(List<Task> tasks);
+    public void OnUpdateData();
 }
 abstract interface OnOpenFragmentListener {
     public void OnOpenFragment(String fragmentClassName);
     public void OnOpenFragment(String fragmentClassName, Bundle args);
+    public void OnRefreshData();
 }
 
