@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
@@ -54,6 +55,7 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
             mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
             mWakeLock.acquire();
             mProgressBar.setVisibility(View.VISIBLE);
+            setCancelable(false);
             
             buttonCancel.setOnClickListener(new OnClickListener() {
                 @Override
@@ -153,11 +155,15 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
                 new File(fileOutputPath).delete();
                 buttonCancel.setVisibility(View.GONE);
                 buttonRestart.setVisibility(View.VISIBLE);
+                setCancelable(true);
             } else {
                 Toast.makeText(context, getResources().getString(R.string.document_download_fragment_success_text), Toast.LENGTH_SHORT).show();
                 final Dialog pg = getDialog();
                 if (pg != null) {
                     pg.dismiss();
+                }
+                if (mListener != null) {
+                    mListener.onDocumentDownload(mAttachment);
                 }
             }
         }
@@ -186,6 +192,8 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
     
     private String fileOutputPath = null;
     
+    private OnDocumentDownloadListener mListener;
+    
     static DocumentDownloadDialogFragment newInstance(Attachment doc) {
         DocumentDownloadDialogFragment f = new DocumentDownloadDialogFragment();
         
@@ -207,7 +215,7 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
         
         int style = DialogFragment.STYLE_NO_TITLE;
         int theme = android.R.style.Theme_Holo_Light_Dialog;
-        setCancelable(false);
+//        setCancelable(false);
         setStyle(style, theme);
     }
 
@@ -274,4 +282,15 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
             }
         }
     };
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (OnDocumentDownloadListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnDocumentDownloadListener");
+        }
+    };
+    public interface OnDocumentDownloadListener {
+        public void onDocumentDownload(Attachment doc);
+    }
 }

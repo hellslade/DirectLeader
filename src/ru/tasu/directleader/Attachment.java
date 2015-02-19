@@ -112,15 +112,7 @@ public class Attachment implements Parcelable {
     }
     public String getCreated(boolean formatted) {
         if (formatted) {
-            SimpleDateFormat  format = new SimpleDateFormat("dd.MM.yyyy", Utils.mLocale);
-            try {
-                Date deadline = format.parse(this._created);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("dd/MM/yyyy");
-                return  formatOutput.format(deadline);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return this._created;
-            }
+            return Utils.formatDateTime(this._created, "dd/MM/yyyy");
         } else {
             return this._created;
         }
@@ -136,15 +128,7 @@ public class Attachment implements Parcelable {
     }
     public String getModified(boolean formatted) {
         if (formatted) {
-            SimpleDateFormat  format = new SimpleDateFormat("dd.MM.yyyy", Utils.mLocale);
-            try {
-                Date deadline = format.parse(this._modified);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("dd/MM/yyyy");
-                return  formatOutput.format(deadline);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return this._modified;
-            }
+            return Utils.formatDateTime(this._modified, "dd/MM/yyyy");
         } else {
             return this._modified;
         }

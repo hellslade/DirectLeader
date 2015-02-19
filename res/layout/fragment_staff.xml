@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:padding="0dp"
     android:background="@drawable/main_background"
-    tools:context="ru.tasu.directleader.JobMyFragment"
+    tools:context="ru.tasu.directleader.StaffFragment"
     xmlns:app="http://schemas.android.com/apk/res/ru.tasu.directleader">
 
     <include layout="@layout/top_bar_layout" android:id="@+id/topBarLayout"/>
@@ -50,52 +50,56 @@
                 android:layout_weight="1"/>
             
             <CheckedTextView
-                android:id="@+id/sortStateView"
+                android:id="@+id/sortFioView"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:background="@drawable/button_transparent_left_selector"
                 android:textColor="@color/white"
                 android:textSize="@dimen/textSizeCaptionMedium"
-                android:text="@string/myjob_fragment_sort_state_text"
+                android:text="@string/staff_fragment_sort_fio_text"
                 android:clickable="true"
                 android:gravity="center_vertical"
-                android:padding="10dp"
+                android:paddingLeft="30dp"
+                android:paddingRight="30dp"
                 />
             <CheckedTextView 
-                android:id="@+id/sortReadedView"
+                android:id="@+id/sortOverdueView"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:background="@drawable/button_transparent_center_selector"
                 android:textColor="@color/white"
                 android:textSize="@dimen/textSizeCaptionMedium"
-                android:text="@string/myjob_fragment_sort_readed_text"
+                android:text="@string/staff_fragment_sort_overdue_text"
                 android:clickable="true"
                 android:gravity="center_vertical"
-                android:padding="10dp"
+                android:paddingLeft="30dp"
+                android:paddingRight="30dp"
                 />
             <CheckedTextView
-                android:id="@+id/sortDateView"
+                android:id="@+id/sortTodayView"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:background="@drawable/button_transparent_center_selector"
                 android:textColor="@color/white"
                 android:textSize="@dimen/textSizeCaptionMedium"
-                android:text="@string/myjob_fragment_sort_date_text"
+                android:text="@string/staff_fragment_sort_today_text"
                 android:clickable="true"
                 android:gravity="center_vertical"
-                android:padding="10dp"
+                android:paddingLeft="30dp"
+                android:paddingRight="30dp"
                 />
             <CheckedTextView 
-                android:id="@+id/sortTitleView"
+                android:id="@+id/sortTotalView"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:background="@drawable/button_transparent_right_selector"
                 android:textColor="@color/white"
                 android:textSize="@dimen/textSizeCaptionMedium"
-                android:text="@string/myjob_fragment_sort_title_text"
+                android:text="@string/staff_fragment_sort_total_text"
                 android:clickable="true"
                 android:gravity="center_vertical"
-                android:padding="10dp"
+                android:paddingLeft="30dp"
+                android:paddingRight="30dp"
                 />
             <Space
                 android:layout_width="wrap_content"
@@ -104,7 +108,7 @@
        </LinearLayout>
     </RelativeLayout>
     <ListView
-        android:id="@+id/jobsListView"
+        android:id="@+id/staffListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:headerDividersEnabled="false"

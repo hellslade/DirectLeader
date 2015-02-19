@@ -22,6 +22,9 @@ public class Rabotnic implements Parcelable {
     private String _photo;
     private String _podr;
     private String _post_kind;
+    private int _total_jobs;
+    private int _overdue_jobs;
+    private int _current_jobs;
     /*
     {
         Code: "Ä000086",
@@ -87,6 +90,26 @@ public class Rabotnic implements Parcelable {
     public String getPostKind() {
         return this._post_kind;
     }
+    
+    public void setTotalJobs(int count) {
+        this._total_jobs = count;
+    }
+    public void setOverdueJobs(int count) {
+        this._overdue_jobs = count;
+    }
+    public void setCurrentJobs(int count) {
+        this._current_jobs = count;
+    }
+    public int getTotalJobs() {
+        return this._total_jobs;
+    }
+    public int getOverdueJobs() {
+        return this._overdue_jobs;
+    }
+    public int getCurrentJobs() {
+        return this._current_jobs;
+    }
+    
     public static final Parcelable.Creator<Rabotnic> CREATOR = new Parcelable.Creator<Rabotnic>() {
 
         public Rabotnic createFromParcel(Parcel in) {

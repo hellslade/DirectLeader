@@ -63,6 +63,12 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
         dateTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
         propertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     	
+        String dateString = job.getFinalDate(true);
+        if (dateString.equalsIgnoreCase("1899-12-30")) {
+            dateTextView.setVisibility(View.INVISIBLE);
+        } else {
+            dateTextView.setVisibility(View.VISIBLE);
+        }
     	dateTextView.setTextColor(Color.parseColor(activity.getResources().getString(R.color.gray33)));
     	if (job.isOverdue()) {
     	    dateTextView.setBackgroundResource(R.color.red);
@@ -73,10 +79,14 @@ public class JobMyListAdapter extends ArrayAdapter<Job> {
     	    dateTextView.setBackgroundResource(android.R.color.transparent);
     	}
     	
-    	String propertyText = String.format(activity.getResources().getString(R.string.myjob_fragment_listitem_property_text), job.getStartDate(true), job.getUser().getName());
+    	String startDateString = job.getStartDate(true);
+        if (startDateString.equalsIgnoreCase("1899-12-30")) {
+            startDateString = "";
+        }
+    	String propertyText = String.format(activity.getResources().getString(R.string.myjob_fragment_listitem_property_text), startDateString, job.getUser().getName());
         
     	titleTextView.setText(job.getSubject());
-    	dateTextView.setText(job.getFinalDate(true));
+    	dateTextView.setText(dateString);
     	propertyTextView.setText(propertyText);
         
         if (job.getImportance().equalsIgnoreCase("Высокая")) {

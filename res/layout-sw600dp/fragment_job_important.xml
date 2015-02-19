@@ -36,7 +36,7 @@
             android:padding="10dp"
             />
         <LinearLayout
-            android:id="@+id/textSizeLayout"
+            android:id="@+id/sortLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
@@ -113,7 +113,6 @@
         android:layout_height="match_parent"
         android:headerDividersEnabled="false"
         android:layout_below="@id/buttonsLayout"
-        
     />
         
 </RelativeLayout>

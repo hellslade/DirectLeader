@@ -159,10 +159,10 @@ public class TaskFragment extends Fragment implements OnClickListener {
         public int compare(Task t1, Task t2) {
             int result = 0;
             if (sortStateView.isChecked()) {
-                result = 0;
+                result = t1.getState().toUpperCase(Utils.mLocale).compareTo(t2.getState().toUpperCase(Utils.mLocale));
             }
             if (sortReadedView.isChecked()) {
-                result = 0;
+                result = t1.getCreated().toUpperCase(Utils.mLocale).compareTo(t2.getCreated().toUpperCase(Utils.mLocale));
             }
             if (sortDateView.isChecked()) {
                 result = t1.getDeadline().compareTo(t2.getDeadline());

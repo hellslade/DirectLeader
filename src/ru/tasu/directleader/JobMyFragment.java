@@ -59,7 +59,42 @@ public class JobMyFragment extends Fragment implements OnClickListener {
             super.onPostExecute(result);
         }
     }
+    class GetJobsByTaskIdAsyncTask extends AsyncTask<Void, Void, Job[]> {
+        ProgressDialog pg;
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pg = new ProgressDialog(getActivity(), ProgressDialog.THEME_HOLO_LIGHT);
+            pg.setMessage(getResources().getString(R.string.task_loading_data_text));
+            pg.show();
+        };
+        @Override
+        protected Job[] doInBackground(Void... params) {
+            JobDataSource jds = new JobDataSource(mDirect);
+            jds.open();
+            Job[] jobs = jds.getJobsByTaskIdWithAdditionalData(mTaskId);
+            jds.close();
+            return jobs;
+        }
+        @Override
+        protected void onPostExecute(Job[] result) {
+            if (pg != null) {
+                pg.dismiss();
+            }
+            mAdapter.clear();
+            mAdapter.addAll(result);
+            mAdapter.sort(comp);
+            mAdapter.notifyDataSetChanged();
+            super.onPostExecute(result);
+        }
+    }
     //*/
+    public enum JobType {
+        OVERDUE,
+        CURRENT
+    }
+    public static final String TASK_ID_KEY = "task_id";
+    private long mTaskId;
+    
     private SharedPreferences mSettings;
     private static DirectLeaderApplication mDirect;
     private OnOpenFragmentListener mListener;
@@ -71,6 +106,11 @@ public class JobMyFragment extends Fragment implements OnClickListener {
     private ImageButton sortDirectionView;
     private boolean sortDesc = false;
     
+    public static Fragment newInstance(Bundle args) {  // must pass some args
+        JobMyFragment f = new JobMyFragment();
+        f.setArguments(args);
+        return f;
+    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         mDirect = (DirectLeaderApplication) getActivity().getApplication();
@@ -123,7 +163,16 @@ public class JobMyFragment extends Fragment implements OnClickListener {
         
         sortStateView.performClick();
         
-        new GetJobAsyncTask().execute();
+        Bundle args = getArguments();
+        if (args != null) {
+            if (args.containsKey(TASK_ID_KEY)) {
+                mTaskId = args.getLong(TASK_ID_KEY);
+                new GetJobsByTaskIdAsyncTask().execute();
+            }
+        } else {
+            new GetJobAsyncTask().execute();
+        }
+        
         return rootView;
     }
     private void setFonts() {
@@ -134,6 +183,11 @@ public class JobMyFragment extends Fragment implements OnClickListener {
                 ((TextView)view).setTypeface(mDirect.mPFDinDisplayPro_Reg);
             }
         }
+        
+        sortStateView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        sortReadedView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        sortDateView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        sortTitleView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     }
     OnClickListener sortClickListener = new OnClickListener() {
         @Override
@@ -188,7 +242,7 @@ public class JobMyFragment extends Fragment implements OnClickListener {
                 }
             }
             if (sortDateView.isChecked()) {
-                result = j1.getEndDate().compareTo(j2.getEndDate());
+                result = j1.getFinalDate().compareTo(j2.getFinalDate());
             }
             if (sortTitleView.isChecked()) {
                 result = j1.getSubject().toUpperCase(Utils.mLocale).compareTo(j2.getSubject().toUpperCase(Utils.mLocale));

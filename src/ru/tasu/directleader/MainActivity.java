@@ -1,11 +1,14 @@
 package ru.tasu.directleader;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ru.tasu.directleader.AuthorizeFragment.OnLoginListener;
+import ru.tasu.directleader.DocumentDownloadDialogFragment.OnDocumentDownloadListener;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -16,7 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends Activity implements OnLoginListener, OnOpenFragmentListener {
+public class MainActivity extends Activity implements OnLoginListener, OnOpenFragmentListener, OnDocumentDownloadListener {
     private static final String TAG = "MainActivity";
     
     class UpdateDBRabotnicAsyncTask extends AsyncTask<Void, Void, JSONObject> {
@@ -153,5 +156,18 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
     public void OnRefreshData() {
       new UpdateDBRabotnicAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
       new UpdateDBTaskAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
+    }
+    @Override
+    public void onDocumentDownload(Attachment doc) {
+        // открытие документа.
+        boolean exist = mDirect.checkDocumentExist(doc);
+        if (exist) {
+            File myFile = mDirect.getDocumentFile(doc);
+            try {
+                FileOpen.openFile(this, myFile);
+            } catch (IOException e) {
+                Log.v(TAG, "Неудалось открыть документ " + e.getMessage());
+            }
+        }
     }
 }

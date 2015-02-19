@@ -57,17 +57,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingTop="100dp"
-        android:paddingLeft="80dp"
-        android:paddingRight="80dp"
+        android:paddingTop="20dp"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
         android:layout_below="@id/buttonsLayout">
         <LinearLayout 
             android:layout_weight="1"
             android:layout_width="match_parent"
 	        android:layout_height="match_parent"
 	        android:orientation="horizontal"
-	        android:paddingLeft="20dp"
-	        android:paddingBottom="40dp"
+	        android:paddingLeft="10dp"
+	        android:paddingBottom="20dp"
 	        >
             
             <ru.tasu.directleader.BookCompoundView
@@ -121,8 +121,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:paddingLeft="20dp"
-            android:paddingBottom="40dp"
+            android:paddingLeft="10dp"
+            android:paddingBottom="20dp"
             >
 	        
             <ru.tasu.directleader.BookCompoundView
@@ -171,7 +171,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:paddingLeft="20dp"
+            android:paddingLeft="10dp"
             android:paddingRight="20dp"
             >
             

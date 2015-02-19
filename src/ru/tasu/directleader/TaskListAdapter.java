@@ -56,6 +56,12 @@ public class TaskListAdapter extends ArrayAdapter<Task> {
     	dateTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
     	propertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     	
+    	String dateString = task.getDeadline(true);
+        if (dateString.equalsIgnoreCase("30/12/1899")) {
+            dateTextView.setVisibility(View.INVISIBLE);
+        } else {
+            dateTextView.setVisibility(View.VISIBLE);
+        }
     	dateTextView.setTextColor(Color.parseColor(activity.getResources().getString(R.color.gray33)));
     	if (task.isOverdue()) {
     	    dateTextView.setBackgroundResource(R.color.red);
@@ -66,10 +72,14 @@ public class TaskListAdapter extends ArrayAdapter<Task> {
     	    dateTextView.setBackgroundResource(android.R.color.transparent);
     	}
     	
-    	String propertyText = String.format(activity.getResources().getString(R.string.task_fragment_listitem_property_text), task.getCreated(true), task.getAuthor().getName());
+    	String dateCreatedString = task.getCreated(true);
+        if (dateCreatedString.equalsIgnoreCase("30/12/1899")) {
+            dateCreatedString = "";
+        }
+    	String propertyText = String.format(activity.getResources().getString(R.string.task_fragment_listitem_property_text), dateCreatedString, task.getAuthor().getName());
     	
     	titleTextView.setText(task.getTitle());
-    	dateTextView.setText(task.getDeadline(true));
+    	dateTextView.setText(dateString);
     	propertyTextView.setText(propertyText);
     	
         statusReaded.setEnabled(false); // Чтобы иконка оранжевая была

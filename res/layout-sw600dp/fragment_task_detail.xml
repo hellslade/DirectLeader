@@ -94,6 +94,12 @@
 	                    android:layout_height="wrap_content"
 	                    android:src="@drawable/ic_attachment"
 	                    />
+	                <ImageView 
+                        android:id="@+id/discussionView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_discussion_orange"
+                        />
 	                <!-- Еще иконки -->
 	                <TextView
 	                    android:id="@+id/propertyTextView"

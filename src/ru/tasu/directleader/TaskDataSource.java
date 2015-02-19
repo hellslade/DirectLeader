@@ -219,7 +219,7 @@ public class TaskDataSource {
      * ѕолучить список заданий сотрудников
      * @return
      */
-    public int getCountOfStaffTasks() {
+    public int getCountOfStaffTasksOld() {
         int count = 0;
 
         Cursor cursor = database.query(DBHelper.TASK_TABLE,
@@ -229,6 +229,31 @@ public class TaskDataSource {
         count = cursor.getCount();
         // Make sure to close the cursor
         cursor.close();
+        return count;
+    }
+    public int[] getCountOfStaffTasks() {
+        int[] count = {0, 0, 0};
+        String sql = String.format("SELECT count(%s.%s) FROM %s;", 
+                DBHelper.TASK_TABLE, DBHelper.TASK__ID, DBHelper.TASK_TABLE);
+        Cursor cursor = database.rawQuery(sql, null);
+        cursor.moveToFirst();
+        count[0] = cursor.getInt(0);
+        cursor.close();
+        
+        sql = String.format("SELECT count(%s.%s) FROM %s WHERE date(%s.%s) = date();", 
+                DBHelper.TASK_TABLE, DBHelper.TASK__ID, DBHelper.TASK_TABLE, DBHelper.TASK_TABLE, DBHelper.TASK_DEADLINE);
+        cursor = database.rawQuery(sql, null);
+        cursor.moveToFirst();
+        count[1] = cursor.getInt(0);
+        cursor.close();
+
+        sql = String.format("SELECT count(task._id) FROM task WHERE date(task.deadline) < date();", 
+                DBHelper.TASK_TABLE, DBHelper.TASK__ID, DBHelper.TASK_TABLE, DBHelper.TASK_TABLE, DBHelper.TASK_DEADLINE);
+        cursor = database.rawQuery(sql, null);
+        cursor.moveToFirst();
+        count[2] = cursor.getInt(0);
+        cursor.close();
+
         return count;
     }
     public String getTaskTitleById(long taskId) {

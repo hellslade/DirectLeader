@@ -150,14 +150,11 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
 //            Log.v(TAG, "doc exist " + exist);
             if (exist) {
 //                Log.v(TAG, "open document");
-                File fileFolder = new File(mDirect.getDocumentPath(doc));
-                String filename = mDirect.normalizeFilename(doc.getName());
-                File myFile = new File(fileFolder, String.format("%s.%s", filename, doc.getExt()));
+                File myFile = mDirect.getDocumentFile(doc);
                 try {
                     FileOpen.openFile(getActivity(), myFile);
                 } catch (IOException e) {
                     Log.v(TAG, "Неудалось открыть документ " + e.getMessage());
-//                    e.printStackTrace();
                 }
             } else {
                 showDownloadDialog(doc);

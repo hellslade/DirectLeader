@@ -249,9 +249,11 @@
     
     <!-- Строка Заданий -->
     <RelativeLayout 
+        android:id="@+id/taskCountLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="15dp"
+        android:clickable="true"
         android:background="@drawable/listview_back_selector"
         >
         <ImageView 

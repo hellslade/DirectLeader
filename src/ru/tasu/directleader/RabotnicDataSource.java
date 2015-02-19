@@ -72,6 +72,30 @@ public class RabotnicDataSource {
         cursor.close();
         return rabotnic;
     }
+    public Rabotnic[] getAllRabotnicsWithTaskCount() {
+        Rabotnic[] rabotnics = null;
+        
+        String sql = "SELECT rabotnic.*, count(j._id) as a FROM " +
+        		"(SELECT rabotnic.*, count(job._id) as b FROM rabotnic LEFT JOIN job ON job.performer=rabotnic.code AND job.final_date = date() GROUP BY (rabotnic._id)) as rabotnic " +
+        		"LEFT JOIN job as j ON j.performer=rabotnic.code AND j.final_date < date() GROUP BY (rabotnic._id);";
+        Cursor cursor = database.rawQuery(sql, null);
+        cursor.moveToFirst();
+        rabotnics = new Rabotnic[cursor.getCount()];
+        int i = 0;
+        while (!cursor.isAfterLast()) {
+            final Rabotnic rabotnic = cursorToRabotnic(cursor);
+            rabotnic.setCurrentJobs(cursor.getInt(8));
+            rabotnic.setOverdueJobs(cursor.getInt(9));
+            rabotnic.setTotalJobs(cursor.getInt(8) + cursor.getInt(9));
+            rabotnics[i++] = rabotnic;
+            cursor.moveToNext();
+        }
+        
+        cursor.close();
+        return rabotnics;
+    }
+    
+    
     public List<Rabotnic> getAllRabotnics() {
         List<Rabotnic> rabotnics = new ArrayList<Rabotnic>();
 

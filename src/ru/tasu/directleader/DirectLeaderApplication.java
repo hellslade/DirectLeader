@@ -141,8 +141,24 @@ public class DirectLeaderApplication extends Application {
     public String getDocumentPath(Attachment doc) {
         return String.format("%s/%s/%s/%s", getApplicationCacheDir(this), doc.getTaskId(), doc.getId(), doc.getVersion());
     }
+    /**
+     * Нормализует имя файла, убирает недопустимые символы
+     * @param name
+     * @return
+     */
     public String normalizeFilename(String name) {
         return name.replace("/", "").replace("#", "");
+    }
+    /**
+     * Вернет объект File переданого документа
+     * @param doc
+     * @return File object
+     */
+    public File getDocumentFile(Attachment doc) {
+        String dirPath = getDocumentPath(doc);
+        // ИмяФайла состоит из ID документа. Потому что возможны длинные имена файлов со спец.символами
+        String filename = String.format("%s.%s", normalizeFilename(doc.getName()), doc.getExt());
+        return new File(dirPath, filename);
     }
     /**
      * Проверить, есть ли документ текущей версии в файловой системе
@@ -150,11 +166,7 @@ public class DirectLeaderApplication extends Application {
      * @return
      */
     public boolean checkDocumentExist(Attachment doc) {
-        String dirPath = getDocumentPath(doc);
-        // ИмяФайла состоит из ID документа. Потому что возможны длинные имена файлов со спец.символами
-        String filename = String.format("%s.%s", normalizeFilename(doc.getName()), doc.getExt());
-        File path = new File(dirPath, filename);
-        return path.exists();
+        return getDocumentFile(doc).exists();
     }
     
     /**

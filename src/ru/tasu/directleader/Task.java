@@ -269,15 +269,7 @@ public class Task implements Parcelable {
     }
     public String getCreated(boolean formatted) {
         if (formatted) {
-            SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
-            try {
-                Date created = format.parse(this._created);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("dd/MM/yyyy");
-                return  formatOutput.format(created);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return this._created;
-            }
+            return Utils.formatDateTime(this._created, "dd/MM/yyyy");
         } else {
             return this._created;
         }
@@ -287,15 +279,7 @@ public class Task implements Parcelable {
     }
     public String getDeadline(boolean formatted) {
         if (formatted) {
-            SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
-            try {
-                Date deadline = format.parse(this._deadline);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("dd/MM/yyyy");
-                return  formatOutput.format(deadline);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return this._deadline;
-            }
+            return Utils.formatDateTime(this._deadline, "dd/MM/yyyy");
         } else {
             return this._deadline;
         }
@@ -305,15 +289,7 @@ public class Task implements Parcelable {
     }
     public String getExecuted(boolean formatted) {
         if (formatted) {
-            SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
-            try {
-                Date executed = format.parse(this._executed);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("dd/MM/yyyy");
-                return  formatOutput.format(executed);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return this._executed;
-            }
+            return Utils.formatDateTime(this._executed, "dd/MM/yyyy");
         } else {
             return this._executed;
         }

@@ -60,15 +60,7 @@ public class History implements Parcelable {
     }
     public String getDate(boolean formatted) {
         if (formatted) {
-            SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
-            try {
-                Date deadline = format.parse(this._date);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                return  formatOutput.format(deadline);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return this._date;
-            }
+            return Utils.formatDateTime(this._date, "yyyy-MM-dd HH:mm:ss");
         } else {
             return this._date;
         }

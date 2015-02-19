@@ -34,18 +34,20 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
             super.onPostExecute(result);
         }
     }
-    class GetCountOfStaffTasks extends AsyncTask<Void, Void, Integer> {
+    class GetCountOfStaffTasks extends AsyncTask<Void, Void, Integer[]> {
         @Override
-        protected Integer doInBackground(Void... params) {
+        protected Integer[] doInBackground(Void... params) {
             TaskDataSource ds = new TaskDataSource(mDirect);
             ds.open();
-            int count = ds.getCountOfStaffTasks();
+            int[] count = ds.getCountOfStaffTasks();
             ds.close();
-            return count;
+            return new Integer[]{count[0], count[1], count[2]};
         }
         @Override
-        protected void onPostExecute(Integer result) {
-            myStaffTaskView.setGreenCount(result);
+        protected void onPostExecute(Integer[] result) {
+            myStaffTaskView.setGreenCount(result[0]);
+            myStaffTaskView.setYellowCount(result[1]);
+            myStaffTaskView.setRedCount(result[2]);
             super.onPostExecute(result);
         }
     }
@@ -73,9 +75,6 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
             jobImportantView.setGreenCount(result[0]);
             jobImportantView.setYellowCount(result[1]);
             jobImportantView.setRedCount(result[2]);
-            Log.v(TAG, "greenCount " + result[0]);
-            Log.v(TAG, "yellowCount " + result[1]);
-            Log.v(TAG, "redCount " + result[2]);
             super.onPostExecute(result);
         }
     }
@@ -183,7 +182,7 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
                     mListener.OnOpenFragment(TaskFragment.class.getName());
                     break;
                 case R.id.staffView:
-//                    mListener.OnOpenFragment(JobImportantFragment.class.getName());
+                    mListener.OnOpenFragment(StaffFragment.class.getName());
                     break;
                 case R.id.reportView:
 //                    mListener.OnOpenFragment(JobImportantFragment.class.getName());

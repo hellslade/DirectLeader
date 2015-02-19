@@ -39,8 +39,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingLeft="80dp"
-        android:paddingRight="80dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:minHeight="50dp"
         android:gravity="center_vertical"
         android:layout_below="@id/topBarLayout"
         >
@@ -57,7 +58,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingTop="50dp"
+        android:paddingTop="10dp"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
         android:layout_below="@id/buttonsLayout">

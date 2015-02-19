@@ -117,6 +117,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
             }
             if (histories.length == 0) {
                 historiesLayout.setVisibility(View.GONE);
+                discussionView.setVisibility(View.GONE);
             }
         }
     }
@@ -139,7 +140,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
     
     private EditText commentEditText;
     
-    private ImageView importanceView, attachmentView;
+    private ImageView importanceView, attachmentView, discussionView;
     
     public static Fragment newInstance(Bundle args) {  // must pass some args
         JobDetailFragment f = new JobDetailFragment();
@@ -213,6 +214,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         
         importanceView = (ImageView) v.findViewById(R.id.importanceView);
         attachmentView = (ImageView) v.findViewById(R.id.attachmentView);
+        discussionView = (ImageView) v.findViewById(R.id.discussionView);
         
         actionsView.setOnClickListener(actionsClickListener);
     }
@@ -230,16 +232,32 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
     }
     private void updateData() {
         taskTitleTextView.setText(mJob.getSubject());
-        String property = String.format(getResources().getString(R.string.job_detail_fragment_property_text), mJob.getAuthor().getName(), mJob.getStartDate(true), mJob.getFinalDate(true));
+        String startDateString = mJob.getStartDate(true);
+        if (startDateString.equals("1899-12-30")) {
+            startDateString = "";
+        }
+        String endDateString = mJob.getEndDate(true);
+        if (endDateString.equals("1899-12-30")) {
+            endDateString = "";
+        }
+        String property = String.format(getResources().getString(R.string.job_detail_fragment_property_text), mJob.getAuthor().getName(), startDateString, endDateString);
         propertyTextView.setText(property);
         
         performerTextView.setText(mJob.getUser().getName());
-        dateTextView.setText(mJob.getEndDate(true));
+        String dateString = mJob.getFinalDate(true);
+        if (dateString.equals("1899-12-30")) {
+            dateTextView.setVisibility(View.INVISIBLE);
+        }
+        dateTextView.setText(dateString);
         stateTextView.setText(mJob.getStateTitle());
         importanceTextView.setText(mJob.getImportance());
-        flagTextView.setText("Что за нафиг флаг??");
+        flagTextView.setText("");
         documentsTextView.setText(String.valueOf(mJob.getAttachmentCount()));
-        startDateTextView.setText(mJob.getStartDate(true));
+        startDateString = mJob.getStartDate(true);
+        if (startDateString.equals("1899-12-30")) {
+            startDateTextView.setVisibility(View.INVISIBLE);
+        }
+        startDateTextView.setText(startDateString);
         
         importanceView.setVisibility(mJob.getImportance().equalsIgnoreCase("Высокая") ? View.VISIBLE : View.INVISIBLE);
         attachmentView.setVisibility(mJob.getAttachmentCount() > 0 ? View.VISIBLE : View.INVISIBLE);
@@ -287,19 +305,16 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         public void onClick(View v) {
             // Загрузка и открытие документа.
             Attachment doc = (Attachment)v.getTag();
-            Log.v(TAG, "documentClickListener " + doc.getName());
+//            Log.v(TAG, "documentClickListener " + doc.getName());
             boolean exist = mDirect.checkDocumentExist(doc);
-            Log.v(TAG, "doc exist " + exist);
+//            Log.v(TAG, "doc exist " + exist);
             if (exist) {
-                Log.v(TAG, "open document");
-                File fileFolder = new File(mDirect.getDocumentPath(doc));
-                String filename = mDirect.normalizeFilename(doc.getName());
-                File myFile = new File(fileFolder, String.format("%s.%s", filename, doc.getExt()));
+//                Log.v(TAG, "open document");
+                File myFile = mDirect.getDocumentFile(doc);
                 try {
                     FileOpen.openFile(getActivity(), myFile);
                 } catch (IOException e) {
                     Log.v(TAG, "Неудалось открыть документ " + e.getMessage());
-//                    e.printStackTrace();
                 }
             } else {
                 showDownloadDialog(doc);

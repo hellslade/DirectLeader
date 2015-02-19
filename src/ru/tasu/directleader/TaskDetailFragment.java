@@ -23,7 +23,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -133,6 +132,7 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
             }
             if (histories.length == 0) {
                 historiesLayout.setVisibility(View.GONE);
+                discussionView.setVisibility(View.GONE);
             }
             
             commentsTextView.setText(String.valueOf(histories.length));
@@ -155,7 +155,9 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
     private TextView documentsListLabel, historiesLabel, performersListLabel;
     private LinearLayout documentsLayout, historiesLayout, performersLayout;
     
-    private ImageView importanceView, attachmentView;
+    private RelativeLayout taskCountLayout;
+    
+    private ImageView importanceView, attachmentView, discussionView;
     
     public static Fragment newInstance(Bundle args) {  // must pass some args
         TaskDetailFragment f = new TaskDetailFragment();
@@ -204,7 +206,6 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         ((TextView) v.findViewById(R.id.importanceLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.flagLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.documentsLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        //((TextView) v.findViewById(R.id.jobsLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.subtasksLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.commentsLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         
@@ -227,9 +228,21 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         documentsLayout = (LinearLayout) v.findViewById(R.id.documentsLayout);
         historiesLayout = (LinearLayout) v.findViewById(R.id.historiesLayout);
         performersLayout = (LinearLayout) v.findViewById(R.id.performersLayout);
+        taskCountLayout = (RelativeLayout) v.findViewById(R.id.taskCountLayout);
+        taskCountLayout.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    Bundle args = new Bundle();
+                    args.putLong(JobMyFragment.TASK_ID_KEY, mTask.getId());
+                    mListener.OnOpenFragment(JobMyFragment.class.getName(), args);
+                }
+            }
+        });
         
         importanceView = (ImageView) v.findViewById(R.id.importanceView);
         attachmentView = (ImageView) v.findViewById(R.id.attachmentView);
+        discussionView = (ImageView) v.findViewById(R.id.discussionView);
         
         actionsView.setOnClickListener(actionsClickListener);
     }
@@ -246,13 +259,25 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
     }
     private void updateData() {
         taskTitleTextView.setText(mTask.getTitle());
-        String property = String.format(getResources().getString(R.string.task_detail_fragment_property_text), mTask.getAuthor().getName(), mTask.getCreated(true), mTask.getDeadline(true));
+        String dateCreatedString = mTask.getCreated(true);
+        if (dateCreatedString.equals("30/12/1899")) {
+            dateCreatedString = "";
+        }
+        String deadlineString = mTask.getDeadline(true);
+        if (deadlineString.equals("30/12/1899")) {
+            deadlineString = "";
+        }
+        String property = String.format(getResources().getString(R.string.task_detail_fragment_property_text), mTask.getAuthor().getName(), dateCreatedString, deadlineString);
         propertyTextView.setText(property);
         
-        dateTextView.setText(mTask.getDeadline(true));
+        String dateString = mTask.getDeadline(true);
+        if (dateString.equals("30/12/1899")) {
+            dateTextView.setVisibility(View.INVISIBLE);
+        }
+        dateTextView.setText(dateString);
         stateTextView.setText(mTask.getState());
         importanceTextView.setText(mTask.getImportance());
-        flagTextView.setText("Что за нафиг флаг??");
+        flagTextView.setText("");
         documentsTextView.setText(String.valueOf(mTask.getAttachmentCount()));
         jobsTextView.setText("0");
         subtasksTextView.setText(String.valueOf(mTask.getSubtaskCount()));
@@ -292,19 +317,16 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         public void onClick(View v) {
             // Загрузка и открытие документа.
             Attachment doc = (Attachment)v.getTag();
-            Log.v(TAG, "documentClickListener " + doc.getName());
+//            Log.v(TAG, "documentClickListener " + doc.getName());
             boolean exist = mDirect.checkDocumentExist(doc);
-            Log.v(TAG, "doc exist " + exist);
+//            Log.v(TAG, "doc exist " + exist);
             if (exist) {
-                Log.v(TAG, "open document");
-                File fileFolder = new File(mDirect.getDocumentPath(doc));
-                String filename = mDirect.normalizeFilename(doc.getName());
-                File myFile = new File(fileFolder, String.format("%s.%s", filename, doc.getExt()));
+//                Log.v(TAG, "open document");
+                File myFile = mDirect.getDocumentFile(doc);
                 try {
                     FileOpen.openFile(getActivity(), myFile);
                 } catch (IOException e) {
                     Log.v(TAG, "Неудалось открыть документ " + e.getMessage());
-//                    e.printStackTrace();
                 }
             } else {
                 showDownloadDialog(doc);

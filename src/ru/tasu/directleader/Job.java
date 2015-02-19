@@ -119,17 +119,14 @@ private static final String TAG = "Job";
     public String getEndDate() {
         return getEndDate(false);
     }
+    /**
+     * Дата фактического завершения задания
+     * @param formatted
+     * @return
+     */
     public String getEndDate(boolean formatted) {
         if (formatted) {
-            SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
-            try {
-                Date deadline = format.parse(this._end_date);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("yyyy-MM-dd");
-                return  formatOutput.format(deadline);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return this._end_date;
-            }
+            return Utils.formatDateTime(this._end_date);
         } else {
             return this._end_date;
         }
@@ -137,17 +134,14 @@ private static final String TAG = "Job";
     public String getFinalDate() {
         return getFinalDate(false);
     }
+    /**
+     * Дата планового завершения задания (Срок)
+     * @param formatted
+     * @return
+     */
     public String getFinalDate(boolean formatted) {
         if (formatted) {
-            SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
-            try {
-                Date deadline = format.parse(this._final_date);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("yyyy-MM-dd");
-                return  formatOutput.format(deadline);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return this._final_date;
-            }
+            return Utils.formatDateTime(this._final_date);
         } else {
             return this._final_date;
         }
@@ -172,15 +166,7 @@ private static final String TAG = "Job";
     }
     public String getStartDate(boolean formatted) {
         if (formatted) {
-            SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
-            try {
-                Date deadline = format.parse(this._start_date);
-                SimpleDateFormat formatOutput =  new SimpleDateFormat("yyyy-MM-dd");
-                return  formatOutput.format(deadline);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return this._start_date;
-            }
+            return Utils.formatDateTime(this._start_date);
         } else {
             return this._start_date;
         }
@@ -212,7 +198,7 @@ private static final String TAG = "Job";
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
         Date deadline;
         try {
-            deadline = format.parse(this._end_date);
+            deadline = format.parse(this._final_date);
         } catch (ParseException e) {
             e.printStackTrace();
             return false;
@@ -231,7 +217,7 @@ private static final String TAG = "Job";
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Utils.mLocale);
         Date deadline;
         try {
-            deadline = format.parse(this._end_date);
+            deadline = format.parse(this._final_date);
         } catch (ParseException e) {
             e.printStackTrace();
             return false;

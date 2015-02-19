@@ -1,6 +1,8 @@
 package ru.tasu.directleader;
 
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -58,5 +60,19 @@ public class Utils {
         final String[] units = new String[] { "ב", "ךב", "לב", "דב", "עב" };
         int digitGroups = (int) (Math.log10(size)/Math.log10(1024));
         return new DecimalFormat("#,##0.#").format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+    }
+    public static String formatDateTime(String dateStr) {
+        return formatDateTime(dateStr, "yyyy-MM-dd");
+    }
+    public static String formatDateTime(String dateStr, String dateFormat) {
+        SimpleDateFormat  format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", mLocale);
+        try {
+            Date date = format.parse(dateStr);
+            SimpleDateFormat formatOutput =  new SimpleDateFormat(dateFormat);
+            return  formatOutput.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return dateStr;
+        }
     }
 }

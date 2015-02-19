@@ -73,6 +73,12 @@
     <string name="task_detail_fragment_comment_text">Комментарий:</string>
     <string name="task_detail_fragment_history_text">История:</string>
     
+    <!-- Окно Сотрудники -->
+    <string name="staff_fragment_sort_fio_text">ФИО</string>
+    <string name="staff_fragment_sort_overdue_text">Просроченные</string>
+    <string name="staff_fragment_sort_today_text">Сегодня</string>
+    <string name="staff_fragment_sort_total_text">Всего</string>
+    
     <!-- Окно диалог загрузки документа -->
     <string name="document_download_fragment_title_text">Документ отсутствует на устройстве.\nЗагрузить документ?</string>
     <string name="document_download_fragment_button_yes_text">Да</string>
