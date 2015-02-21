@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" >
+    <item
+        android:id="@+id/action_more"
+        android:title="@string/action_more"/>
+    <item
+        android:id="@+id/action_userchange"
+        android:title="@string/action_userchange"/>
+    <item
+        android:id="@+id/action_activate"
+        android:title="@string/action_activate"/>
+    
+</menu>

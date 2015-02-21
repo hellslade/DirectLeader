@@ -17,16 +17,25 @@
     <LinearLayout 
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingLeft="200dp"
-        android:paddingRight="200dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
         android:orientation="vertical"
         >
+        <ImageButton 
+            android:id="@+id/settingsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_settings"
+            android:layout_gravity="right"
+            android:background="@drawable/button_transparent_selector"/>
 	    <LinearLayout 
 	        android:id="@+id/topLinear"
 	        android:layout_width="match_parent"
 	        android:layout_height="match_parent"
 	        android:gravity="center_vertical|center_horizontal"
 	        android:paddingTop="100dp"
+	        android:paddingLeft="120dp"
+            android:paddingRight="120dp"
 	        android:layout_weight="1">
 		    <ImageView 
 		        android:id="@+id/auth_logo"
@@ -45,6 +54,8 @@
 	        android:orientation="vertical"
 	        android:gravity="center_vertical|center_horizontal"
 	        android:paddingBottom="100dp"
+	        android:paddingLeft="120dp"
+            android:paddingRight="120dp"
 	        android:layout_weight="1">
 	        
 	        <EditText
@@ -66,5 +77,37 @@
                 android:text="@string/login_fragment_login_button_text"
                 />
 	    </LinearLayout>
+	    <LinearLayout 
+            android:id="@+id/continueLinear"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_vertical|center_horizontal"
+            android:paddingBottom="100dp"
+            android:paddingLeft="120dp"
+            android:paddingRight="120dp"
+            android:visibility="gone"
+            android:layout_weight="1">
+            
+            <TextView
+                style="@android:style/TextAppearance.DeviceDefault.Medium"
+                android:id="@+id/successTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/login_fragment_auth_success_text"
+                android:textColor="@color/gray"
+                android:gravity="center"
+                android:textColorHint="@color/gray"
+                />
+            <Button 
+                android:id="@+id/continueButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" 
+                android:layout_marginTop="20dp"
+                android:textColor="@color/white"
+                android:background="@drawable/button_green_selector"
+                android:text="@string/login_fragment_continue_button_text"
+                />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

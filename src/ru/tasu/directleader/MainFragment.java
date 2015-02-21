@@ -2,6 +2,8 @@ package ru.tasu.directleader;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,10 +12,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 public class MainFragment extends Fragment implements OnClickListener, OnUpdateDataListener {
@@ -112,7 +117,7 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
     private static DirectLeaderApplication mDirect;
     private OnOpenFragmentListener mListener;
 
-    private ImageButton refreshDataView;
+    private ImageButton refreshDataView, settingsButton;
     
     private BookCompoundView jobImportantView, myJobView, myStaffTaskView, documentsView, staffView, reportView, calendarView;
     
@@ -126,6 +131,15 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
+        ((ImageView)rootView.findViewById(R.id.newTaskButton)).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    mListener.OnTaskCreate();
+                }
+            }
+        });
+        
         jobImportantView = (BookCompoundView)rootView.findViewById(R.id.jobImportantView);
         myJobView = (BookCompoundView)rootView.findViewById(R.id.myJobView);
         myStaffTaskView = (BookCompoundView)rootView.findViewById(R.id.myStaffTaskView);
@@ -145,6 +159,33 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
         
         refreshDataView = (ImageButton) rootView.findViewById(R.id.refreshDataView);
         refreshDataView.setOnClickListener(this);
+        
+        settingsButton = (ImageButton) rootView.findViewById(R.id.settingsButton);
+        settingsButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Show popup menu
+                PopupMenu popup = new PopupMenu(getActivity(), v);
+                popup.inflate(R.menu.main_popup_menu);
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.action_exit:
+                                FragmentManager manager = getFragmentManager();
+                                FragmentTransaction transaction = manager.beginTransaction();
+                                Fragment fragment = Fragment.instantiate(getActivity(), AuthorizeFragment.class.getName(), null);
+                                transaction.replace(R.id.container, fragment);
+                                transaction.commit();
+                                return true;
+                        }
+                        return false;
+                    }
+                });
+                
+                popup.show();
+            }
+        });
         
         setFonts();
         updateData();
@@ -222,5 +263,7 @@ abstract interface OnOpenFragmentListener {
     public void OnOpenFragment(String fragmentClassName);
     public void OnOpenFragment(String fragmentClassName, Bundle args);
     public void OnRefreshData();
+    public void OnTaskCreate();
+    public void OnTaskCreate(String preTitle);
 }
 

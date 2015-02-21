@@ -31,7 +31,7 @@ import android.widget.AdapterView.OnItemClickListener;
 public class JobMyFragment extends Fragment implements OnClickListener {
     private static final String TAG = "JobMyFragment";
     
-    class GetJobAsyncTask extends AsyncTask<Void, Void, List<Job>> {
+    class GetJobAsyncTask extends AsyncTask<String, Void, List<Job>> {
         ProgressDialog pg;
         protected void onPreExecute() {
             super.onPreExecute();
@@ -40,10 +40,14 @@ public class JobMyFragment extends Fragment implements OnClickListener {
             pg.show();
         };
         @Override
-        protected List<Job> doInBackground(Void... params) {
+        protected List<Job> doInBackground(String... params) {
+            String filter = "";
+            if (params.length > 1) {
+                filter = params[1];
+            }
             JobDataSource jds = new JobDataSource(mDirect);
             jds.open();
-            List<Job> jobs = jds.getJobByPerformerCode(mDirect.getUserCode());
+            List<Job> jobs = jds.getJobByPerformerCode(params[0], filter);
             jds.close();
             return jobs;
         }
@@ -90,9 +94,12 @@ public class JobMyFragment extends Fragment implements OnClickListener {
     //*/
     public enum JobType {
         OVERDUE,
-        CURRENT
+        CURRENT,
+        ALL
     }
     public static final String TASK_ID_KEY = "task_id";
+    public static final String STAFF_CODE_KEY = "staff_code";
+    public static final String STAFF_FILTER_KEY = "staff_filter";
     private long mTaskId;
     
     private SharedPreferences mSettings;
@@ -129,7 +136,15 @@ public class JobMyFragment extends Fragment implements OnClickListener {
                 }
             }
         });
-
+        ((ImageView)rootView.findViewById(R.id.newTaskButton)).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    mListener.OnTaskCreate();
+                }
+            }
+        });
+        
         sortStateView = (CheckedTextView) rootView.findViewById(R.id.sortStateView);
         sortReadedView = (CheckedTextView) rootView.findViewById(R.id.sortReadedView);
         sortDateView = (CheckedTextView) rootView.findViewById(R.id.sortDateView);
@@ -168,9 +183,25 @@ public class JobMyFragment extends Fragment implements OnClickListener {
             if (args.containsKey(TASK_ID_KEY)) {
                 mTaskId = args.getLong(TASK_ID_KEY);
                 new GetJobsByTaskIdAsyncTask().execute();
+            } else if (args.containsKey(STAFF_CODE_KEY)) {
+                final String staffCode = args.getString(STAFF_CODE_KEY);
+                final JobType filter = JobType.values()[args.getInt(STAFF_FILTER_KEY)];
+                String filterStr = "";
+                switch (filter) {
+                    case CURRENT:
+                        filterStr = " AND job.final_date = date()";
+                        break;
+                    case OVERDUE:
+                        filterStr = " AND job.final_date < date()";
+                        break;
+                    case ALL:
+                        filterStr = "";
+                        break;
+                }
+                new GetJobAsyncTask().execute(staffCode, filterStr);
             }
         } else {
-            new GetJobAsyncTask().execute();
+            new GetJobAsyncTask().execute(mDirect.getUserCode());
         }
         
         return rootView;

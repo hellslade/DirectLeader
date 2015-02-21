@@ -158,10 +158,11 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
                 setCancelable(true);
             } else {
                 Toast.makeText(context, getResources().getString(R.string.document_download_fragment_success_text), Toast.LENGTH_SHORT).show();
-                final Dialog pg = getDialog();
-                if (pg != null) {
-                    pg.dismiss();
-                }
+                //final Dialog pg = getDialog();
+//                if (pg != null) {
+//                    pg.dismiss();
+//                }
+                dismiss();
                 if (mListener != null) {
                     mListener.onDocumentDownload(mAttachment);
                 }
@@ -174,10 +175,11 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
             new File(fileOutputPath).delete();
             super.onCancelled(result);
             mWakeLock.release();
-            final Dialog pg = getDialog();
-            if (pg != null) {
-                pg.dismiss();
-            }
+//            final Dialog pg = getDialog();
+//            if (pg != null) {
+//                pg.dismiss();
+//            }
+            dismiss();
         }
     }
     
@@ -277,7 +279,7 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
                     break;
                 case R.id.buttonNo:
                     Log.v(TAG, "No");
-                    getDialog().dismiss();
+                    dismiss();
                     break;
             }
         }

@@ -14,19 +14,33 @@
     <string name="report_text">ОТЧЕТЫ</string>
     <string name="calendar_text">КАЛЕНДАРЬ</string>
     
-    <string name="hello_world">Hello world!</string>
-    
     <!-- Тексты меню -->
     <string name="action_search">Поиск</string>
     <string name="action_settings">Настройки</string>
-    <string name="action_add">Добавить</string>
-
+    <string name="action_exit">Выход</string>
+    <string name="action_more">Получить больше</string>
+    <string name="action_userchange">Сменить пользователя</string>
+    <string name="action_activate">Активировать</string>
+    <string name="action_deactivate">Деактивировать</string>
+    <string name="action_geturl">Получить настройки</string>
+    
+    <string name="users_fragment_search_hint_text">Поиск</string>
     
     <!-- Окно авторизации -->
     <string name="login_fragment_login_hint_text">Логин или e-mail</string>
     <string name="login_fragment_login_button_text">Войти</string>
+    <string name="login_fragment_auth_success_text">Авторизация пройдена</string>
+    <string name="login_fragment_continue_button_text">Продолжить</string>
     <string name="authorize_failed_message_text">Ошибка авторизации. Проверьте подключение к Интернет и введенные данные.</string>
     <string name="authorize_process_message_text">Авторизация, пожалуйста, подождите...</string>
+    
+    <!-- Окно создания задачи -->
+    <string name="create_task_dialog_fragment_theme_text">Тема*</string>
+    <string name="create_task_dialog_fragment_route_type_text">Тип маршрута</string>
+    <string name="create_task_dialog_fragment_undead_text">Без срока</string>
+    <string name="create_task_dialog_fragment_performers_text">Исполнители</string>
+    <string name="create_task_dialog_fragment_observers_text">Наблюдатели</string>
+    <string name="create_task_dialog_fragment_rights_text">Права:</string>
     
     <!-- Окно списка заданий (Job) -->
     <string name="myjob_fragment_header_title_text">Тема, Создано, Инициатор</string>

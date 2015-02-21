@@ -20,10 +20,12 @@ public class StaffListAdapter extends ArrayAdapter<Rabotnic> {
     
 	private ListView listView;
 	private DirectLeaderApplication mDirect;
+	private OnClickListener mClickListener; 
 	
-	public StaffListAdapter(Context context, List<Rabotnic> items, ListView listView) {
+	public StaffListAdapter(Context context, List<Rabotnic> items, ListView listView, OnClickListener clickListener) {
 		super(context, 0, items);
 		this.listView = listView;
+		mClickListener = clickListener;
 		mDirect = (DirectLeaderApplication)((Activity)context).getApplication();
 	}
 	public List<Rabotnic> getItems() {
@@ -56,7 +58,6 @@ public class StaffListAdapter extends ArrayAdapter<Rabotnic> {
     	TextView yellowTextView = viewHolder.getYellowTextView();
     	TextView greenTextView = viewHolder.getGreenTextView();
         
-        
     	fioTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     	redTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     	yellowTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
@@ -71,12 +72,20 @@ public class StaffListAdapter extends ArrayAdapter<Rabotnic> {
     	photoLayout.measure(0, 0);
         int height = photoLayout.getMeasuredHeight();
     	
-        redTextView.getLayoutParams().width = height;
+        redTextView.getLayoutParams().width = (int)(height*0.7f);
         redTextView.getLayoutParams().height = height;
-        yellowTextView.getLayoutParams().width = height;
+        yellowTextView.getLayoutParams().width = (int)(height*0.7f);
         yellowTextView.getLayoutParams().height = height;
-        greenTextView.getLayoutParams().width = height;
+        greenTextView.getLayoutParams().width = (int)(height*0.7f);
         greenTextView.getLayoutParams().height = height;
+        
+        redTextView.setTag(position);
+        yellowTextView.setTag(position);
+        greenTextView.setTag(position);
+        
+        redTextView.setOnClickListener(mClickListener);
+        yellowTextView.setOnClickListener(mClickListener);
+        greenTextView.setOnClickListener(mClickListener);
         
         return rowView;
     }

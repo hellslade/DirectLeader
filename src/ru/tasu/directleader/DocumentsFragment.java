@@ -29,7 +29,7 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class DocumentsFragment extends Fragment implements OnClickListener {
+public class DocumentsFragment extends Fragment {
     private static final String TAG = "DocumentsFragment";
     
     class GetAttachmentAsyncTask extends AsyncTask<Void, Void, List<Attachment>> {
@@ -86,6 +86,14 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
             public void onClick(View v) {
                 if (mListener != null) {
                     getFragmentManager().popBackStack(getFragmentManager().getBackStackEntryAt(0).getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                }
+            }
+        });
+        ((ImageView)rootView.findViewById(R.id.newTaskButton)).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    mListener.OnTaskCreate();
                 }
             }
         });
@@ -206,12 +214,6 @@ public class DocumentsFragment extends Fragment implements OnClickListener {
             }
         }
     };
-    @Override
-    public void onClick(View v) {
-        if (mListener != null) {
-//            mListener.OnOpenFragment();
-        }
-    }
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);

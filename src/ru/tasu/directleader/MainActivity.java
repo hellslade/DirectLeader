@@ -1,8 +1,10 @@
 package ru.tasu.directleader;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.List;
+import java.io.OutputStreamWriter;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -12,12 +14,15 @@ import ru.tasu.directleader.DocumentDownloadDialogFragment.OnDocumentDownloadLis
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 
 public class MainActivity extends Activity implements OnLoginListener, OnOpenFragmentListener, OnDocumentDownloadListener {
     private static final String TAG = "MainActivity";
@@ -88,12 +93,48 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
             }
         }
     }
+    class UpdateDBClientSettingsAsyncTask extends AsyncTask<Void, Void, JSONObject> {
+        @Override
+        protected JSONObject doInBackground(Void... arg0) {
+            // Обновление данных Client Settings
+            JSONObject result = mDirect.GetClientSettings();
+            int statusCode = result.optInt("statusCode");
+            result.remove("statusCode");
+            if (statusCode == 200) {
+                Log.v(TAG, "GetClientSettings() ok");
+                // Сохранить в файл
+                File path = mDirect.getApplicationCacheDir(mDirect);
+                File settingsFile = new File(path, mDirect.mSettingsFilename);
+                try {
+                    if (!settingsFile.exists()) {
+                        settingsFile.createNewFile();
+                    }
+                    FileOutputStream fOut = new FileOutputStream(settingsFile);
+                    OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+                    myOutWriter.write(result.toString());
+                    myOutWriter.close();
+                    fOut.close();
+                } catch (IOException e) {
+                    Log.v(TAG, "Exception in save client settings " + e.getLocalizedMessage());
+                }
+                
+            } else {
+                Log.v(TAG, "Почему-то не удалось получить данные ClientSettings");
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+            
+        }
+    }
     
     private static DirectLeaderApplication mDirect;
-//    private List<Task> mMyTasks;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         mDirect = (DirectLeaderApplication) getApplication();
@@ -101,20 +142,15 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
             getFragmentManager().beginTransaction()
                     .add(R.id.container, Fragment.instantiate(this, AuthorizeFragment.class.getName())).commit();
         }
-        if (mDirect.isOnline()) {
-            Log.v(TAG, "need to update");
-            // Пока отключу обновление при старте
-//            new UpdateDBRabotnicAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
-//            new UpdateDBTaskAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
-        }
-        DisplayMetrics metrics = getResources().getDisplayMetrics();
-        Log.v(TAG, "metrics.density " + metrics.density);
+        
+//        DisplayMetrics metrics = getResources().getDisplayMetrics();
+//        Log.v(TAG, "metrics.density " + metrics.density);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+//        getMenuInflater().inflate(R.menu.main_popup_menu, menu);
         return true;
     }
 
@@ -123,15 +159,19 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
+//        int id = item.getItemId();
+//        if (id == R.id.action_exit) {
+//            Log.v(TAG, "action_exit");
+//            return true;
+//        }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
-    public void OnLogin() {
+    public void OnLogin(boolean update) {
+        if (update) {
+            OnRefreshData();
+        }
         startMainMenuFragment();
     }
     private void startMainMenuFragment() {
@@ -154,8 +194,10 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
     }
     @Override
     public void OnRefreshData() {
+        Log.v(TAG, "OnRefreshData()");
       new UpdateDBRabotnicAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
       new UpdateDBTaskAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
+      new UpdateDBClientSettingsAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
     }
     @Override
     public void onDocumentDownload(Attachment doc) {
@@ -169,5 +211,17 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
                 Log.v(TAG, "Неудалось открыть документ " + e.getMessage());
             }
         }
+    }
+    @Override
+    public void OnTaskCreate() {
+        OnTaskCreate("");
+    }
+    @Override
+    public void OnTaskCreate(String preTitle) {
+        // Вызвать диалог создания задачи
+        Log.v(TAG, "showCreateTaskDialog");
+        Intent i = new Intent(this, TaskCreateActivity.class);
+        i.putExtra(TaskCreateActivity.TITLE_KEY, preTitle);
+        startActivity(i);
     }
 }

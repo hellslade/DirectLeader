@@ -7,6 +7,8 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import ru.tasu.directleader.JobMyFragment.JobType;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -96,7 +98,15 @@ public class StaffFragment extends Fragment implements OnClickListener {
                 }
             }
         });
-
+        ((ImageView)rootView.findViewById(R.id.newTaskButton)).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    mListener.OnTaskCreate();
+                }
+            }
+        });
+        
         sortFioView = (CheckedTextView) rootView.findViewById(R.id.sortFioView);
         sortOverdueView = (CheckedTextView) rootView.findViewById(R.id.sortOverdueView);
         sortTodayView = (CheckedTextView) rootView.findViewById(R.id.sortTodayView);
@@ -109,7 +119,7 @@ public class StaffFragment extends Fragment implements OnClickListener {
 //        staffListView.addHeaderView(listViewHeader, null, false);
 //        staffListView.setHeaderDividersEnabled(false);
         
-        mAdapter = new StaffListAdapter(getActivity(), new ArrayList<Rabotnic>(), staffListView);
+        mAdapter = new StaffListAdapter(getActivity(), new ArrayList<Rabotnic>(), staffListView, jobsClickListener);
         staffListView.setAdapter(mAdapter);
         staffListView.setOnItemClickListener(itemClickListener);
         
@@ -135,19 +145,37 @@ public class StaffFragment extends Fragment implements OnClickListener {
         return rootView;
     }
     private void setFonts() {
-//        int count = listViewHeader.getChildCount();
-//        for (int i=0; i<count; i++) {
-//            final View view = listViewHeader.getChildAt(i);
-//            if (view.getClass().isInstance(TextView.class)) {
-//                ((TextView)view).setTypeface(mDirect.mPFDinDisplayPro_Reg);
-//            }
-//        }
-        
         sortFioView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortOverdueView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortTodayView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortTotalView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     }
+    OnClickListener jobsClickListener = new OnClickListener() {
+        // “ап по количеству заданий сотрудника
+        @Override
+        public void onClick(View v) {
+            if (mListener != null) {
+                JobType filter = JobType.ALL;
+                switch (v.getId()) {
+                    case R.id.redTextView:
+                        filter = JobType.OVERDUE;
+                        break;
+                    case R.id.yellowTextView:
+                        filter = JobType.CURRENT;
+                        break;
+                    case R.id.greenTextView:
+                        filter = JobType.ALL;
+                        break;
+                }
+                int pos = (Integer) v.getTag();
+                Rabotnic rabotnic = mAdapter.getItem(pos);
+                Bundle args = new Bundle();
+                args.putString(JobMyFragment.STAFF_CODE_KEY, rabotnic.getCode());
+                args.putInt(JobMyFragment.STAFF_FILTER_KEY, filter.ordinal());
+                mListener.OnOpenFragment(JobMyFragment.class.getName(), args);
+            }
+        }
+    };
     OnClickListener sortClickListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -216,7 +244,7 @@ public class StaffFragment extends Fragment implements OnClickListener {
         public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
             if (mListener != null) {
                 Rabotnic rabotnic = mAdapter.getItem(pos);
-//                Bundle args = new Bundle();
+                Bundle args = new Bundle();
 //                args.putParcelable(StaffDetailFragment.STAFF_KEY, rabotnic);
 //                mListener.OnOpenFragment(StaffDetailFragment.class.getName(), args);
             }

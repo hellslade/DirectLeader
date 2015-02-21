@@ -165,6 +165,14 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
                 }
             }
         });
+        ((ImageView)rootView.findViewById(R.id.newTaskButton)).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    mListener.OnTaskCreate();
+                }
+            }
+        });
         
         Bundle args = getArguments();
         mJob = args.getParcelable(JOB_KEY);
@@ -217,6 +225,14 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         discussionView = (ImageView) v.findViewById(R.id.discussionView);
         
         actionsView.setOnClickListener(actionsClickListener);
+        subtaskView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    mListener.OnTaskCreate(">> " + mJob.getSubject());
+                }
+            }
+        });
     }
     private void setFonts() {
         actionsView.setTypeface(mDirect.mPFDinDisplayPro_Reg);

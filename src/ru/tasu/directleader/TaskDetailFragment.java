@@ -182,6 +182,14 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
                 }
             }
         });
+        ((ImageView)rootView.findViewById(R.id.newTaskButton)).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    mListener.OnTaskCreate();
+                }
+            }
+        });
         
         Bundle args = getArguments();
         mTask = args.getParcelable(TASK_KEY);

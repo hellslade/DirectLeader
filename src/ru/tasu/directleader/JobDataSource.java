@@ -169,7 +169,8 @@ public class JobDataSource {
         cursor.close();
         return jobs;
     }
-    public List<Job> getJobByPerformerCode(String code) {
+    @Deprecated
+    public List<Job> getJobByPerformerCodeOld(String code) {
         List<Job> jobs = new ArrayList<Job>();
         
         String sql = String.format("SELECT %s.*, task.importance, task.author_code FROM %s, %s, %s WHERE %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=?;", 
@@ -177,6 +178,38 @@ public class JobDataSource {
                 DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER, DBHelper.RABOTNIC_TABLE, DBHelper.RABOTNIC_CODE,
                 DBHelper.JOB_TABLE, DBHelper.JOB_MAIN_TASK_JOB, DBHelper.TASK_TABLE, DBHelper.TASK_ID,
                 DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER);
+//        Log.v("getJobByPerformerCode()", "sql " + sql);
+        Cursor cursor = database.rawQuery(sql, new String[]{code});
+        cursor.moveToFirst();
+        Job job = null;
+        RabotnicDataSource rabotnic_ds = new RabotnicDataSource(mContext);
+        rabotnic_ds.open();
+        AttachmentDataSource attach_ds = new AttachmentDataSource(mContext);
+        attach_ds.open();
+        while (!cursor.isAfterLast()) {
+            job = cursorToJob(cursor);
+            job.setAttachmentCount(attach_ds.getAttachmentsCountByTaskId(job.getMainTaskJob()));
+            job.setImportance(cursor.getString(13));
+            job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
+            job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(14)));
+            jobs.add(job);
+            cursor.moveToNext();
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        return jobs;
+    }
+    public List<Job> getJobByPerformerCode(String code) {
+        return getJobByPerformerCode(code, "");
+    }
+    public List<Job> getJobByPerformerCode(String code, String filter) {
+        List<Job> jobs = new ArrayList<Job>();
+        
+        String sql = String.format("SELECT %s.*, task.importance, task.author_code FROM %s, %s, %s WHERE %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=? %s;", 
+                DBHelper.JOB_TABLE, DBHelper.JOB_TABLE, DBHelper.TASK_TABLE, DBHelper.RABOTNIC_TABLE,
+                DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER, DBHelper.RABOTNIC_TABLE, DBHelper.RABOTNIC_CODE,
+                DBHelper.JOB_TABLE, DBHelper.JOB_MAIN_TASK_JOB, DBHelper.TASK_TABLE, DBHelper.TASK_ID,
+                DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER, filter);
 //        Log.v("getJobByPerformerCode()", "sql " + sql);
         Cursor cursor = database.rawQuery(sql, new String[]{code});
         cursor.moveToFirst();

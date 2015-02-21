@@ -87,7 +87,15 @@ public class JobImportantFragment extends Fragment implements OnClickListener {
                 }
             }
         });
-
+        ((ImageView)rootView.findViewById(R.id.newTaskButton)).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    mListener.OnTaskCreate();
+                }
+            }
+        });
+        
         sortStateView = (CheckedTextView) rootView.findViewById(R.id.sortStateView);
         sortReadedView = (CheckedTextView) rootView.findViewById(R.id.sortReadedView);
         sortDateView = (CheckedTextView) rootView.findViewById(R.id.sortDateView);

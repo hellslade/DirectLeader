@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp"
+    >
+    
+    <TextView
+        style="@android:style/TextAppearance.DeviceDefault.Medium"
+        android:id="@+id/fioTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textColor="@color/black"
+        android:text="Йовович Мила Андреевна"
+        android:layout_marginLeft="10dp"
+        />
+    <TextView
+        android:id="@+id/subtitleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textColor="@color/black"
+        android:text="subtitle"
+        android:layout_marginLeft="10dp"
+        android:visibility="invisible"
+        />
+</LinearLayout>
