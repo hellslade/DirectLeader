@@ -10,8 +10,11 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CheckedTextView;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -35,7 +39,9 @@ public class TaskFragment extends Fragment implements OnClickListener {
             super.onPreExecute();
             pg = new ProgressDialog(getActivity(), ProgressDialog.THEME_HOLO_LIGHT);
             pg.setMessage(getResources().getString(R.string.task_loading_data_text));
-            pg.show();
+            if (!mRetained) {
+                pg.show();
+            }
         };
         @Override
         protected List<Task> doInBackground(Void... params) {
@@ -64,10 +70,13 @@ public class TaskFragment extends Fragment implements OnClickListener {
     
     private ListView taskListView;
     private TaskListAdapter mAdapter;
-    private RelativeLayout listViewHeader;
+//    private RelativeLayout listViewHeader;
     private CheckedTextView sortStateView, sortReadedView, sortDateView, sortTitleView;
     private ImageButton sortDirectionView;
     private boolean sortDesc = false;
+    private EditText searchEditText;
+    
+    private boolean mRetained;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -102,13 +111,20 @@ public class TaskFragment extends Fragment implements OnClickListener {
         sortTitleView = (CheckedTextView) rootView.findViewById(R.id.sortTitleView);
         sortDirectionView = (ImageButton) rootView.findViewById(R.id.sortDirectionView);
 
+        searchEditText = (EditText)rootView.findViewById(R.id.searchEditText);
+        
         taskListView = (ListView) rootView.findViewById(R.id.taskListView);
 
-        listViewHeader = (RelativeLayout)getActivity().getLayoutInflater().inflate(R.layout.list_header_job_important_layout, null);
-        taskListView.addHeaderView(listViewHeader, null, false);
-        taskListView.setHeaderDividersEnabled(false);
+//        listViewHeader = (RelativeLayout)getActivity().getLayoutInflater().inflate(R.layout.list_header_job_important_layout, null);
+//        taskListView.addHeaderView(listViewHeader, null, false);
+//        taskListView.setHeaderDividersEnabled(false);
         
-        mAdapter = new TaskListAdapter(getActivity(), new ArrayList<Task>(), taskListView);
+        mRetained = true;
+        if (mAdapter == null) {
+            mAdapter = new TaskListAdapter(getActivity(), new ArrayList<Task>(), taskListView);
+            mRetained = false;
+        }
+//        mAdapter = new TaskListAdapter(getActivity(), new ArrayList<Task>(), taskListView);
         taskListView.setAdapter(mAdapter);
         taskListView.setOnItemClickListener(itemClickListener);
         
@@ -127,24 +143,41 @@ public class TaskFragment extends Fragment implements OnClickListener {
             }
         });
         
-        sortStateView.performClick();
-        
         new GetTaskAsyncTask().execute();
+        initSearch();
+        retainListViewPosition();
+        retainSortState();
         return rootView;
     }
     private void setFonts() {
-        int count = listViewHeader.getChildCount();
+        /*int count = listViewHeader.getChildCount();
         for (int i=0; i<count; i++) {
             final View view = listViewHeader.getChildAt(i);
             if (view.getClass().isInstance(TextView.class)) {
                 ((TextView)view).setTypeface(mDirect.mPFDinDisplayPro_Reg);
             }
-        }
+        }*/
         
         sortStateView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortReadedView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortDateView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortTitleView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+    }
+    private void initSearch() {
+        // Add Text Change Listener to EditText
+        searchEditText.addTextChangedListener(new TextWatcher() {
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Call back the Adapter with current character to Filter
+                mAdapter.getFilter().filter(s.toString());
+            }
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count,int after) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
     }
     OnClickListener sortClickListener = new OnClickListener() {
         @Override
@@ -189,13 +222,46 @@ public class TaskFragment extends Fragment implements OnClickListener {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
             if (mListener != null) {
-                Task task = mAdapter.getItem(pos-1);
+                Task task = mAdapter.getItem(pos-taskListView.getHeaderViewsCount());
                 Bundle args = new Bundle();
                 args.putParcelable(TaskDetailFragment.TASK_KEY, task);
                 mListener.OnOpenFragment(TaskDetailFragment.class.getName(), args);
+                saveListViewPosition();
+                saveSortState();
             }
         }
     };
+    private int listViewIndex = -1;
+    private int listViewTop;
+    private void saveListViewPosition() {
+        try{
+            listViewIndex = taskListView.getFirstVisiblePosition();
+            View v = taskListView.getChildAt(0);
+            listViewTop = (v == null) ? 0 : v.getTop();
+         }
+         catch(Throwable t){
+            t.printStackTrace();
+         }
+    }
+    private void retainListViewPosition() {
+        if(listViewIndex != -1){
+            taskListView.setSelectionFromTop(listViewIndex, listViewTop);
+         }
+    }
+    private void saveSortState() {
+        Editor e = mSettings.edit();
+        e.putBoolean("task_sort_state", sortStateView.isChecked());
+        e.putBoolean("task_sort_readed", sortReadedView.isChecked());
+        e.putBoolean("task_sort_date", sortDateView.isChecked());
+        e.putBoolean("task_sort_title", sortTitleView.isChecked());
+        e.commit();
+    }
+    private void retainSortState() {
+        sortStateView.setChecked(mSettings.getBoolean("task_sort_state", false));
+        sortReadedView.setChecked(mSettings.getBoolean("task_sort_readed", false));
+        sortDateView.setChecked(mSettings.getBoolean("task_sort_date", false));
+        sortTitleView.setChecked(mSettings.getBoolean("task_sort_title", false));
+    }
     @Override
     public void onClick(View v) {
         if (mListener != null) {
@@ -210,5 +276,10 @@ public class TaskFragment extends Fragment implements OnClickListener {
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnOpenFragmentListener");
         }
+    }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        saveSortState();
     }
 }

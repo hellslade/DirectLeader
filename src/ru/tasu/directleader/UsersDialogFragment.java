@@ -16,8 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 
 public class UsersDialogFragment extends DialogFragment {
     private static final String TAG = "UsersDialogFragment";
@@ -59,7 +59,7 @@ public class UsersDialogFragment extends DialogFragment {
     private SharedPreferences mSettings;
     private static DirectLeaderApplication mDirect;
     
-    private TextView searchEditText;
+    private EditText searchEditText;
     private ListView usersListView;
     
     private UsersListAdapter mAdapter;
@@ -88,7 +88,7 @@ public class UsersDialogFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_users_dialog, container, false);
         
-        searchEditText = (TextView)v.findViewById(R.id.searchEditText);
+        searchEditText = (EditText)v.findViewById(R.id.searchEditText);
         usersListView = (ListView)v.findViewById(R.id.usersListView);
         
         mAdapter = new UsersListAdapter(getActivity(), new ArrayList<Rabotnic>(), usersListView);

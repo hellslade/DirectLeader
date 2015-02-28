@@ -8,6 +8,7 @@
     xmlns:app="http://schemas.android.com/apk/res/ru.tasu.directleader">
 
     <include layout="@layout/top_bar_layout" android:id="@+id/topBarLayout"/>
+    
     <LinearLayout
         android:id="@+id/topShadowLayout"
         android:layout_width="match_parent"
@@ -107,12 +108,31 @@
                 android:layout_weight="1"/>
        </LinearLayout>
     </RelativeLayout>
+    <LinearLayout
+        android:id="@+id/searchLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttonsLayout"
+        android:background="@color/gray"
+        >
+        <EditText 
+            android:id="@+id/searchEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/edittext_background_rounded"
+            android:layout_margin="10dp"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:gravity="left"
+            android:drawableStart="@drawable/ic_search"
+            android:hint="@string/users_fragment_search_hint_text"/>
+    </LinearLayout>
     <ListView
         android:id="@+id/docsListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:headerDividersEnabled="false"
-        android:layout_below="@id/buttonsLayout"
+        android:layout_below="@id/searchLayout"
     />
         
 </RelativeLayout>

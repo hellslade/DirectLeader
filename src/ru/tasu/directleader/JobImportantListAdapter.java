@@ -1,5 +1,6 @@
 package ru.tasu.directleader;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
@@ -7,26 +8,89 @@ import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class JobImportantListAdapter extends ArrayAdapter<Job> {
+public class JobImportantListAdapter extends ArrayAdapter<Job> implements Filterable {
     private static final String TAG = "JobImportantListAdapter";
     
 	private ListView listView;
 	private DirectLeaderApplication mDirect;
 	
-	private OnClickListener toolsClickListener;
+	private List<Job> mOriginalValues; // Original Values
+    private List<Job> mDisplayedValues;    // Values to be displayed
 	
 	public JobImportantListAdapter(Context context, List<Job> items, ListView listView) {
 		super(context, 0, items);
 		this.listView = listView;
+		this.mOriginalValues = items;
+        this.mDisplayedValues = items;
 		mDirect = (DirectLeaderApplication)((Activity)context).getApplication();
 	}
+	@Override
+    public int getCount() {
+        return mDisplayedValues.size();
+    }
+    @Override
+    public Job getItem(int position) {
+        return mDisplayedValues.get(position);
+    }
+    @Override
+    public void remove(Job object) {
+        mDisplayedValues.remove(object);
+        mOriginalValues.remove(object);
+        super.remove(object);
+    }
+    @Override
+    public Filter getFilter() {
+        Filter filter = new Filter() {
+            @SuppressWarnings("unchecked")
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                mDisplayedValues = (ArrayList<Job>) results.values; // has the filtered values
+                notifyDataSetChanged();  // notifies the data with new filtered values
+            }
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                FilterResults results = new FilterResults();        // Holds the results of a filtering operation in values
+                ArrayList<Job> FilteredArrList = new ArrayList<Job>();
+
+                if (mOriginalValues == null) {
+                    mOriginalValues = new ArrayList<Job>(mDisplayedValues); // saves the original data in mOriginalValues
+                }
+                /**
+                 * 
+                 *  If constraint(CharSequence that is received) is null returns the mOriginalValues(Original) values
+                 *  else does the Filtering and returns FilteredArrList(Filtered)  
+                 *
+                 **/
+                if (constraint == null || constraint.length() == 0) {
+                    // set the Original result to return  
+                    results.count = mOriginalValues.size();
+                    results.values = mOriginalValues;
+                } else {
+                    constraint = constraint.toString().toLowerCase();
+                    for (int i = 0; i < mOriginalValues.size(); i++) {
+                        final Job job = mOriginalValues.get(i);
+                        String data = String.format("%s %s %s %s %s %s", job.getSubject(), job.getUser().getName(), job.getStateTitle(), job.getAuthor().getName(), job.getResultTitle(), job.getImportance());
+                        if (data.toLowerCase().contains(constraint.toString())) {
+                            FilteredArrList.add(job);
+                        }
+                    }
+                    // set the Filtered result to return
+                    results.count = FilteredArrList.size();
+                    results.values = FilteredArrList;
+                }
+                return results;
+            }
+        };
+        return filter;
+    }
 	@Override
     public View getView(int position, View convertView, ViewGroup parent) {
         final Activity activity = (Activity) getContext();

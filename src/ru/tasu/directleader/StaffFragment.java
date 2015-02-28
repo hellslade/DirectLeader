@@ -2,33 +2,30 @@ package ru.tasu.directleader;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import ru.tasu.directleader.JobMyFragment.JobType;
-
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CheckedTextView;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.AdapterView.OnItemClickListener;
 
 public class StaffFragment extends Fragment implements OnClickListener {
     private static final String TAG = "StaffFragment";
@@ -39,7 +36,9 @@ public class StaffFragment extends Fragment implements OnClickListener {
             super.onPreExecute();
             pg = new ProgressDialog(getActivity(), ProgressDialog.THEME_HOLO_LIGHT);
             pg.setMessage(getResources().getString(R.string.task_loading_data_text));
-            pg.show();
+            if (!mRetained) {
+                pg.show();
+            }
         };
         @Override
         protected Rabotnic[] doInBackground(Void... params) {
@@ -57,6 +56,7 @@ public class StaffFragment extends Fragment implements OnClickListener {
             mAdapter.clear();
             mAdapter.addAll(result);
             mAdapter.sort(comp);
+            mAdapter.getFilter().filter(searchEditText.getText().toString());
             mAdapter.notifyDataSetChanged();
             super.onPostExecute(result);
         }
@@ -70,10 +70,13 @@ public class StaffFragment extends Fragment implements OnClickListener {
     
     private ListView staffListView;
     private StaffListAdapter mAdapter;
-    private RelativeLayout listViewHeader;
+//    private RelativeLayout listViewHeader;
     private CheckedTextView sortFioView, sortOverdueView, sortTodayView, sortTotalView;
     private ImageButton sortDirectionView;
     private boolean sortDesc = false;
+    private EditText searchEditText;
+    
+    private boolean mRetained;
     
     public static Fragment newInstance(Bundle args) {  // must pass some args
         StaffFragment f = new StaffFragment();
@@ -112,6 +115,8 @@ public class StaffFragment extends Fragment implements OnClickListener {
         sortTodayView = (CheckedTextView) rootView.findViewById(R.id.sortTodayView);
         sortTotalView = (CheckedTextView) rootView.findViewById(R.id.sortTotalView);
         sortDirectionView = (ImageButton) rootView.findViewById(R.id.sortDirectionView);
+        
+        searchEditText = (EditText)rootView.findViewById(R.id.searchEditText);
 
         staffListView = (ListView) rootView.findViewById(R.id.staffListView);
 
@@ -119,7 +124,11 @@ public class StaffFragment extends Fragment implements OnClickListener {
 //        staffListView.addHeaderView(listViewHeader, null, false);
 //        staffListView.setHeaderDividersEnabled(false);
         
-        mAdapter = new StaffListAdapter(getActivity(), new ArrayList<Rabotnic>(), staffListView, jobsClickListener);
+        mRetained = true;
+        if (mAdapter == null) {
+            mAdapter = new StaffListAdapter(getActivity(), new ArrayList<Rabotnic>(), staffListView, jobsClickListener);
+            mRetained = false;
+        }
         staffListView.setAdapter(mAdapter);
         staffListView.setOnItemClickListener(itemClickListener);
         
@@ -138,10 +147,10 @@ public class StaffFragment extends Fragment implements OnClickListener {
             }
         });
         
-        sortFioView.performClick();
-        
         new GetRabotnicsAsyncTask().execute();
-        
+        initSearch();
+        retainListViewPosition();
+        retainSortState();
         return rootView;
     }
     private void setFonts() {
@@ -149,6 +158,24 @@ public class StaffFragment extends Fragment implements OnClickListener {
         sortOverdueView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortTodayView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortTotalView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        
+        searchEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+    }
+    private void initSearch() {
+        // Add Text Change Listener to EditText
+        searchEditText.addTextChangedListener(new TextWatcher() {
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Call back the Adapter with current character to Filter
+                mAdapter.getFilter().filter(s.toString());
+            }
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count,int after) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
     }
     OnClickListener jobsClickListener = new OnClickListener() {
         // “ап по количеству заданий сотрудника
@@ -173,9 +200,42 @@ public class StaffFragment extends Fragment implements OnClickListener {
                 args.putString(JobMyFragment.STAFF_CODE_KEY, rabotnic.getCode());
                 args.putInt(JobMyFragment.STAFF_FILTER_KEY, filter.ordinal());
                 mListener.OnOpenFragment(JobMyFragment.class.getName(), args);
+                saveListViewPosition();
+                saveSortState();
             }
         }
     };
+    private int listViewIndex = -1;
+    private int listViewTop;
+    private void saveListViewPosition() {
+        try{
+            listViewIndex = staffListView.getFirstVisiblePosition();
+            View v = staffListView.getChildAt(0);
+            listViewTop = (v == null) ? 0 : v.getTop();
+         }
+         catch(Throwable t){
+            t.printStackTrace();
+         }
+    }
+    private void retainListViewPosition() {
+        if(listViewIndex != -1){
+            staffListView.setSelectionFromTop(listViewIndex, listViewTop);
+         }
+    }
+    private void saveSortState() {
+        Editor e = mSettings.edit();
+        e.putBoolean("staff_sort_fio", sortFioView.isChecked());
+        e.putBoolean("staff_sort_overdue", sortOverdueView.isChecked());
+        e.putBoolean("staff_sort_today", sortTodayView.isChecked());
+        e.putBoolean("staff_sort_total", sortTotalView.isChecked());
+        e.commit();
+    }
+    private void retainSortState() {
+        sortFioView.setChecked(mSettings.getBoolean("staff_sort_fio", false));
+        sortOverdueView.setChecked(mSettings.getBoolean("staff_sort_overdue", false));
+        sortTodayView.setChecked(mSettings.getBoolean("staff_sort_today", false));
+        sortTotalView.setChecked(mSettings.getBoolean("staff_sort_total", false));
+    }
     OnClickListener sortClickListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -264,5 +324,9 @@ public class StaffFragment extends Fragment implements OnClickListener {
             throw new ClassCastException(activity.toString() + " must implement OnLoginListener");
         }
     }
-    
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        saveSortState();
+    }
 }

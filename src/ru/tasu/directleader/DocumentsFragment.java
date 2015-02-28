@@ -13,8 +13,11 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView;
 import android.widget.CheckedTextView;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -38,7 +42,9 @@ public class DocumentsFragment extends Fragment {
             super.onPreExecute();
             pg = new ProgressDialog(getActivity(), ProgressDialog.THEME_HOLO_LIGHT);
             pg.setMessage(getResources().getString(R.string.task_loading_data_text));
-            pg.show();
+            if (!mRetained) {
+                pg.show();
+            }
         };
         @Override
         protected List<Attachment> doInBackground(Void... params) {
@@ -55,6 +61,7 @@ public class DocumentsFragment extends Fragment {
             }
             mAdapter.clear();
             mAdapter.addAll(result);
+            mAdapter.sort(comp);
             mAdapter.notifyDataSetChanged();
             super.onPostExecute(result);
         }
@@ -70,6 +77,9 @@ public class DocumentsFragment extends Fragment {
     private CheckedTextView sortDateView, sortTitleView, sortAuthorView, sortTypeView;
     private ImageButton sortDirectionView;
     private boolean sortDesc = false;
+    private EditText searchEditText;
+    
+    private boolean mRetained;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -104,13 +114,19 @@ public class DocumentsFragment extends Fragment {
         sortTypeView = (CheckedTextView) rootView.findViewById(R.id.sortTypeView);
         sortDirectionView = (ImageButton) rootView.findViewById(R.id.sortDirectionView);
         
+        searchEditText = (EditText)rootView.findViewById(R.id.searchEditText);
+        
         docsListView = (ListView) rootView.findViewById(R.id.docsListView);
 
-        listViewHeader = (RelativeLayout)getActivity().getLayoutInflater().inflate(R.layout.list_header_documents_layout, null);
-        docsListView.addHeaderView(listViewHeader, null, false);
-        docsListView.setHeaderDividersEnabled(false);
+//        listViewHeader = (RelativeLayout)getActivity().getLayoutInflater().inflate(R.layout.list_header_documents_layout, null);
+//        docsListView.addHeaderView(listViewHeader, null, false);
+//        docsListView.setHeaderDividersEnabled(false);
         
-        mAdapter = new DocumentsListAdapter(getActivity(), new ArrayList<Attachment>(), docsListView);
+        mRetained = true;
+        if (mAdapter == null) {
+            mAdapter = new DocumentsListAdapter(getActivity(), new ArrayList<Attachment>(), docsListView);
+            mRetained = false;
+        }
         docsListView.setAdapter(mAdapter);
         
         setFonts();
@@ -128,31 +144,48 @@ public class DocumentsFragment extends Fragment {
             }
         });
         
-        sortDateView.performClick();
-        
         docsListView.setOnItemClickListener(itemClickListener);
-        
+        initSearch();
+        retainSortState();
         new GetAttachmentAsyncTask().execute();
         return rootView;
     }
     private void setFonts() {
-        int count = listViewHeader.getChildCount();
-        for (int i=0; i<count; i++) {
-            final View view = listViewHeader.getChildAt(i);
-            if (view.getClass().isInstance(TextView.class)) {
-                ((TextView)view).setTypeface(mDirect.mPFDinDisplayPro_Reg);
-            }
-        }
+//        int count = listViewHeader.getChildCount();
+//        for (int i=0; i<count; i++) {
+//            final View view = listViewHeader.getChildAt(i);
+//            if (view.getClass().isInstance(TextView.class)) {
+//                ((TextView)view).setTypeface(mDirect.mPFDinDisplayPro_Reg);
+//            }
+//        }
         sortDateView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortTitleView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortAuthorView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         sortTypeView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        
+        searchEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+    }
+    private void initSearch() {
+        // Add Text Change Listener to EditText
+        searchEditText.addTextChangedListener(new TextWatcher() {
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Call back the Adapter with current character to Filter
+                mAdapter.getFilter().filter(s.toString());
+            }
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count,int after) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
     }
     OnItemClickListener itemClickListener = new OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
             // Загрузка и открытие документа.
-            Attachment doc = mAdapter.getItem(pos-1);
+            Attachment doc = mAdapter.getItem(pos-docsListView.getHeaderViewsCount());
 //            Log.v(TAG, "documentClickListener " + doc.getName());
             boolean exist = mDirect.checkDocumentExist(doc);
 //            Log.v(TAG, "doc exist " + exist);
@@ -222,5 +255,24 @@ public class DocumentsFragment extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnOpenFragmentListener");
         }
+    }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        saveSortState();
+    }
+    private void saveSortState() {
+        Editor e = mSettings.edit();
+        e.putBoolean("documents_sort_date", sortDateView.isChecked());
+        e.putBoolean("documents_sort_title", sortTitleView.isChecked());
+        e.putBoolean("documents_sort_author", sortAuthorView.isChecked());
+        e.putBoolean("documents_sort_type", sortTypeView.isChecked());
+        e.commit();
+    }
+    private void retainSortState() {
+        sortDateView.setChecked(mSettings.getBoolean("documents_sort_date", false));
+        sortTitleView.setChecked(mSettings.getBoolean("documents_sort_title", false));
+        sortAuthorView.setChecked(mSettings.getBoolean("documents_sort_author", false));
+        sortTypeView.setChecked(mSettings.getBoolean("documents_sort_type", false));
     }
 }

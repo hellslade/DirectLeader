@@ -10,17 +10,17 @@
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
 	    android:background="@drawable/top_bar"
-	    android:paddingTop="5dp"
-	    android:paddingBottom="5dp"
-	    android:paddingRight="10dp"
-	    android:paddingLeft="10dp"
+	    android:paddingTop="10dp"
+	    android:paddingBottom="10dp"
+	    android:paddingRight="20dp"
+	    android:paddingLeft="20dp"
 	    >
 	    <ImageButton
 	        android:id="@+id/cancelButton"
 	        android:layout_height="wrap_content"
 	        android:layout_width="wrap_content"
 	        android:layout_centerVertical="true"
-	        android:layout_marginLeft="10dp"
+	        android:layout_marginLeft="20dp"
 	        android:src="@drawable/ic_cancel"
 	        android:background="@drawable/button_transparent_home_selector"
 	        />
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_marginRight="10dp"
+            android:layout_marginRight="20dp"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_ok"
             android:background="@drawable/button_transparent_home_selector"
@@ -39,15 +39,15 @@
     <LinearLayout 
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
+        android:padding="20dp"
         android:orientation="horizontal">
 	    <CheckBox
 	        android:id="@+id/importanceView"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:button="@drawable/checkbox_importance_selector"
-	        android:layout_marginLeft="5dp"
-	        android:layout_marginRight="10dp"
+	        android:layout_marginLeft="10dp"
+	        android:layout_marginRight="20dp"
 	        android:layout_gravity="center_vertical"
 	        />
         <EditText
@@ -66,16 +66,16 @@
         android:layout_height="wrap_content"
         android:textColorHint="@color/gray"
         android:gravity="top"
-        android:lines="3"
+        android:lines="5"
         android:singleLine="false"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
         android:background="@drawable/edittext_background_rounded"
         />
     <LinearLayout 
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
+        android:padding="20dp"
         android:weightSum="1.0"
         android:orientation="horizontal">
         <TextView
@@ -86,8 +86,8 @@
             android:textColorHint="@color/gray"
             android:background="@drawable/edittext_background_rounded"
             android:singleLine="true"
-            android:layout_marginRight="10dp"
-            android:layout_weight="0.4"
+            android:layout_marginRight="30dp"
+            android:layout_weight="0.3"
             />
         <TextView
             android:id="@+id/deadlineTextView"
@@ -97,7 +97,7 @@
             android:textColorHint="@color/gray"
             android:background="@drawable/edittext_background_rounded"
             android:singleLine="true"
-            android:layout_weight="0.6"
+            android:layout_weight="0.7"
             android:hint="@string/create_task_dialog_fragment_undead_text"
             />
     </LinearLayout>
@@ -105,9 +105,9 @@
     <RelativeLayout 
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:layout_marginBottom="5dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:layout_marginBottom="10dp"
         >
         <TextView
             style="@android:style/TextAppearance.DeviceDefault.Medium"
@@ -136,10 +136,10 @@
     <ScrollView 
         android:fillViewport="false"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="200dp"
         android:background="@drawable/edittext_background_rounded"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
         >
         <LinearLayout 
             android:layout_width="match_parent"
@@ -179,7 +179,7 @@
     <LinearLayout 
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
+        android:padding="20dp"
         android:orientation="horizontal">
         <TextView
             style="@android:style/TextAppearance.DeviceDefault.Medium"
@@ -196,7 +196,7 @@
             android:background="@drawable/edittext_background_rounded"
             android:singleLine="true"
             android:layout_weight="1"
-            android:layout_marginRight="20dp"
+            android:layout_marginRight="30dp"
             />
         <ImageButton
             android:id="@+id/attachmentButton"
