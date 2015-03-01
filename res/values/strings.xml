@@ -42,6 +42,8 @@
     <string name="create_task_dialog_fragment_observers_text">Наблюдатели</string>
     <string name="create_task_dialog_fragment_rights_text">Права:</string>
     
+    <string name="create_task_dialog_fragment_internet_error_text">Для создания задачи выполните подключение к Интернет.</string>
+    
     <!-- Окно списка заданий (Job) -->
     <string name="myjob_fragment_header_title_text">Тема, Создано, Инициатор</string>
     <string name="myjob_fragment_header_date_text">Срок</string>
@@ -70,6 +72,8 @@
     <string name="job_detail_fragment_comment_text">Комментарий:</string>
     <string name="job_detail_fragment_history_text">История:</string>
     
+    <string name="job_detail_fragment_internet_error_text">Невозможно выполнить действие, отсутствует подключение к Интернет.</string>
+    
     <!-- Окно карточка задачи (Task)-->
     <string name="task_detail_fragment_actions_text">Действие</string>
     <string name="task_detail_fragment_property_text" formatted="false">Инициатор:\u00A0%s, Создана:\u00A0%s, Изменена:\u00A0%s</string>
@@ -86,6 +90,8 @@
     <string name="task_detail_fragment_documentslist_text">Документы:</string>
     <string name="task_detail_fragment_comment_text">Комментарий:</string>
     <string name="task_detail_fragment_history_text">История:</string>
+    
+    <string name="task_detail_fragment_internet_error_text">Невозможно выполнить действие, отсутствует подключение к Интернет.</string>
     
     <!-- Окно Сотрудники -->
     <string name="staff_fragment_sort_fio_text">ФИО</string>
@@ -117,4 +123,11 @@
     
     <!-- Тексты ProgressDialog -->
     <string name="task_loading_data_text">Загрузка данных, пожалуйста, подождите..</string>
+    <string name="update_db_process_rabotnic_message_text">Обновление данных, пожалуйста, подождите..</string>
+    <string name="update_db_process_task_message_text">Обновление данных, пожалуйста, подождите..</string>
+    <string name="update_db_process_client_settings_message_text">Обновление данных, пожалуйста, подождите..</string>
+    
+    <string name="update_db_finished_message_text">Обновление данных завершено</string>
+    
+    <string name="exec_job_message_text">Отправка данных, пожалуйста, подождите...</string>
 </resources>

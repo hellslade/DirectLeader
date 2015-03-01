@@ -11,23 +11,41 @@ import org.json.JSONObject;
 
 import ru.tasu.directleader.AuthorizeFragment.OnLoginListener;
 import ru.tasu.directleader.DocumentDownloadDialogFragment.OnDocumentDownloadListener;
+import ru.tasu.directleader.JobDetailFragment.ExecJobActionAsyncTask;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements OnLoginListener, OnOpenFragmentListener, OnDocumentDownloadListener {
     private static final String TAG = "MainActivity";
     
     class UpdateDBRabotnicAsyncTask extends AsyncTask<Void, Void, JSONObject> {
+        ProgressDialog pg = new ProgressDialog(MainActivity.this);
+        private PowerManager.WakeLock mWakeLock;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pg.setMessage(getResources().getString(R.string.update_db_process_rabotnic_message_text));
+            pg.setCancelable(false);
+            // take CPU lock to prevent CPU from going off if the user 
+            // presses the power button during download
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+            mWakeLock.acquire();
+            pg.show();
+        }
         @Override
         protected JSONObject doInBackground(Void... params) {
             // Обновление данных Rabotnic
@@ -56,9 +74,27 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         @Override
         protected void onPostExecute(JSONObject result) {
             super.onPostExecute(result);
+            if (pg != null) {
+                pg.dismiss();
+            }
+            mWakeLock.release();
         }
     }
     class UpdateDBTaskAsyncTask extends AsyncTask<Void, Void, JSONObject> {
+        ProgressDialog pg = new ProgressDialog(MainActivity.this);
+        private PowerManager.WakeLock mWakeLock;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pg.setMessage(getResources().getString(R.string.update_db_process_task_message_text));
+            pg.setCancelable(false);
+            // take CPU lock to prevent CPU from going off if the user 
+            // presses the power button during download
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+            mWakeLock.acquire();
+            pg.show();
+        }
         @Override
         protected JSONObject doInBackground(Void... arg0) {
             // Обновление данных Task
@@ -87,6 +123,10 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         @Override
         protected void onPostExecute(JSONObject result) {
             super.onPostExecute(result);
+            if (pg != null) {
+                pg.dismiss();
+            }
+            mWakeLock.release();
             MainFragment fragment = (MainFragment)getFragmentManager().findFragmentByTag("main_fragment");
             if (fragment != null) {
                 ((OnUpdateDataListener)fragment).OnUpdateData();
@@ -94,6 +134,20 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         }
     }
     class UpdateDBClientSettingsAsyncTask extends AsyncTask<Void, Void, JSONObject> {
+        ProgressDialog pg = new ProgressDialog(MainActivity.this);
+        private PowerManager.WakeLock mWakeLock;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pg.setMessage(getResources().getString(R.string.update_db_process_client_settings_message_text));
+            pg.setCancelable(false);
+            // take CPU lock to prevent CPU from going off if the user 
+            // presses the power button during download
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+            mWakeLock.acquire();
+            pg.show();
+        }
         @Override
         protected JSONObject doInBackground(Void... arg0) {
             // Обновление данных Client Settings
@@ -125,6 +179,10 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         }
         @Override
         protected void onPostExecute(JSONObject result) {
+            if (pg != null) {
+                pg.dismiss();
+            }
+            mWakeLock.release();
             super.onPostExecute(result);
             
         }
@@ -218,10 +276,16 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
     }
     @Override
     public void OnTaskCreate(String preTitle) {
-        // Вызвать диалог создания задачи
-        Log.v(TAG, "showCreateTaskDialog");
-        Intent i = new Intent(this, TaskCreateActivity.class);
-        i.putExtra(TaskCreateActivity.TITLE_KEY, preTitle);
-        startActivity(i);
+        if (mDirect.isOnline()) {
+            // Вызвать диалог создания задачи
+            Log.v(TAG, "showCreateTaskDialog");
+            Intent i = new Intent(this, TaskCreateActivity.class);
+            i.putExtra(TaskCreateActivity.TITLE_KEY, preTitle);
+            startActivity(i);
+        } else {
+            String errorText = getResources().getString(R.string.create_task_dialog_fragment_internet_error_text);
+            Toast.makeText(this, errorText, Toast.LENGTH_LONG).show();
+        }
+        
     }
 }

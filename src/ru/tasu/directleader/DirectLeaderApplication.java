@@ -1,12 +1,12 @@
 package ru.tasu.directleader;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.List;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -354,8 +354,78 @@ public class DirectLeaderApplication extends Application {
         }
         return data;
     }
-    
-    
+    public JSONObject ExecJobAction(long jobId, String actionName, String comment) {
+        try {
+            comment = URLEncoder.encode(comment, "UTF-8");
+        } catch (UnsupportedEncodingException e1) {
+            Log.v(TAG, "Не удалось декодировать в utf-8 " + e1.getLocalizedMessage());
+            comment = "";
+        }
+        String url = String.format(GET_EXEC_JOB_ACTION, jobId, actionName, comment);
+        HttpResponse response = sendDataGet(url);
+        if (response == null) {
+            return null;
+        }
+        // Обработка ответа
+        JSONObject data = new JSONObject();
+        String result = "";
+        Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+        switch (response.getStatusLine().getStatusCode()) {
+            case 200: // Успешно
+                Log.v(TAG, "200");
+                result = ReadResponse(response);
+                result = result.replace("\"", "");
+                break;
+            case 400: // BAD REQUEST
+                Log.v(TAG, "400");
+                data = ReadResponseJSONObject(response);
+                break;
+            default:
+                Log.v(TAG, "default");
+                Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+                data = ReadResponseJSONObject(response);
+        }
+        try {
+            data.put("statusCode", response.getStatusLine().getStatusCode());
+            data.put("result", result);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+    public JSONObject ExecTaskAction(long taskId, String actionName) {
+        String url = String.format(GET_EXEC_TASK_ACTION, taskId, actionName);
+        HttpResponse response = sendDataGet(url);
+        if (response == null) {
+            return null;
+        }
+        // Обработка ответа
+        JSONObject data = new JSONObject();
+        String result = "";
+        Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+        switch (response.getStatusLine().getStatusCode()) {
+            case 200: // Успешно
+                Log.v(TAG, "200");
+                result = ReadResponse(response);
+                result = result.replace("\"", "");
+                break;
+            case 400: // BAD REQUEST
+                Log.v(TAG, "400");
+                data = ReadResponseJSONObject(response);
+                break;
+            default:
+                Log.v(TAG, "default");
+                Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+                data = ReadResponseJSONObject(response);
+        }
+        try {
+            data.put("statusCode", response.getStatusLine().getStatusCode());
+            data.put("result", result);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
     public String downloadDocument(Attachment doc) {
         String file = "";
         String url = String.format(GET_DOCUMENT, doc.getId());

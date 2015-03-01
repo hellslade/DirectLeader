@@ -2,6 +2,9 @@ package ru.tasu.directleader;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,12 +16,14 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -27,8 +32,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class JobDetailFragment extends Fragment implements OnClickListener {
     private static final String TAG = "JobDetailFragment";
@@ -121,6 +128,38 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
             }
         }
     }
+    class ExecJobActionAsyncTask extends AsyncTask<String, Void, JSONObject> {
+        ProgressDialog pg = new ProgressDialog(getActivity());
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pg.setMessage(getResources().getString(R.string.exec_job_message_text));
+            pg.setCancelable(false);
+            pg.show();
+        }
+        @Override
+        protected JSONObject doInBackground(String... params) {
+            return mDirect.ExecJobAction(mJob.getId(), params[0], commentEditText.getText().toString().trim());
+        }
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+            if (pg != null) {
+                pg.dismiss();
+            }
+            int statusCode = result.optInt("statusCode");
+            if (statusCode == 200) {
+                String resultString = result.optString("result");
+                if (resultString.equalsIgnoreCase("true")) {
+                    Log.v(TAG, "Успешно");
+                    Toast.makeText(getActivity(), "Успешно", Toast.LENGTH_LONG).show();
+                } else {
+                    Log.v(TAG, "Неудача");
+                    Toast.makeText(getActivity(), "Неудача", Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }
     //*/
     
     private SharedPreferences mSettings;
@@ -141,6 +180,8 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
     private EditText commentEditText;
     
     private ImageView importanceView, attachmentView, discussionView;
+    
+    private Map<Integer, String> actionsMaping = new HashMap<Integer, String>(); 
     
     public static Fragment newInstance(Bundle args) {  // must pass some args
         JobDetailFragment f = new JobDetailFragment();
@@ -285,37 +326,38 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         @Override
         public void onClick(View v) {
             PopupMenu popup = new PopupMenu(getActivity(), v);
-//            menu.getMenu().add("titleRes");
             Menu menu = popup.getMenu();
+            actionsMaping.clear();
             try {
                 JSONArray actions = new JSONArray(mJob.getActionList());
                 for (int i=0; i<actions.length(); i++) {
                     final JSONObject action = actions.getJSONObject(i);
                     final String name = action.optString("Name");
                     final String title = action.optString("Title");
-                    menu.add(title);
                     // Добавить в popupMenu
+                    final MenuItem item = menu.add(Menu.NONE, new Random().nextInt(), Menu.NONE, title);
+                    actionsMaping.put(item.getItemId(), name);
                 }
             } catch (JSONException e) {
                 Log.v(TAG, "Ошибка при парсинге Actions " + e.getMessage());
             }
-            
+            popup.setOnMenuItemClickListener(actionsMenuItemClickListener);
             popup.show();
         }
     };
-    private void initActions() {
-        try {
-            JSONArray actions = new JSONArray(mJob.getActionList());
-            for (int i=0; i<actions.length(); i++) {
-                final JSONObject action = actions.getJSONObject(i);
-                final String name = action.optString("Name");
-                final String title = action.optString("Title");
-                // Добавить в popupMenu
+    OnMenuItemClickListener actionsMenuItemClickListener = new OnMenuItemClickListener() {
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            String actionName = actionsMaping.get(item.getItemId());
+            if (mDirect.isOnline()) {
+                new ExecJobActionAsyncTask().execute(actionName);
+            } else {
+                String errorText = getResources().getString(R.string.job_detail_fragment_internet_error_text);
+                Toast.makeText(getActivity(), errorText, Toast.LENGTH_LONG).show();
             }
-        } catch (JSONException e) {
-            Log.v(TAG, "Ошибка при парсинге Actions " + e.getMessage());
+            return true;
         }
-    }
+    };
     OnClickListener documentClickListener = new OnClickListener() {
         @Override
         public void onClick(View v) {

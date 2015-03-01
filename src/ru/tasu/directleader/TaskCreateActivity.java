@@ -14,6 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ru.tasu.directleader.JobDetailFragment.ExecJobActionAsyncTask;
 import ru.tasu.directleader.UsersDialogFragment.OnUserSelectListener;
 import ru.tasu.directleader.UsersDialogFragment.UserType;
 import android.app.Activity;
@@ -34,6 +35,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class TaskCreateActivity extends Activity implements OnClickListener, OnUserSelectListener {
     private static final String TAG = "TaskCreateActivity";
@@ -310,7 +312,12 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 finish();
                 break;
             case R.id.okButton:
-                new TaskCreateAsyncTask().execute();
+                if (mDirect.isOnline()) {
+                    new TaskCreateAsyncTask().execute();
+                } else {
+                    String errorText = getResources().getString(R.string.create_task_dialog_fragment_internet_error_text);
+                    Toast.makeText(this, errorText, Toast.LENGTH_LONG).show();
+                }
                 break;
             case R.id.deadlineTextView:
                 // get the current date and time

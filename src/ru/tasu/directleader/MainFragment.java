@@ -252,7 +252,8 @@ public class MainFragment extends Fragment implements OnClickListener, OnUpdateD
     public void OnUpdateData() {
         Log.v(TAG, "OnUpdateData");
         updateData();
-        Toast.makeText(getActivity(), "updated", Toast.LENGTH_LONG).show();
+        String updated = getResources().getString(R.string.update_db_finished_message_text);
+        Toast.makeText(getActivity(), updated, Toast.LENGTH_LONG).show();
     }
 
 }
