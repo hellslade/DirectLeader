@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +21,7 @@ import ru.tasu.directleader.UsersDialogFragment.OnUserSelectListener;
 import ru.tasu.directleader.UsersDialogFragment.UserType;
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -120,6 +123,25 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
             finish(); 
         }
     }
+    class GetUsersAsyncTask extends AsyncTask<Void, Void, List<Rabotnic>> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+        @Override
+        protected List<Rabotnic> doInBackground(Void... params) {
+            RabotnicDataSource rds = new RabotnicDataSource(TaskCreateActivity.this);
+            rds.open();
+            List<Rabotnic> rabs = rds.getAllRabotnics();
+            rds.close();
+            return rabs;
+        }
+        @Override
+        protected void onPostExecute(List<Rabotnic> result) {
+            super.onPostExecute(result);
+            mRabotnics = result;
+        }
+    }
     
     private SharedPreferences mSettings;
     private static DirectLeaderApplication mDirect;
@@ -136,6 +158,7 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
     
     private JSONObject clientSettings;
     private UserType Usertype;
+    private List<Rabotnic> mRabotnics = new ArrayList<Rabotnic>();
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -220,7 +243,16 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         }
         if (clientSettings == null) {
             new GetClientSettingsAsyncTask().execute();
+        } else {
+            try {
+                JSONArray routeTypes = clientSettings.optJSONArray("Rights");
+                final String type = routeTypes.getString(1);
+                rightsTextView.setText(type);
+            } catch (JSONException e) {
+                Log.v(TAG, "Ошибка при парсинге Rights " + e.getMessage());
+            }
         }
+        new GetUsersAsyncTask().execute();
     }
     private void addUserToPerformers(Rabotnic user) {
         DisplayMetrics metrics = getResources().getDisplayMetrics();
@@ -247,6 +279,8 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                     }
                     @Override
                     public void onDismiss(View view, Object token) {
+                        // Добавить пользователя в список
+                        mRabotnics.add((Rabotnic)userTextView.getTag());
                         performersLayout.removeView(userTextView);
                         if (performersLayout.getChildCount() == 1) {
                             // Осталась только метка, ее надо скрыть
@@ -256,6 +290,8 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 }));
         performersLayout.addView(userTextView);
         performersTextView.setVisibility(View.VISIBLE);
+        // Удаляем пользователя из списка
+        mRabotnics.remove(user);
     }
     private void addUserToObservers(Rabotnic user) {
         DisplayMetrics metrics = getResources().getDisplayMetrics();
@@ -282,6 +318,8 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                     }
                     @Override
                     public void onDismiss(View view, Object token) {
+                        // Добавить пользователя в список
+                        mRabotnics.add((Rabotnic)userTextView.getTag());
                         observersLayout.removeView(userTextView);
                         if (observersLayout.getChildCount() == 1) {
                             // Осталась только метка, ее надо скрыть
@@ -291,6 +329,8 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 }));
         observersLayout.addView(userTextView);
         observersTextView.setVisibility(View.VISIBLE);
+        // Удаляем пользователя из списка
+        mRabotnics.remove(user);
     }
     /**
      *  the callback received when the user "sets" the date in the dialog
@@ -341,7 +381,7 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
     private void showUsersDialog(UserType type) {
         Log.v(TAG, "showUsersDialog " + type.ordinal());
         Usertype = type;
-        UsersDialogFragment newFragment = UsersDialogFragment.newInstance();
+        UsersDialogFragment newFragment = UsersDialogFragment.newInstance((ArrayList<Rabotnic>)mRabotnics);
         newFragment.show(getFragmentManager(), "users_dialog");
     }
     @Override
@@ -382,7 +422,7 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         popup.show();
     }
     private void showRightsPopup(View v) {
-        // Show popup menu
+           // Show popup menu
            PopupMenu popup = new PopupMenu(this, v);
            Menu menu = popup.getMenu();
            try {

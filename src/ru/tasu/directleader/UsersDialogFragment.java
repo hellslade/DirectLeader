@@ -1,6 +1,7 @@
 package ru.tasu.directleader;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import android.app.Activity;
@@ -11,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +54,7 @@ public class UsersDialogFragment extends DialogFragment {
             }
             mAdapter.clear();
             mAdapter.addAll(result);
+            mAdapter.sort(fioComparator);
             mAdapter.notifyDataSetChanged();
         }
     }
@@ -66,8 +69,13 @@ public class UsersDialogFragment extends DialogFragment {
     
     private OnUserSelectListener mListener;
     
-    static UsersDialogFragment newInstance() {
+    private ArrayList<Rabotnic> mRabotnics;
+    
+    static UsersDialogFragment newInstance(ArrayList<Rabotnic> rabotnics) {
         UsersDialogFragment f = new UsersDialogFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList("rabotnics", rabotnics);
+        f.setArguments(bundle);
         return f;
     }
 
@@ -77,6 +85,10 @@ public class UsersDialogFragment extends DialogFragment {
         
         mDirect = (DirectLeaderApplication) getActivity().getApplication();
         mSettings = mDirect.getSettings();
+        
+        if (getArguments() != null) {
+            mRabotnics = getArguments().getParcelableArrayList("rabotnics");
+        }
         
         int style = DialogFragment.STYLE_NO_TITLE;
         int theme = android.R.style.Theme_Holo_Light_Dialog;
@@ -96,8 +108,14 @@ public class UsersDialogFragment extends DialogFragment {
         
         setFonts();
         initSearch();
-        
-        new GetUsersAsyncTask().execute();
+        if (mRabotnics == null) {
+            new GetUsersAsyncTask().execute();
+        } else {
+            mAdapter.clear();
+            mAdapter.addAll(mRabotnics);
+            mAdapter.sort(fioComparator);
+            mAdapter.notifyDataSetChanged();
+        }
         usersListView.setOnItemClickListener(itemClickListener);
         return v;
     }
@@ -120,6 +138,11 @@ public class UsersDialogFragment extends DialogFragment {
             }
         });
     }
+    final private Comparator<Rabotnic> fioComparator = new Comparator<Rabotnic>() {
+        public int compare(Rabotnic r1, Rabotnic r2) {
+            return r1.getName().toUpperCase(Utils.mLocale).compareTo(r2.getName().toUpperCase(Utils.mLocale));
+        }
+    };
     OnItemClickListener itemClickListener = new OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View v, int pos, long id) {

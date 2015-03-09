@@ -132,7 +132,7 @@
         android:layout_height="match_parent"
         android:headerDividersEnabled="false"
         android:layout_below="@id/searchLayout"
-        
+        android:background="@color/white"
     />
         
 </RelativeLayout>

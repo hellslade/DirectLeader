@@ -57,6 +57,7 @@
         android:layout_marginLeft="10dp"
         >
         <TextView
+            style="@android:style/TextAppearance.DeviceDefault.Medium"
             android:id="@+id/redTextView"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -67,6 +68,7 @@
             android:clickable="true"
             />
         <TextView
+            style="@android:style/TextAppearance.DeviceDefault.Medium"
             android:id="@+id/yellowTextView"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -78,6 +80,7 @@
             android:clickable="true"
             />
         <TextView
+            style="@android:style/TextAppearance.DeviceDefault.Medium"
             android:id="@+id/greenTextView"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
