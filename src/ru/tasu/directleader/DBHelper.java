@@ -85,6 +85,7 @@ private static final String TAG = "DBHelper";
     public static final String JOB_STATE = "state";
     public static final String JOB_STATE_TITLE = "state_title";
     public static final String JOB_SUBJECT = "subject";
+    public static final String JOB_FAVORITE = "favorite";
     private static final String JOB_CREATE_TABLE = 
             String.format("create table %s (" +
                     "%s integer primary key, " +
@@ -99,10 +100,11 @@ private static final String TAG = "DBHelper";
                     "%s timestamp, " +
                     "%s integer, " +
                     "%s text, " +
-                    "%s text)",
+                    "%s text, " +
+                    "%s integer)",
                     JOB_TABLE,
                     JOB__ID, JOB_ACTION_LIST, JOB_END_DATE, JOB_FINAL_DATE, JOB_ID, 
-                    JOB_MAIN_TASK_JOB, JOB_PERFORMER, JOB_READED, JOB_RESULT_TITLE, JOB_START_DATE, JOB_STATE, JOB_STATE_TITLE, JOB_SUBJECT);
+                    JOB_MAIN_TASK_JOB, JOB_PERFORMER, JOB_READED, JOB_RESULT_TITLE, JOB_START_DATE, JOB_STATE, JOB_STATE_TITLE, JOB_SUBJECT, JOB_FAVORITE);
     
     public static final String RABOTNIC_TABLE = "rabotnic";
     public static final String RABOTNIC__ID = "_id";

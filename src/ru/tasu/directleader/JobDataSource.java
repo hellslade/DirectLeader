@@ -20,7 +20,7 @@ public class JobDataSource {
     private Context mContext; 
     private String[] allColumns = {DBHelper.JOB__ID, DBHelper.JOB_ACTION_LIST, DBHelper.JOB_END_DATE, DBHelper.JOB_FINAL_DATE, DBHelper.JOB_ID, DBHelper.JOB_MAIN_TASK_JOB, 
             DBHelper.JOB_PERFORMER, DBHelper.JOB_READED, DBHelper.JOB_RESULT_TITLE, 
-            DBHelper.JOB_START_DATE, DBHelper.JOB_STATE, DBHelper.JOB_STATE_TITLE, DBHelper.JOB_SUBJECT};
+            DBHelper.JOB_START_DATE, DBHelper.JOB_STATE, DBHelper.JOB_STATE_TITLE, DBHelper.JOB_SUBJECT, DBHelper.JOB_FAVORITE};
 
     public JobDataSource(Context context) {
         dbHelper = DBHelper.getInstance(context);
@@ -47,6 +47,7 @@ public class JobDataSource {
         values.put(DBHelper.JOB_STATE, new_job.getState());
         values.put(DBHelper.JOB_STATE_TITLE, new_job.getStateTitle());
         values.put(DBHelper.JOB_SUBJECT, new_job.getSubject());
+        values.put(DBHelper.JOB_FAVORITE, new_job.getFavorite());
         long insertId = database.insert(DBHelper.JOB_TABLE, null, values);
         
         Cursor cursor = database.query(DBHelper.JOB_TABLE,
@@ -95,7 +96,7 @@ public class JobDataSource {
             job.setAttachmentCount(attach_ds.getAttachmentsCountByTaskId(job.getMainTaskJob()));
             job.setImportance(cursor.getString(13));
             job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
-            job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(14)));
+            job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(15)));
             jobs[i++] = (job);
             cursor.moveToNext();
         }
@@ -116,26 +117,6 @@ public class JobDataSource {
         }
         cursor.close();
         return job;
-    }
-    @Deprecated
-    public List<Job> getAllJobs() {
-        List<Job> jobs = new ArrayList<Job>();
-
-        Cursor cursor = database.query(DBHelper.JOB_TABLE,
-                allColumns, null, null, null, null, null);
-
-        cursor.moveToFirst();
-        RabotnicDataSource rabotnic_ds = new RabotnicDataSource(mContext);
-        rabotnic_ds.open();
-        while (!cursor.isAfterLast()) {
-            final Job job = cursorToJob(cursor);
-            job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
-            jobs.add(job);
-            cursor.moveToNext();
-        }
-        // Make sure to close the cursor
-        cursor.close();
-        return jobs;
     }
     public List<Job> getImportantJobByPerformerCode(String code) {
         List<Job> jobs = new ArrayList<Job>();
@@ -161,7 +142,7 @@ public class JobDataSource {
 //            job.setSubtaskCount(task_ds.getTaskById(job.getMainTaskJob()).getSubtaskCount());
             job.setImportance(cursor.getString(13));
             job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
-            job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(14)));
+            job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(15)));
             jobs.add(job);
             cursor.moveToNext();
         }
@@ -169,16 +150,15 @@ public class JobDataSource {
         cursor.close();
         return jobs;
     }
-    @Deprecated
-    public List<Job> getJobByPerformerCodeOld(String code) {
+    public List<Job> getFavoriteJobByPerformerCode(String code) {
         List<Job> jobs = new ArrayList<Job>();
         
-        String sql = String.format("SELECT %s.*, task.importance, task.author_code FROM %s, %s, %s WHERE %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=?;", 
+        String sql = String.format("SELECT %s.*, task.importance, task.author_code FROM %s, %s, %s WHERE %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=? AND %s.%s=1;", 
                 DBHelper.JOB_TABLE, DBHelper.JOB_TABLE, DBHelper.TASK_TABLE, DBHelper.RABOTNIC_TABLE,
                 DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER, DBHelper.RABOTNIC_TABLE, DBHelper.RABOTNIC_CODE,
                 DBHelper.JOB_TABLE, DBHelper.JOB_MAIN_TASK_JOB, DBHelper.TASK_TABLE, DBHelper.TASK_ID,
-                DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER);
-//        Log.v("getJobByPerformerCode()", "sql " + sql);
+                DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER, DBHelper.JOB_TABLE, DBHelper.JOB_FAVORITE);
+//        Log.v("getImportanceJobByPerformerCode()", "sql " + sql);
         Cursor cursor = database.rawQuery(sql, new String[]{code});
         cursor.moveToFirst();
         Job job = null;
@@ -186,12 +166,47 @@ public class JobDataSource {
         rabotnic_ds.open();
         AttachmentDataSource attach_ds = new AttachmentDataSource(mContext);
         attach_ds.open();
+//        TaskDataSource task_ds = new TaskDataSource(mContext);
+//        task_ds.open();
         while (!cursor.isAfterLast()) {
             job = cursorToJob(cursor);
             job.setAttachmentCount(attach_ds.getAttachmentsCountByTaskId(job.getMainTaskJob()));
+//            job.setSubtaskCount(task_ds.getTaskById(job.getMainTaskJob()).getSubtaskCount());
             job.setImportance(cursor.getString(13));
             job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
-            job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(14)));
+            job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(15)));
+            jobs.add(job);
+            cursor.moveToNext();
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        return jobs;
+    }
+    public List<Job> getImportantFavoriteJobByPerformerCode(String code) {
+        List<Job> jobs = new ArrayList<Job>();
+        
+        String sql = String.format("SELECT %s.*, task.importance, task.author_code FROM %s, %s, %s WHERE (%s.%s='Высокая' OR %s.%s=1) AND %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=?;", 
+                DBHelper.JOB_TABLE, DBHelper.JOB_TABLE, DBHelper.TASK_TABLE, DBHelper.RABOTNIC_TABLE,
+                DBHelper.TASK_TABLE, DBHelper.TASK_IMPORTANCE, DBHelper.JOB_TABLE, DBHelper.JOB_FAVORITE, DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER, DBHelper.RABOTNIC_TABLE, DBHelper.RABOTNIC_CODE,
+                DBHelper.JOB_TABLE, DBHelper.JOB_MAIN_TASK_JOB, DBHelper.TASK_TABLE, DBHelper.TASK_ID,
+                DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER);
+//        Log.v("getImportanceJobByPerformerCode()", "sql " + sql);
+        Cursor cursor = database.rawQuery(sql, new String[]{code});
+        cursor.moveToFirst();
+        Job job = null;
+        RabotnicDataSource rabotnic_ds = new RabotnicDataSource(mContext);
+        rabotnic_ds.open();
+        AttachmentDataSource attach_ds = new AttachmentDataSource(mContext);
+        attach_ds.open();
+//        TaskDataSource task_ds = new TaskDataSource(mContext);
+//        task_ds.open();
+        while (!cursor.isAfterLast()) {
+            job = cursorToJob(cursor);
+            job.setAttachmentCount(attach_ds.getAttachmentsCountByTaskId(job.getMainTaskJob()));
+//            job.setSubtaskCount(task_ds.getTaskById(job.getMainTaskJob()).getSubtaskCount());
+            job.setImportance(cursor.getString(13));
+            job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
+            job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(15)));
             jobs.add(job);
             cursor.moveToNext();
         }
@@ -223,7 +238,7 @@ public class JobDataSource {
             job.setAttachmentCount(attach_ds.getAttachmentsCountByTaskId(job.getMainTaskJob()));
             job.setImportance(cursor.getString(13));
             job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
-            job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(14)));
+            job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(15)));
             jobs.add(job);
             cursor.moveToNext();
         }
@@ -304,6 +319,21 @@ public class JobDataSource {
         int count = database.delete(DBHelper.JOB_TABLE, "1", null);
         return count;
     }
+    public Job setJobFavorite(long jobId, boolean isFavorite) {
+        ContentValues values = new ContentValues();
+        int favorite = isFavorite ? 1 : 0;
+        values.put(DBHelper.JOB_FAVORITE, favorite);
+        int num = database.update(DBHelper.JOB_TABLE, values, "id=?", new String[]{String.valueOf(jobId)});
+        
+        Cursor cursor = database.query(DBHelper.JOB_TABLE,
+                allColumns, DBHelper.JOB_ID + " = " + jobId, null,
+                null, null, null);
+        Log.v("JobDataSource", "update count "+cursor.getCount());
+        cursor.moveToFirst();
+        Job newJob = cursorToJob(cursor);
+        cursor.close();
+        return newJob;
+    }
 
     private Job cursorToJob(Cursor cursor) {
         //int id, String address, String point, String work_hours, int brand, String last_modified
@@ -321,7 +351,8 @@ public class JobDataSource {
         }
         boolean readed = cursor.getInt(7) == 1;
         boolean state = cursor.getInt(10) == 1;
-        Job job = new Job(actionList, cursor.getString(2), cursor.getString(3), cursor.getLong(4), cursor.getLong(5), cursor.getString(6), readed, cursor.getString(8), cursor.getString(9), state, cursor.getString(11), cursor.getString(12));
+        boolean favorite = cursor.getInt(13) == 1;
+        Job job = new Job(actionList, cursor.getString(2), cursor.getString(3), cursor.getLong(4), cursor.getLong(5), cursor.getString(6), readed, cursor.getString(8), cursor.getString(9), state, cursor.getString(11), cursor.getString(12), favorite);
 //      Log.v("cursorToStore", cursor.getInt(0)+" "+cursor.getString(1)+" "+cursor.getString(2)+" "+cursor.getString(3)+" "+cursor.getInt(4)+" "+cursor.getString(5));
         return job;
     }

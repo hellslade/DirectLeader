@@ -35,6 +35,7 @@ private static final String TAG = "Job";
     private int _attachment_count = 0;
     private int _subtask_count = 0;
     private String _importance;
+    private boolean _favorite;
     
     /*
     {
@@ -62,7 +63,7 @@ private static final String TAG = "Job";
         updateData(json);
     }
     public Job(JSONArray action_list, String end_date, String final_date, long id, long main_task_job, String performer, 
-            boolean readed, String result_title, String start_date, boolean state, String state_title, String subject) {
+            boolean readed, String result_title, String start_date, boolean state, String state_title, String subject, boolean favorite) {
         this._action_list = action_list;
         this._end_date = end_date;
         this._final_date = final_date;
@@ -74,7 +75,8 @@ private static final String TAG = "Job";
         this._start_date = start_date;
         this._state = state;
         this._state_title = state_title;
-        this._subject = subject;   
+        this._subject = subject;
+        this._favorite = favorite;
     }
     public Job(Parcel in) {
         try {
@@ -98,6 +100,7 @@ private static final String TAG = "Job";
         this._attachment_count = in.readInt();
         this._subtask_count = in.readInt();
         this._importance = in.readString();
+        this._favorite = in.readByte() != 0;
     }
     public void updateData(JSONObject data) {
         this._action_list = data.optJSONArray("ActionList");
@@ -251,6 +254,12 @@ private static final String TAG = "Job";
     public String getImportance() {
         return this._importance;
     }
+    public void setFavorite(boolean favorite) {
+        this._favorite = favorite;
+    }
+    public boolean getFavorite() {
+        return this._favorite;
+    }
     
     public static final Parcelable.Creator<Job> CREATOR = new Parcelable.Creator<Job>() {
 
@@ -285,5 +294,6 @@ private static final String TAG = "Job";
         parcel.writeInt(this._attachment_count);
         parcel.writeInt(this._subtask_count);
         parcel.writeString(this._importance);
+        parcel.writeByte((byte) (this._favorite ? 1 : 0));
     }
 }

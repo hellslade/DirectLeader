@@ -16,7 +16,6 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -28,6 +27,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -178,6 +180,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
     private LinearLayout documentsLayout, historiesLayout;
     
     private EditText commentEditText;
+    private CheckBox favoriteView;
     
     private ImageView importanceView, attachmentView, discussionView;
     
@@ -260,10 +263,13 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         historiesLayout = (LinearLayout) v.findViewById(R.id.historiesLayout);
         
         commentEditText = (EditText) v.findViewById(R.id.commentEditText);
+        favoriteView = (CheckBox) v.findViewById(R.id.favoriteView);
         
         importanceView = (ImageView) v.findViewById(R.id.importanceView);
         attachmentView = (ImageView) v.findViewById(R.id.attachmentView);
         discussionView = (ImageView) v.findViewById(R.id.discussionView);
+        
+        favoriteView.setOnCheckedChangeListener(favoriteCheckListener);
         
         actionsView.setOnClickListener(actionsClickListener);
         subtaskView.setOnClickListener(new OnClickListener() {
@@ -297,6 +303,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         if (endDateString.equals("1899-12-30")) {
             endDateString = "";
         }
+        Log.v(TAG, "mJob.getAuthor() " + mJob.getAuthor());
         String property = String.format(getResources().getString(R.string.job_detail_fragment_property_text), mJob.getAuthor().getName(), startDateString, endDateString);
         propertyTextView.setText(property);
         
@@ -319,9 +326,21 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         importanceView.setVisibility(mJob.getImportance().equalsIgnoreCase("Высокая") ? View.VISIBLE : View.INVISIBLE);
         attachmentView.setVisibility(mJob.getAttachmentCount() > 0 ? View.VISIBLE : View.INVISIBLE);
         
+        favoriteView.setChecked(mJob.getFavorite());
+        
         new GetDocumentsAsyncTask().execute();
         new GetHistoriesAsyncTask().execute();
     }
+    OnCheckedChangeListener favoriteCheckListener = new OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            JobDataSource jds = new JobDataSource(mDirect);
+            jds.open();
+            mJob = jds.setJobFavorite(mJob.getId(), isChecked);
+            favoriteView.setChecked(mJob.getFavorite());
+            //updateData();
+        }
+    };
     OnClickListener actionsClickListener = new OnClickListener() {
         @Override
         public void onClick(View v) {

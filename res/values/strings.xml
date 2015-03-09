@@ -23,6 +23,9 @@
     <string name="action_activate">Активировать</string>
     <string name="action_deactivate">Деактивировать</string>
     <string name="action_geturl">Получить настройки</string>
+    <string name="action_all">Все</string>
+    <string name="action_favorite">Избранные</string>
+    <string name="action_important">Важные</string>
     
     <string name="users_fragment_search_hint_text">Поиск</string>
     
@@ -53,6 +56,8 @@
     <string name="myjob_fragment_sort_readed_text">Новые</string>
     <string name="myjob_fragment_sort_date_text">Срок</string>
     <string name="myjob_fragment_sort_title_text">Название</string>
+    
+    <string name="myjob_fragment_view_button_text">Вид</string>
     
     <string name="myjob_fragment_listitem_property_text" formatted="false">Дата\u00A0начала:\u00A0%s, Инициатор:\u00A0%s</string>
     

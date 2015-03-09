@@ -106,6 +106,20 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"/>
        </LinearLayout>
+       <Button
+            android:id="@+id/viewButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_transparent_selector"
+            android:textColor="@color/white"
+            android:textSize="@dimen/textSizeCaptionMedium"
+            android:text="@string/myjob_fragment_view_button_text"
+            android:layout_alignParentRight="true"
+            android:layout_alignTop="@id/sortDirectionView"
+            android:layout_alignBottom="@id/sortDirectionView"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            />
     </RelativeLayout>
     <LinearLayout
         android:id="@+id/searchLayout"

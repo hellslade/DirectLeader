@@ -8,6 +8,7 @@
     xmlns:app="http://schemas.android.com/apk/res/ru.tasu.directleader">
 
     <include layout="@layout/top_bar_layout" android:id="@+id/topBarLayout"/>
+    
     <LinearLayout
         android:id="@+id/topShadowLayout"
         android:layout_width="match_parent"
@@ -32,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/button_transparent_selector"
-            android:text="Выполнить"
+            android:text="@string/job_detail_fragment_actions_text"
             android:textColor="@color/white"
             android:textSize="@dimen/textSizeCaptionMedium"
             android:padding="10dp"
@@ -43,13 +44,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/button_transparent_selector"
-            android:text="Подзадача"
+            android:text="@string/job_detail_fragment_subtask_text"
             android:layout_toRightOf="@id/actionsView"
             android:textColor="@color/white"
             android:textSize="@dimen/textSizeCaptionMedium"
             android:padding="10dp"
             />
+        <CheckBox
+            android:id="@+id/favoriteView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:layout_alignParentRight="true"
+            android:button="@drawable/ic_favorite_checked_selector"
+            android:padding="0dp"
+            />
     </RelativeLayout>
+    
     <ScrollView 
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -195,5 +206,6 @@
 	        
 	        
 	    </LinearLayout>
-    </ScrollView>        
+    </ScrollView>      
+      
 </RelativeLayout>
