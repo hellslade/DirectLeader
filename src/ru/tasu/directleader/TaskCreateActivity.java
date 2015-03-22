@@ -82,8 +82,12 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
     }
     
     private class TaskCreateAsyncTask extends AsyncTask<Void, Void, JSONObject> {
+        ProgressDialog pg = new ProgressDialog(TaskCreateActivity.this);
         @Override
         protected void onPreExecute() {
+            pg.setMessage(getResources().getString(R.string.task_create_processing_task_text));
+            pg.setCancelable(false);
+            pg.show();
             super.onPreExecute();
         }
         @Override
@@ -120,7 +124,15 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         @Override
         protected void onPostExecute(JSONObject result) {
             Log.v(TAG, "onPostExecute " + result);
-            finish(); 
+            if (pg != null) {
+                pg.dismiss();
+            }
+            if (result == null) {
+                String errorText = getResources().getString(R.string.create_task_dialog_fragment_service_error_text);
+                Toast.makeText(TaskCreateActivity.this, errorText, Toast.LENGTH_LONG).show();
+            } else {
+                finish();
+            }
         }
     }
     class GetUsersAsyncTask extends AsyncTask<Void, Void, List<Rabotnic>> {
@@ -352,12 +364,14 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 finish();
                 break;
             case R.id.okButton:
-                if (mDirect.isOnline()) {
+                new TaskCreateAsyncTask().execute();
+                /*if (mDirect.isServiceAvailable()) {
                     new TaskCreateAsyncTask().execute();
                 } else {
                     String errorText = getResources().getString(R.string.create_task_dialog_fragment_internet_error_text);
                     Toast.makeText(this, errorText, Toast.LENGTH_LONG).show();
                 }
+                // */
                 break;
             case R.id.deadlineTextView:
                 // get the current date and time

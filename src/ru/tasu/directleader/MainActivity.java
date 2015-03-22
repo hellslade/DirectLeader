@@ -1,7 +1,6 @@
 package ru.tasu.directleader;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -11,17 +10,17 @@ import org.json.JSONObject;
 
 import ru.tasu.directleader.AuthorizeFragment.OnLoginListener;
 import ru.tasu.directleader.DocumentDownloadDialogFragment.OnDocumentDownloadListener;
-import ru.tasu.directleader.JobDetailFragment.ExecJobActionAsyncTask;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -104,6 +103,10 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
                 Log.v(TAG, "getMyTask() ok");
                 TaskDataSource task_ds = new TaskDataSource(mDirect);
                 task_ds.open();
+                // Получить список id favorites
+                JobDataSource jds = new JobDataSource(mDirect);
+                jds.open();
+                long[] ids = jds.getFavoriteJobsIds();
                 int remove_count = task_ds.deleteAllTasks();
                 Log.v(TAG, "remove_count " + remove_count);
                 JSONObject taskJson;
@@ -114,6 +117,8 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
                         task_ds.createTask(task);
                     }
                 }
+                // Восстановить id favorites
+                jds.setFavoriteJobsIds(ids);
                 Log.v(TAG, "getMyTask() UPDATED");
             } else {
                 Log.v(TAG, "Почему-то не удалось получить данные. Обновление не произошло");
@@ -286,6 +291,32 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
             String errorText = getResources().getString(R.string.create_task_dialog_fragment_internet_error_text);
             Toast.makeText(this, errorText, Toast.LENGTH_LONG).show();
         }
-        
+    }
+    private UpdateReceiver receiver;
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //Register BroadcastReceiver
+        //to receive event from our service
+        receiver = new UpdateReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(UpdateIntentService.UPDATE_COMPLETE_ACTION);
+        registerReceiver(receiver, intentFilter);
+        startService(new Intent(this, UpdateService.class));
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(receiver);
+    }
+    private class UpdateReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //Toast.makeText(MainActivity.this, "Update from UpdateService complete", Toast.LENGTH_LONG).show();
+            MainFragment fragment = (MainFragment)getFragmentManager().findFragmentByTag("main_fragment");
+            if (fragment != null) {
+                ((OnUpdateDataListener)fragment).OnUpdateData();
+            }
+        }
     }
 }

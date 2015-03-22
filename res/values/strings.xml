@@ -45,7 +45,8 @@
     <string name="create_task_dialog_fragment_observers_text">Наблюдатели</string>
     <string name="create_task_dialog_fragment_rights_text">Права:</string>
     
-    <string name="create_task_dialog_fragment_internet_error_text">Для создания задачи выполните подключение к Интернет.</string>
+    <string name="create_task_dialog_fragment_service_error_text">Невозможно выполнить действие, сервис недоступен.</string>
+    <string name="create_task_dialog_fragment_internet_error_text">Невозможно создать задачу. Отсутствует подключение к Интернет.</string>
     
     <!-- Окно списка заданий (Job) -->
     <string name="myjob_fragment_header_title_text">Тема, Создано, Инициатор</string>
@@ -77,8 +78,6 @@
     <string name="job_detail_fragment_comment_text">Комментарий:</string>
     <string name="job_detail_fragment_history_text">История:</string>
     
-    <string name="job_detail_fragment_internet_error_text">Невозможно выполнить действие, отсутствует подключение к Интернет.</string>
-    
     <!-- Окно карточка задачи (Task)-->
     <string name="task_detail_fragment_actions_text">Действие</string>
     <string name="task_detail_fragment_property_text" formatted="false">Инициатор:\u00A0%s, Создана:\u00A0%s, Изменена:\u00A0%s</string>
@@ -95,8 +94,7 @@
     <string name="task_detail_fragment_documentslist_text">Документы:</string>
     <string name="task_detail_fragment_comment_text">Комментарий:</string>
     <string name="task_detail_fragment_history_text">История:</string>
-    
-    <string name="task_detail_fragment_internet_error_text">Невозможно выполнить действие, отсутствует подключение к Интернет.</string>
+    <string name="task_create_processing_task_text">Создание задачи, пожалуйста, подождите</string>
     
     <!-- Окно Сотрудники -->
     <string name="staff_fragment_sort_fio_text">ФИО</string>

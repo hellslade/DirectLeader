@@ -176,9 +176,22 @@ public class DirectLeaderApplication extends Application {
     }
     
     /**
-     * Проверяет подключение к интернету
+     * Проверяет доступность сервиса, включая проверку доступа к интернету
      * @return boolean
      */
+    public boolean isServiceAvailable() {
+        if (isOnline()) {
+            // Интернет есть, теперь пингуем сервер
+            String url = String.format(GET_PING);
+            HttpResponse response = sendDataGet(url);
+            String result = ReadResponse(response);
+            if (result.equalsIgnoreCase("true")) {
+                return true;
+            }
+            
+        }
+        return false;
+    }
     public boolean isOnline() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
@@ -322,6 +335,9 @@ public class DirectLeaderApplication extends Application {
         return data;
     }
     public JSONObject PostCreateTask(JSONObject taskJSON) {
+        if (!isServiceAvailable()) {
+            return null;
+        }
         String url = POST_CREATE_TASK;
         HttpResponse response = sendDataPostJSON(url, taskJSON);
         if (response == null) {
@@ -460,7 +476,7 @@ public class DirectLeaderApplication extends Application {
      * @return HttpResponse
      */
     private HttpResponse sendAuthorizeData(String url) {
-        if (!isOnline()) {
+        if (!isServiceAvailable()) {
             return null;
         }
         Log.v(TAG, url);

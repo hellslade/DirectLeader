@@ -367,12 +367,14 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         @Override
         public boolean onMenuItemClick(MenuItem item) {
             String actionName = actionsMaping.get(item.getItemId());
-            if (mDirect.isOnline()) {
+            new ExecTaskActionAsyncTask().execute(actionName);
+            /*if (mDirect.isServiceAvailable()) {
                 new ExecTaskActionAsyncTask().execute(actionName);
             } else {
                 String errorText = getResources().getString(R.string.task_detail_fragment_internet_error_text);
                 Toast.makeText(getActivity(), errorText, Toast.LENGTH_LONG).show();
             }
+            // */
             return true;
         }
     };

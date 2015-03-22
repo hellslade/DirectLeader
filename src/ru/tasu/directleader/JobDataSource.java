@@ -315,6 +315,27 @@ public class JobDataSource {
 
         return count;
     }
+    public long[] getFavoriteJobsIds() {
+        long[] jobs;
+        Cursor cursor = database.query(DBHelper.JOB_TABLE,
+                allColumns, DBHelper.JOB_FAVORITE + " = 1", null, null, null, null);
+        cursor.moveToFirst();
+        int i = 0;
+        jobs = new long[cursor.getCount()];
+        while (!cursor.isAfterLast()) {
+            jobs[i++] = (cursor.getLong(4));
+            cursor.moveToNext();
+        }
+        cursor.close();
+        return jobs;
+    }
+    public void setFavoriteJobsIds(long[] ids) {
+        ContentValues cv = new ContentValues();
+        cv.put(DBHelper.JOB_FAVORITE, "1");
+        for (long id : ids) {
+            database.update(DBHelper.JOB_TABLE, cv, "id = ?", new String[] {String.valueOf(id)});
+        }
+    }
     public int deleteAllJobs() {
         int count = database.delete(DBHelper.JOB_TABLE, "1", null);
         return count;
