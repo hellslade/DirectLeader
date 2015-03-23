@@ -141,6 +141,9 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         }
         @Override
         protected JSONObject doInBackground(String... params) {
+            JobDataSource jds = new JobDataSource(mDirect);
+            jds.open();
+            jds.deleteJobById(mJob.getId());
             return mDirect.ExecJobAction(mJob.getId(), params[0], commentEditText.getText().toString().trim());
         }
         @Override
@@ -149,6 +152,8 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
             if (pg != null) {
                 pg.dismiss();
             }
+            getFragmentManager().popBackStackImmediate();
+            /*
             int statusCode = result.optInt("statusCode");
             if (statusCode == 200) {
                 String resultString = result.optString("result");
@@ -160,6 +165,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
                     Toast.makeText(getActivity(), "Неудача", Toast.LENGTH_LONG).show();
                 }
             }
+            // */
         }
     }
     //*/

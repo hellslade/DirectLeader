@@ -124,6 +124,10 @@ public class AttachmentDataSource {
         int count = database.delete(DBHelper.ATTACHMENT_TABLE, "1", null);
         return count;
     }
+    public int deleteAttachmentsByTaskId(long id) {
+        int count = database.delete(DBHelper.ATTACHMENT_TABLE, "task_id = ?", new String[] {String.valueOf(id)});
+        return count;
+    }
     /**
      * ѕолучить общее количество документов
      * @return

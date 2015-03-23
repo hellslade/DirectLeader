@@ -284,6 +284,21 @@ public class TaskDataSource {
         int count = database.delete(DBHelper.TASK_TABLE, "1", null);
         return count;
     }
+    public int deleteTaskById(long id) {
+        AttachmentDataSource attachment_ds = new AttachmentDataSource(mContext);
+        HistoryDataSource history_ds = new HistoryDataSource(mContext);
+        JobDataSource job_ds = new JobDataSource(mContext);
+        attachment_ds.open();
+        history_ds.open();
+        job_ds.open();
+        
+        attachment_ds.deleteAttachmentsByTaskId(id);
+        history_ds.deleteHistoriesByTaskId(id);
+        job_ds.deleteJobsByTaskId(id);
+        
+        int count = database.delete(DBHelper.TASK_TABLE, "id = ?", new String[] {String.valueOf(id)});
+        return count;
+    }
 
     private Task cursorToTask(Cursor cursor) {
         //int id, String address, String point, String work_hours, int brand, String last_modified

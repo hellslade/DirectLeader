@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -75,6 +77,7 @@ public class DirectLeaderApplication extends Application {
     private static final String mQUERY_Domain = "Domain";
     
     private static final String SETTINGS_USER_ID_KEY = "user_id_key";
+    public static final String SETTINGS_EXEC_KEY = "exec_key";
     
     private static String mUserName = "";
     public static String mSettingsFilename = "client_settings.json";
@@ -378,12 +381,21 @@ public class DirectLeaderApplication extends Application {
             comment = "";
         }
         String url = String.format(GET_EXEC_JOB_ACTION, jobId, actionName, comment);
+        JSONObject data = new JSONObject();
+        if (!isServiceAvailable()) {
+            // Записать в настройки URL
+            Editor e = getSettings().edit();
+            Set<String> execUrls = getSettings().getStringSet(SETTINGS_EXEC_KEY, new HashSet<String>());
+            execUrls.add(url);
+            e.putStringSet(SETTINGS_EXEC_KEY, execUrls);
+            e.commit();
+            return data;
+        }
         HttpResponse response = sendDataGet(url);
         if (response == null) {
             return null;
         }
         // Обработка ответа
-        JSONObject data = new JSONObject();
         String result = "";
         Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
         switch (response.getStatusLine().getStatusCode()) {
@@ -411,12 +423,62 @@ public class DirectLeaderApplication extends Application {
     }
     public JSONObject ExecTaskAction(long taskId, String actionName) {
         String url = String.format(GET_EXEC_TASK_ACTION, taskId, actionName);
+        JSONObject data = new JSONObject();
+        if (!isServiceAvailable()) {
+            // Записать в настройки URL
+            Editor e = getSettings().edit();
+            Set<String> execUrls = getSettings().getStringSet(SETTINGS_EXEC_KEY, new HashSet<String>());
+            execUrls.add(url);
+            e.putStringSet(SETTINGS_EXEC_KEY, execUrls);
+            e.commit();
+            return data;
+        }
         HttpResponse response = sendDataGet(url);
         if (response == null) {
             return null;
         }
         // Обработка ответа
+        String result = "";
+        Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+        switch (response.getStatusLine().getStatusCode()) {
+            case 200: // Успешно
+                Log.v(TAG, "200");
+                result = ReadResponse(response);
+                result = result.replace("\"", "");
+                break;
+            case 400: // BAD REQUEST
+                Log.v(TAG, "400");
+                data = ReadResponseJSONObject(response);
+                break;
+            default:
+                Log.v(TAG, "default");
+                Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+                data = ReadResponseJSONObject(response);
+        }
+        try {
+            data.put("statusCode", response.getStatusLine().getStatusCode());
+            data.put("result", result);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+    public JSONObject ExecAction(String url) {
         JSONObject data = new JSONObject();
+        if (!isServiceAvailable()) {
+            // Записать в настройки URL
+            Editor e = getSettings().edit();
+            Set<String> execUrls = getSettings().getStringSet(SETTINGS_EXEC_KEY, new HashSet<String>());
+            execUrls.add(url);
+            e.putStringSet(SETTINGS_EXEC_KEY, execUrls);
+            e.commit();
+            return data;
+        }
+        HttpResponse response = sendDataGet(url);
+        if (response == null) {
+            return null;
+        }
+        // Обработка ответа
         String result = "";
         Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
         switch (response.getStatusLine().getStatusCode()) {

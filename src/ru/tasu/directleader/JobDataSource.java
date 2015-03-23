@@ -340,6 +340,14 @@ public class JobDataSource {
         int count = database.delete(DBHelper.JOB_TABLE, "1", null);
         return count;
     }
+    public int deleteJobById(long id) {
+        int count = database.delete(DBHelper.JOB_TABLE, "id = ?", new String[] {String.valueOf(id)});
+        return count;
+    }
+    public int deleteJobsByTaskId(long id) {
+        int count = database.delete(DBHelper.JOB_TABLE, "main_task_job = ?", new String[] {String.valueOf(id)});
+        return count;
+    }
     public Job setJobFavorite(long jobId, boolean isFavorite) {
         ContentValues values = new ContentValues();
         int favorite = isFavorite ? 1 : 0;

@@ -23,7 +23,7 @@ public class UpdateService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         mDirect = (DirectLeaderApplication)getApplication();
         Log.v(TAG, "onStartCommand " + mDirect);
-        long interval = mDirect.getSettings().getInt("update_interval", 1000*60*60);
+        long interval = mDirect.getSettings().getInt("update_interval", 1000*60*10);
         Intent i = new Intent(this, UpdateIntentService.class);
         PendingIntent pintent = PendingIntent.getService(this, 0, i, 0);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);

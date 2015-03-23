@@ -157,6 +157,9 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         }
         @Override
         protected JSONObject doInBackground(String... params) {
+            TaskDataSource tds = new TaskDataSource(mDirect);
+            tds.open();
+            tds.deleteTaskById(mTask.getId());
             return mDirect.ExecTaskAction(mTask.getId(), params[0]);
         }
         @Override
@@ -165,6 +168,8 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
             if (pg != null) {
                 pg.dismiss();
             }
+            getFragmentManager().popBackStackImmediate();
+            /*
             int statusCode = result.optInt("statusCode");
             if (statusCode == 200) {
                 String resultString = result.optString("result");
@@ -176,6 +181,7 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
                     Toast.makeText(getActivity(), "Неудача", Toast.LENGTH_LONG).show();
                 }
             }
+            // */
         }
     }
     //*/

@@ -87,6 +87,10 @@ public class HistoryDataSource {
         int count = database.delete(DBHelper.HISTORY_TABLE, "1", null);
         return count;
     }
+    public int deleteHistoriesByTaskId(long id) {
+        int count = database.delete(DBHelper.HISTORY_TABLE, "task_id = ?", new String[] {String.valueOf(id)});
+        return count;
+    }
 
     private History cursorToHistory(Cursor cursor) {
         //int id, String address, String point, String work_hours, int brand, String last_modified

@@ -1,10 +1,14 @@
 package ru.tasu.directleader;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.util.Log;
@@ -20,6 +24,9 @@ public class UpdateIntentService extends Service {
         protected JSONObject doInBackground(Void... params) {
             // Обновление данных Rabotnic
             JSONObject result = mDirect.getRabotnics();
+            if (result == null) {
+                return null;
+            }
             JSONArray data = result.optJSONArray("data");
             if (data.length() > 0) {
                 Log.v(TAG, "getRabotnics() ok");
@@ -48,6 +55,9 @@ public class UpdateIntentService extends Service {
         protected JSONObject doInBackground(Void... arg0) {
             // Обновление данных Task
             JSONObject result = mDirect.GetMyTasks();
+            if (result == null) {
+                return null;
+            }
             JSONArray data = result.optJSONArray("data");
             if (data.length() > 0) {
                 Log.v(TAG, "getMyTask() ok");
@@ -70,6 +80,7 @@ public class UpdateIntentService extends Service {
                 // Восстановить id favorites
                 jds.setFavoriteJobsIds(ids);
                 Log.v(TAG, "getMyTask() UPDATED");
+                return result;
             } else {
                 Log.v(TAG, "Почему-то не удалось получить данные. Обновление не произошло");
             }
@@ -78,10 +89,39 @@ public class UpdateIntentService extends Service {
         @Override
         protected void onPostExecute(JSONObject result) {
             super.onPostExecute(result);
-            sendUpdateAction();
+            if (result != null) {
+                sendUpdateAction();
+            }
         }
     }
     // */
+    class ExecStoredActionsAsyncTask extends AsyncTask<Void, Void, JSONObject> {
+        @Override
+        protected JSONObject doInBackground(Void... params) {
+            Set<String> urls = mDirect.getSettings().getStringSet(mDirect.SETTINGS_EXEC_KEY, null);
+            if (urls != null) {
+                Set<String> newUrls = new HashSet<String>();
+                newUrls.addAll(urls);
+                for (String url : newUrls) {
+                    final JSONObject result = mDirect.ExecAction(url);
+                    if (result != null) {
+                        final int statusCode = result.optInt("statusCode");
+                        if (statusCode == 200) {
+                            urls.remove(url);
+                        }
+                    }
+                }
+            }
+            Editor e = mDirect.getSettings().edit();
+            e.putStringSet(mDirect.SETTINGS_EXEC_KEY, urls);
+            e.commit();
+            return null;
+        }
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+        }
+    }
     
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -89,6 +129,7 @@ public class UpdateIntentService extends Service {
         Log.v(TAG, "onStartCommand " + mDirect);
         String userCode = mDirect.getUserCode();
         if (!userCode.equalsIgnoreCase("")) {
+            new ExecStoredActionsAsyncTask().execute();
             new UpdateDBRabotnicAsyncTask().execute();
             new UpdateDBTaskAsyncTask().execute();
         }
