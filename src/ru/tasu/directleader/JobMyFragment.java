@@ -211,7 +211,7 @@ public class JobMyFragment extends Fragment implements OnClickListener {
                         filterStr = " AND job.final_date = date()";
                         break;
                     case OVERDUE:
-                        filterStr = " AND job.final_date < date()";
+                        filterStr = " AND job.final_date < date() AND job.final_date <> '1899-12-30 00:00:00'";
                         break;
                     case ALL:
                         filterStr = "";

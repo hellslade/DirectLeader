@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="Подключение">
+		<EditTextPreference
+			android:key="domain_key"
+			android:title="@string/preferences_domain_title"
+			android:summary="@string/preferences_domain_summary">
+        </EditTextPreference>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Обновление данных">
+        <CheckBoxPreference
+	        android:key="update_enabled"
+	        android:title="@string/preferences_update_enabled_title"
+	        android:summaryOn="@string/preferences_update_enabled_summary_on"
+	        android:summaryOff="@string/preferences_update_enabled_summary_off"
+	        android:defaultValue="true"
+	         />
+        <EditTextPreference
+            android:key="update_interval"
+            android:title="@string/preferences_interval_title"
+            android:summary="@string/preferences_interval_summary"
+            android:defaultValue="1800000"
+            />
+    </PreferenceCategory>
+</PreferenceScreen>

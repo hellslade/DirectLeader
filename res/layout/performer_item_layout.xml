@@ -24,7 +24,7 @@
         android:maxLines="1"
         android:singleLine="true"
         android:layout_centerVertical="true"
-        android:text="Чередова Екатерина Владимировна"/>
+        android:text=""/>
     <ImageView 
         android:id="@id/disclosureIcon"
         android:layout_width="wrap_content"

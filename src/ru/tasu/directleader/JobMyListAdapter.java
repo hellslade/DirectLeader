@@ -74,11 +74,11 @@ public class JobMyListAdapter extends ArrayAdapter<Job> implements Filterable {
                     results.count = mOriginalValues.size();
                     results.values = mOriginalValues;
                 } else {
-                    constraint = constraint.toString().toLowerCase();
+                    constraint = constraint.toString().toLowerCase(Utils.mLocale);
                     for (int i = 0; i < mOriginalValues.size(); i++) {
                         final Job job = mOriginalValues.get(i);
                         String data = String.format("%s %s %s %s %s %s", job.getSubject(), job.getUser().getName(), job.getStateTitle(), job.getAuthor().getName(), job.getResultTitle(), job.getImportance());
-                        if (data.toLowerCase().contains(constraint.toString())) {
+                        if (data.toLowerCase(Utils.mLocale).contains(constraint.toString())) {
                             FilteredArrList.add(job);
                         }
                     }
@@ -139,11 +139,13 @@ public class JobMyListAdapter extends ArrayAdapter<Job> implements Filterable {
         if (startDateString.equalsIgnoreCase("1899-12-30")) {
             startDateString = "";
         }
-    	String propertyText = String.format(activity.getResources().getString(R.string.myjob_fragment_listitem_property_text), startDateString, job.getUser().getName());
+        if (job.getAuthor() != null) {
+        	String propertyText = String.format(activity.getResources().getString(R.string.myjob_fragment_listitem_property_text), startDateString, job.getAuthor().getName());
+        	propertyTextView.setText(propertyText);
+        }
         
     	titleTextView.setText(job.getSubject());
     	dateTextView.setText(dateString);
-    	propertyTextView.setText(propertyText);
         
         if (job.getImportance().equalsIgnoreCase("Высокая")) {
             statusImportance.setVisibility(View.VISIBLE);

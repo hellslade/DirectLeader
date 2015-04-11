@@ -66,7 +66,19 @@
 	            android:hint="@string/login_fragment_login_hint_text"
 	            android:textColor="@color/gray"
 	            android:textColorHint="@color/gray"
+	            android:singleLine="true"
 	            />
+	        <EditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/edittext_background"
+                android:hint="@string/login_fragment_password_hint_text"
+                android:inputType="textPassword"
+                android:textColor="@color/gray"
+                android:textColorHint="@color/gray"
+                android:singleLine="true"
+                />
 	        <Button 
 	            android:id="@+id/loginButton"
 	            android:layout_width="match_parent"

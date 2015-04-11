@@ -76,11 +76,11 @@ public class StaffListAdapter extends ArrayAdapter<Rabotnic> implements Filterab
                     results.count = mOriginalValues.size();
                     results.values = mOriginalValues;
                 } else {
-                    constraint = constraint.toString().toLowerCase();
+                    constraint = constraint.toString().toLowerCase(Utils.mLocale);
                     for (int i = 0; i < mOriginalValues.size(); i++) {
                         final Rabotnic user = mOriginalValues.get(i);
                         String data = user.getName();
-                        if (data.toLowerCase().startsWith(constraint.toString())) {
+                        if (data.toLowerCase(Utils.mLocale).contains(constraint.toString())) {
                             FilteredArrList.add(user);
                         }
                     }

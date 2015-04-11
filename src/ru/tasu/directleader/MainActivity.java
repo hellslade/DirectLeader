@@ -10,16 +10,20 @@ import org.json.JSONObject;
 
 import ru.tasu.directleader.AuthorizeFragment.OnLoginListener;
 import ru.tasu.directleader.DocumentDownloadDialogFragment.OnDocumentDownloadListener;
+import ru.tasu.directleader.UpdateService.LocalBinder;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.Menu;
@@ -27,7 +31,7 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements OnLoginListener, OnOpenFragmentListener, OnDocumentDownloadListener {
+public class MainActivity extends Activity implements OnLoginListener, OnOpenFragmentListener, OnDocumentDownloadListener, OnPreferenceChangeListener {
     private static final String TAG = "MainActivity";
     
     class UpdateDBRabotnicAsyncTask extends AsyncTask<Void, Void, JSONObject> {
@@ -49,7 +53,10 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         protected JSONObject doInBackground(Void... params) {
             // Обновление данных Rabotnic
             JSONObject result = mDirect.getRabotnics();
-            JSONArray data = result.optJSONArray("data");
+            JSONArray data = new JSONArray();
+            if (result != null) {
+                data = result.optJSONArray("data");
+            }
             if (data.length() > 0) {
                 Log.v(TAG, "getRabotnics() ok");
                 RabotnicDataSource rab_ds = new RabotnicDataSource(mDirect);
@@ -98,7 +105,10 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         protected JSONObject doInBackground(Void... arg0) {
             // Обновление данных Task
             JSONObject result = mDirect.GetMyTasks();
-            JSONArray data = result.optJSONArray("data");
+            JSONArray data = new JSONArray();
+            if (result != null) {
+                data = result.optJSONArray("data");
+            }
             if (data.length() > 0) {
                 Log.v(TAG, "getMyTask() ok");
                 TaskDataSource task_ds = new TaskDataSource(mDirect);
@@ -157,8 +167,11 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         protected JSONObject doInBackground(Void... arg0) {
             // Обновление данных Client Settings
             JSONObject result = mDirect.GetClientSettings();
-            int statusCode = result.optInt("statusCode");
-            result.remove("statusCode");
+            int statusCode = 400;
+            if (result != null) {
+                statusCode = result.optInt("statusCode");
+                result.remove("statusCode");
+            }
             if (statusCode == 200) {
                 Log.v(TAG, "GetClientSettings() ok");
                 // Сохранить в файл
@@ -200,36 +213,29 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
         mDirect = (DirectLeaderApplication) getApplication();
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
                     .add(R.id.container, Fragment.instantiate(this, AuthorizeFragment.class.getName())).commit();
         }
-        
-//        DisplayMetrics metrics = getResources().getDisplayMetrics();
-//        Log.v(TAG, "metrics.density " + metrics.density);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.main_popup_menu, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-//        int id = item.getItemId();
-//        if (id == R.id.action_exit) {
-//            Log.v(TAG, "action_exit");
-//            return true;
-//        }
         return super.onOptionsItemSelected(item);
     }
-
+    @Override
+    public void onPreferenceChange() {
+        // Через биндер остановить Alarm и снова запустить
+        mService.cancelAlarm();
+        mService.setAlarm();
+    }
     @Override
     public void OnLogin(boolean update) {
         if (update) {
@@ -258,9 +264,9 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
     @Override
     public void OnRefreshData() {
         Log.v(TAG, "OnRefreshData()");
-      new UpdateDBRabotnicAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
-      new UpdateDBTaskAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
-      new UpdateDBClientSettingsAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
+        new UpdateDBRabotnicAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
+        new UpdateDBTaskAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
+        new UpdateDBClientSettingsAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
     }
     @Override
     public void onDocumentDownload(Attachment doc) {
@@ -303,12 +309,45 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         intentFilter.addAction(UpdateIntentService.UPDATE_COMPLETE_ACTION);
         registerReceiver(receiver, intentFilter);
         startService(new Intent(this, UpdateService.class));
+        
+        // Bind to UpdateService
+        Intent intent = new Intent(this, UpdateService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(receiver);
+        try {
+            unregisterReceiver(receiver);
+        } catch (Exception e) {
+            Log.v(TAG, " " + e.getLocalizedMessage());
+        }
+        
+        // Unbind from the service
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
     }
+    UpdateService mService;
+    boolean mBound = false;
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            LocalBinder binder = (LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
+    
     private class UpdateReceiver extends BroadcastReceiver{
         @Override
         public void onReceive(Context context, Intent intent) {

@@ -93,8 +93,8 @@ public class AttachmentDataSource {
     }
     public int getAttachmentsCountByTaskId(long taskId) {
         int count = 0;
-        Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
-                new String[]{DBHelper.ATTACHMENT__ID}, DBHelper.ATTACHMENT_TASK_ID + " = " + taskId, null, null, null, null);
+        Cursor cursor = database.query(true, DBHelper.ATTACHMENT_TABLE,
+                new String[]{DBHelper.ATTACHMENT_ID}, DBHelper.ATTACHMENT_TASK_ID + " = " + taskId, null, null, null, null, null);
 //        cursor.moveToFirst();
         count = cursor.getCount();
         cursor.close();
@@ -102,10 +102,12 @@ public class AttachmentDataSource {
     }
     public List<Attachment> getAllAttachments() {
         List<Attachment> attachments = new ArrayList<Attachment>();
-
-        Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
-                allColumns, null, null, null, null, null);
-
+        
+//        Cursor cursor = database.query(true, DBHelper.ATTACHMENT_TABLE,
+//                allColumns, null, null, null, null, null, null);
+        String sql = "select a1.* from attachment as a1 left join attachment as a2 on a1.id=a2.id group by a1.id";
+        Cursor cursor = database.rawQuery(sql, null);
+        
         cursor.moveToFirst();
         TaskDataSource tds = new TaskDataSource(mContext);
         tds.open();
@@ -134,8 +136,8 @@ public class AttachmentDataSource {
      */
     public int getCountOfAttachments() {
         int count = 0;
-        Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
-                new String[]{DBHelper.ATTACHMENT__ID}, null, null, null, null, null);
+        Cursor cursor = database.query(true, DBHelper.ATTACHMENT_TABLE,
+                new String[]{DBHelper.ATTACHMENT_ID}, null, null, null, null, null, null);
 //        cursor.moveToFirst();
         count = cursor.getCount();
         

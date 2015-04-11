@@ -247,8 +247,8 @@ public class TaskDataSource {
         count[1] = cursor.getInt(0);
         cursor.close();
 
-        sql = String.format("SELECT count(task._id) FROM task WHERE date(task.deadline) < date();", 
-                DBHelper.TASK_TABLE, DBHelper.TASK__ID, DBHelper.TASK_TABLE, DBHelper.TASK_TABLE, DBHelper.TASK_DEADLINE);
+        sql = String.format("SELECT count(%s.%s) FROM %s WHERE date(%s.%s) < date() AND %s.%s <> '1899-12-30 00:00:00';", 
+                DBHelper.TASK_TABLE, DBHelper.TASK__ID, DBHelper.TASK_TABLE, DBHelper.TASK_TABLE, DBHelper.TASK_DEADLINE, DBHelper.TASK_TABLE, DBHelper.TASK_DEADLINE);
         cursor = database.rawQuery(sql, null);
         cursor.moveToFirst();
         count[2] = cursor.getInt(0);

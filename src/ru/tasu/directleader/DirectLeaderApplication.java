@@ -10,6 +10,7 @@ import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -18,6 +19,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,7 +35,9 @@ import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.provider.Settings.Secure;
+import android.util.Base64;
 import android.util.Log;
 
 public class DirectLeaderApplication extends Application {
@@ -49,37 +55,51 @@ public class DirectLeaderApplication extends Application {
     
     // URL's
     private static final String PORTAL_SERVICE = "http://tyumbitasu-16.hosting.parking.ru/PortalService.svc";
-    private static final String DIRECTLEADER_SERVICE = "http://tyumbitasu-14.hosting.parking.ru/WSMock.svc";
+    private static final String DIRECTLEADER_SERVICE_DEMO = "http://tyumbitasu-14.hosting.parking.ru/WSMock.svc";
+    //    private static final String DIRECTLEADER_SERVICE = "http://directum51test.int.t-asu.ru:8090/ws.svc";
     // methods
-    private static final String POST_ADD_EXT_COMMENT = DIRECTLEADER_SERVICE + "/AddExtComments";
-    private static final String GET_CHECK_AUTH = DIRECTLEADER_SERVICE + "/CheckAuth";
-    private static final String POST_CHECK_FINISHED_TASKS = DIRECTLEADER_SERVICE + "/CheckFinishedTasks";
-    private static final String POST_CREATE_TASK = DIRECTLEADER_SERVICE + "/CreateTask";
-    private static final String GET_EXEC_JOB_ACTION = DIRECTLEADER_SERVICE + "/ExecJobAction?jobId=%s&resultText=%s&comment=%s"; //?jobId={JOBID}&resultText={RESULTTEXT}&comment={COMMENT}
-    private static final String GET_EXEC_TASK_ACTION = DIRECTLEADER_SERVICE + "/ExecTaskAction?taskId=%s&actionName=%s"; //?taskId={TASKID}&actionName={ACTIONNAME}
-    private static final String GET_EXPORT_DOCUMENT = DIRECTLEADER_SERVICE + "/ExportDocument?docId=%s"; //?docId={DOCID}
-    private static final String GET_CLIENT_SETTINGS = DIRECTLEADER_SERVICE + "/GetClientSettings";
-    private static final String GET_DOC_IMGS = DIRECTLEADER_SERVICE + "/GetDocImgs?docId=%s"; //?docId={DOCID}
-    public static final String GET_DOCUMENT = DIRECTLEADER_SERVICE + "/GetDocument?docId=%s"; //?docId={DOCID}
-    private static final String GET_HEADER_INFO = DIRECTLEADER_SERVICE + "/GetHeaderInfo";
-    private static final String GET_MY_TASKS = DIRECTLEADER_SERVICE + "/GetMyTasks"; //?lastSyncDate={LASTSYNCDATE}&onlyInput={ONLYINPUT}&onlyMyJobs={ONLYMYJOBS}
-    private static final String GET_RABOTNIC = DIRECTLEADER_SERVICE + "/GetRabotnic"; //?lastSyncDate={LASTSYNCDATE}&podr={PODR}
-    private static final String GET_STRUCTURE = DIRECTLEADER_SERVICE + "/GetStructure";
-    private static final String GET_TASK = DIRECTLEADER_SERVICE + "/GetTask?id=%s"; //?id={ID}
-    private static final String POST_IMPORT_FROM_FILE = DIRECTLEADER_SERVICE + "/ImportFromFile";
-    private static final String GET_PING = DIRECTLEADER_SERVICE + "/Ping";
-    private static final String GET_SEARCH_DOCS = DIRECTLEADER_SERVICE + "/SearchDocs?criteria=%s"; //?criteria={CRITERIA}
+    private static final String ADD_NEW_DEVICE = PORTAL_SERVICE + "/AddNewDevice?id=%s&organizationKey=%s&name=%s";
+    private static final String REMOVE_DEVICE = PORTAL_SERVICE + "/RemoveDevice?id=%s";
+    private static final String GET_SERVICE_URL = PORTAL_SERVICE + "/GetServiceUrl?organizationKey=%s";
+    private static final String PING_PORTAL_SERVICE = PORTAL_SERVICE + "/Ping";
+    
+    private static final String GET_CHECK_AUTH = "/CheckAuth";
+    private static final String POST_CREATE_TASK = "/CreateTask";
+    private static final String GET_EXEC_JOB_ACTION = "/ExecJobAction?jobId=%s&resultText=%s&comment=%s"; //?jobId={JOBID}&resultText={RESULTTEXT}&comment={COMMENT}
+    private static final String GET_EXEC_TASK_ACTION = "/ExecTaskAction?taskId=%s&actionName=%s"; //?taskId={TASKID}&actionName={ACTIONNAME}
+    private static final String GET_CLIENT_SETTINGS = "/GetClientSettings";
+    public  static final String GET_DOCUMENT = "/GetDocument?docId=%s"; //?docId={DOCID}
+    private static final String GET_MY_TASKS = "/GetMyTasks"; //?lastSyncDate={LASTSYNCDATE}&onlyInput={ONLYINPUT}&onlyMyJobs={ONLYMYJOBS}
+    private static final String GET_RABOTNIC = "/GetRabotnic"; //?lastSyncDate={LASTSYNCDATE}&podr={PODR}
+    private static final String GET_PING = "/Ping";
+//    private static final String POST_ADD_EXT_COMMENT = "/AddExtComments";
+//    private static final String POST_CHECK_FINISHED_TASKS = "/CheckFinishedTasks";
+//    private static final String GET_EXPORT_DOCUMENT = "/ExportDocument?docId=%s"; //?docId={DOCID}
+//    private static final String GET_DOC_IMGS = "/GetDocImgs?docId=%s"; //?docId={DOCID}
+//    private static final String GET_HEADER_INFO = "/GetHeaderInfo";
+//    private static final String GET_STRUCTURE = "/GetStructure";
+//    private static final String GET_TASK = "/GetTask?id=%s"; //?id={ID}
+//    private static final String POST_IMPORT_FROM_FILE = "/ImportFromFile";
+//    private static final String GET_SEARCH_DOCS = "/SearchDocs?criteria=%s"; //?criteria={CRITERIA}
     
     // Query's keys
-    private static final String mQUERY_UdidKey = "UdidKey";
-    private static final String mQUERY_UserName = "UserName";
-    private static final String mQUERY_Password = "Password";
-    private static final String mQUERY_Domain = "Domain";
+    public static final String mQUERY_DeviceId = "DeviceId";
+    public static final String mQUERY_UserName = "UserName";
+    public static final String mQUERY_Password = "Password";
+    public static final String mQUERY_Domain = "Domain";
     
     private static final String SETTINGS_USER_ID_KEY = "user_id_key";
+    private static final String SETTINGS_USERNAME_KEY = "username_key";
+    private static final String SETTINGS_PASSWORD_KEY = "password_key";
+    private static final String SETTINGS_DOMAIN_KEY = "domain_key";
+    
+    private static final String SETTINGS_ORGANIZATION_KEY = "organization_key";
+    
+    private static final String SETTINGS_ACTIVATE_KEY = "activate_key";
+    public static final String SETTINGS_SERVICE_URL_KEY = "direct_leader_service_url_key";
+    // Для сохранения url execJobAction & execTaskAction
     public static final String SETTINGS_EXEC_KEY = "exec_key";
     
-    private static String mUserName = "";
     public static String mSettingsFilename = "client_settings.json";
     
     @Override
@@ -118,27 +138,93 @@ public class DirectLeaderApplication extends Application {
         Log.v(TAG, "Cache dir " + cache);
         return cache;
     }
+    
     private void saveUserCode(String Uid) {
         Editor e = getSettings().edit();
         e.putString(SETTINGS_USER_ID_KEY, Uid);
         e.commit();
     }
-    private void clearUserCode() {
-        mUserName = "";
+    private void saveUserName(String name, String password) {
         Editor e = getSettings().edit();
-        e.remove(SETTINGS_USER_ID_KEY);
+        e.putString(SETTINGS_USERNAME_KEY, name);
+        e.putString(SETTINGS_PASSWORD_KEY, password);
         e.commit();
     }
-    private String getDeviceId() {
+    private void saveServiceUrl(String url) {
+        Editor e = getSettings().edit();
+        e.putString(SETTINGS_SERVICE_URL_KEY, url);
+        e.commit();
+    }
+    private void saveActivateStatus(boolean flag) {
+        Editor e = getSettings().edit();
+        e.putBoolean(SETTINGS_ACTIVATE_KEY, flag);
+        e.commit();
+    }
+    private void saveDomain(String domain) {
+        Editor e = getSettings().edit();
+        e.putString(SETTINGS_DOMAIN_KEY, domain);
+        e.commit();
+    }
+    private void saveOrganization(String orgKey) {
+        Editor e = getSettings().edit();
+        e.putString(SETTINGS_ORGANIZATION_KEY, orgKey);
+        e.commit();
+    }
+    private void clearUserData() {
+        Editor e = getSettings().edit();
+        e.remove(SETTINGS_USER_ID_KEY);
+        e.remove(SETTINGS_USERNAME_KEY);
+        e.remove(SETTINGS_PASSWORD_KEY);
+//        e.remove(SETTINGS_ACTIVATE_KEY);
+//        e.remove(SETTINGS_SERVICE_URL_KEY);
+        e.remove(SETTINGS_ORGANIZATION_KEY);
+        e.commit();
+    }
+    public void clearServiceURL() {
+        Editor e = getSettings().edit();
+        e.remove(SETTINGS_ACTIVATE_KEY);
+        e.remove(SETTINGS_SERVICE_URL_KEY);
+        e.commit();
+    }
+    
+    public String getDeviceId() {
         String android_id = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
+        Log.v(TAG, "device id " + android_id);
         return android_id;
     }
     public String getUserCode() {
-        if (mUserName.isEmpty()) {
-            mUserName = mSettings.getString(SETTINGS_USER_ID_KEY, "");
+        return mSettings.getString(SETTINGS_USER_ID_KEY, "");
+    }
+    public String getUserName() {
+        return mSettings.getString(SETTINGS_USERNAME_KEY, "");
+//        try
+//        {
+//            String s = URLEncoder.encode(mUserName, "UTF-8");
+//            Log.v(TAG, "s " + s);
+//            return s;
+//        }
+//        catch (UnsupportedEncodingException e)
+//        {
+//            Log.e("utf8", "conversion ", e);
+//        }
+//        return "";
+    }
+    public String getPassword() {
+        return mSettings.getString(SETTINGS_PASSWORD_KEY, "");
+    }
+    public String getDomain() {
+        return mSettings.getString(SETTINGS_DOMAIN_KEY, "");
+    }
+    public String getOrganization() {
+        return mSettings.getString(SETTINGS_ORGANIZATION_KEY, "");
+    }
+    
+    public String getDirectLeaderServiceURL() {
+        if (!isDeviceActivated()) {
+            return DIRECTLEADER_SERVICE_DEMO;
+        } else {
+            return mSettings.getString(SETTINGS_SERVICE_URL_KEY, DIRECTLEADER_SERVICE_DEMO);
         }
-        Log.v(TAG, "userName " + mUserName);
-        return mUserName;
     }
     
     /**
@@ -178,15 +264,20 @@ public class DirectLeaderApplication extends Application {
         return getDocumentFile(doc).exists();
     }
     
+    public boolean isServiceAvailable() {
+        return isServiceAvailable(String.format(getDirectLeaderServiceURL() + GET_PING));
+    }
     /**
      * Проверяет доступность сервиса, включая проверку доступа к интернету
      * @return boolean
      */
-    public boolean isServiceAvailable() {
+    public boolean isServiceAvailable(String pingUrl) {
         if (isOnline()) {
             // Интернет есть, теперь пингуем сервер
-            String url = String.format(GET_PING);
-            HttpResponse response = sendDataGet(url);
+            HttpResponse response = sendDataGet(pingUrl);
+            if (response == null) {
+                return false;
+            }
             String result = ReadResponse(response);
             if (result.equalsIgnoreCase("true")) {
                 return true;
@@ -203,13 +294,13 @@ public class DirectLeaderApplication extends Application {
         }
         return false;
     }
-    
     public void Logout() {
-        clearUserCode();
+        clearUserData();
     }
     
-    public JSONObject CheckAuth() {
-        String url = GET_CHECK_AUTH;
+    public JSONObject CheckAuth(String username, String password) {
+        saveUserName(username, password);
+        String url = getDirectLeaderServiceURL() + GET_CHECK_AUTH;
         HttpResponse response = sendAuthorizeData(url);
         if (response == null) {
             return new JSONObject();
@@ -222,6 +313,7 @@ public class DirectLeaderApplication extends Application {
             case 200: // Успешно
                 Log.v(TAG, "200");
                 userId = ReadResponse(response);
+                Log.v(TAG, "response " + userId);
                 // Удалим кавычки в идентификаторе пользователя
                 userId = userId.replace("\"", "");
                 saveUserCode(userId);
@@ -244,7 +336,7 @@ public class DirectLeaderApplication extends Application {
         return data;
     }
     public JSONObject GetMyTasks() {
-        String url = GET_MY_TASKS;
+        String url = getDirectLeaderServiceURL() + GET_MY_TASKS;
         HttpResponse response = sendDataGet(url);
         if (response == null) {
             return null;
@@ -276,7 +368,7 @@ public class DirectLeaderApplication extends Application {
         return data;
     }
     public JSONObject getRabotnics() {
-        String url = GET_RABOTNIC;
+        String url = getDirectLeaderServiceURL() + GET_RABOTNIC;
         HttpResponse response = sendDataGet(url);
         if (response == null) {
             return null;
@@ -308,7 +400,7 @@ public class DirectLeaderApplication extends Application {
         return data;
     }
     public JSONObject GetClientSettings() {
-        String url = GET_CLIENT_SETTINGS;
+        String url = getDirectLeaderServiceURL() + GET_CLIENT_SETTINGS;
         HttpResponse response = sendDataGet(url);
         if (response == null) {
             return null;
@@ -341,7 +433,7 @@ public class DirectLeaderApplication extends Application {
         if (!isServiceAvailable()) {
             return null;
         }
-        String url = POST_CREATE_TASK;
+        String url = getDirectLeaderServiceURL() + POST_CREATE_TASK;
         HttpResponse response = sendDataPostJSON(url, taskJSON);
         if (response == null) {
             return null;
@@ -380,7 +472,7 @@ public class DirectLeaderApplication extends Application {
             Log.v(TAG, "Не удалось декодировать в utf-8 " + e1.getLocalizedMessage());
             comment = "";
         }
-        String url = String.format(GET_EXEC_JOB_ACTION, jobId, actionName, comment);
+        String url = String.format(getDirectLeaderServiceURL() + GET_EXEC_JOB_ACTION, jobId, actionName, comment);
         JSONObject data = new JSONObject();
         if (!isServiceAvailable()) {
             // Записать в настройки URL
@@ -422,7 +514,7 @@ public class DirectLeaderApplication extends Application {
         return data;
     }
     public JSONObject ExecTaskAction(long taskId, String actionName) {
-        String url = String.format(GET_EXEC_TASK_ACTION, taskId, actionName);
+        String url = String.format(getDirectLeaderServiceURL() + GET_EXEC_TASK_ACTION, taskId, actionName);
         JSONObject data = new JSONObject();
         if (!isServiceAvailable()) {
             // Записать в настройки URL
@@ -463,6 +555,11 @@ public class DirectLeaderApplication extends Application {
         }
         return data;
     }
+    /**
+     * Выполнить сохраненный url
+     * @param url
+     * @return
+     */
     public JSONObject ExecAction(String url) {
         JSONObject data = new JSONObject();
         if (!isServiceAvailable()) {
@@ -504,10 +601,142 @@ public class DirectLeaderApplication extends Application {
         }
         return data;
     }
+    public boolean isDeviceActivated() {
+        return mSettings.getBoolean(SETTINGS_ACTIVATE_KEY, false);
+    }
+    
+    public JSONObject GetURLForService() {
+//        saveOrganization("68191351");
+        if (!isServiceAvailable(PING_PORTAL_SERVICE)){
+            return null;
+        }
+        String url = String.format(GET_SERVICE_URL, getOrganization());
+        HttpResponse response = sendDataGetPortal(url);
+        if (response == null) {
+            return null;
+        }
+        // Обработка ответа
+        JSONObject data = new JSONObject();
+        String status = "";
+        Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+        switch (response.getStatusLine().getStatusCode()) {
+            case 200: // Успешно
+                Log.v(TAG, "200");
+                status = ReadResponse(response);
+                Log.v(TAG, "status " + status);
+                // Удалим кавычки
+                status = status.replace("\"", "");
+                saveServiceUrl(status);
+                break;
+            case 400: // BAD REQUEST
+                Log.v(TAG, "400");
+                data = ReadResponseJSONObject(response);
+                break;
+            default:
+                Log.v(TAG, "default");
+                Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+                data = ReadResponseJSONObject(response);
+        }
+        try {
+            data.put("statusCode", response.getStatusLine().getStatusCode());
+            data.put("status", status);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+    public JSONObject AddNewDevice(String orgKey, String deviceName) {
+        if (!isServiceAvailable(PING_PORTAL_SERVICE)){
+            return null;
+        }
+        String url = String.format(ADD_NEW_DEVICE, getDeviceId(), orgKey, deviceName);
+        HttpResponse response = sendDataGetPortal(url);
+        if (response == null) {
+            return null;
+        }
+        // Обработка ответа
+        JSONObject data = new JSONObject();
+        String status = "";
+        Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+        switch (response.getStatusLine().getStatusCode()) {
+            case 200: // Успешно
+                Log.v(TAG, "200");
+                status = ReadResponse(response);
+                Log.v(TAG, "status " + status);
+                // Удалим кавычки
+                status = status.replace("\"", "");
+                if (status.equalsIgnoreCase("true")) {
+                    saveActivateStatus(true);
+                    saveOrganization(orgKey);
+                } else {
+                    saveActivateStatus(false);
+                }
+                break;
+            case 400: // BAD REQUEST
+                Log.v(TAG, "400");
+                data = ReadResponseJSONObject(response);
+                break;
+            default:
+                Log.v(TAG, "default");
+                Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+                data = ReadResponseJSONObject(response);
+        }
+        try {
+            data.put("statusCode", response.getStatusLine().getStatusCode());
+            data.put("status", status);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+    public JSONObject RemoveDevice() {
+        if (!isServiceAvailable(PING_PORTAL_SERVICE)){
+            return null;
+        }
+        String url = String.format(REMOVE_DEVICE, getDeviceId());
+        HttpResponse response = sendDataGetPortal(url);
+        if (response == null) {
+            return null;
+        }
+        // Обработка ответа
+        JSONObject data = new JSONObject();
+        String status = "";
+        Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+        switch (response.getStatusLine().getStatusCode()) {
+            case 200: // Успешно
+                Log.v(TAG, "200");
+                status = ReadResponse(response);
+                Log.v(TAG, "status " + status);
+                // Удалим кавычки
+                status = status.replace("\"", "");
+                if (status.equalsIgnoreCase("true")) {
+                    saveActivateStatus(false);
+                    clearServiceURL();
+                }
+                break;
+            case 400: // BAD REQUEST
+                Log.v(TAG, "400");
+                data = ReadResponseJSONObject(response);
+                break;
+            default:
+                Log.v(TAG, "default");
+                Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+                data = ReadResponseJSONObject(response);
+        }
+        try {
+            data.put("statusCode", response.getStatusLine().getStatusCode());
+            data.put("status", status);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+    @Deprecated
     public String downloadDocument(Attachment doc) {
         String file = "";
-        String url = String.format(GET_DOCUMENT, doc.getId());
-        HttpClient httpclient = new DefaultHttpClient();
+        String url = String.format(getDirectLeaderServiceURL() + GET_DOCUMENT, doc.getId());
+        Log.v(TAG, "url " + url);
+        HttpClient httpclient = new DefaultHttpClient(getHttpParams());
         HttpGet httpquery = new HttpGet(url);
         HttpResponse result = null;
         try {
@@ -515,10 +744,10 @@ public class DirectLeaderApplication extends Application {
             //will know what to do with it
             // Обязательные заголовки
             // При checkAuth заголовки не передавать, иначе 400 Bad Request
-            httpquery.setHeader(mQUERY_UdidKey, getDeviceId());
-//            httpquery.setHeader(mQUERY_UserName, getUserCode());
-//            httpquery.setHeader(mQUERY_Password, "");
-//            httpquery.setHeader(mQUERY_Domain, "");
+            httpquery.setHeader(mQUERY_DeviceId, getDeviceId());
+            httpquery.setHeader(mQUERY_UserName, getUserName());
+            httpquery.setHeader(mQUERY_Password, getPassword());
+            httpquery.setHeader(mQUERY_Domain, getDomain());
             
             result = httpclient.execute(httpquery);
             file = ReadResponse(result);
@@ -531,7 +760,6 @@ public class DirectLeaderApplication extends Application {
         httpquery = null;
         return file;
     }
-    
     /**
      * Отправка данных методом GET
      * @param url Строка адреса
@@ -542,7 +770,7 @@ public class DirectLeaderApplication extends Application {
             return null;
         }
         Log.v(TAG, url);
-        HttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = new DefaultHttpClient(getHttpParams());
         HttpGet httpquery = new HttpGet(url);
         HttpResponse result = null;
         try {
@@ -552,10 +780,19 @@ public class DirectLeaderApplication extends Application {
             httpquery.setHeader("Content-type", "application/json");
             // Обязательные заголовки
             // При checkAuth заголовки не передавать, иначе 400 Bad Request
-//            httpquery.setHeader(mQUERY_UdidKey, getDeviceId());
-//            httpquery.setHeader(mQUERY_UserName, getUserName());
-//            httpquery.setHeader(mQUERY_Password, "");
-//            httpquery.setHeader(mQUERY_Domain, "");
+//            Log.v(TAG, mQUERY_DeviceId + " " + getDeviceId());
+//            Log.v(TAG, mQUERY_UserName + " " + getUserName());
+//            Log.v(TAG, mQUERY_Password + " " + getPassword());
+//            Log.v(TAG, mQUERY_Domain + " " + getDomain());
+            httpquery.setHeader(mQUERY_DeviceId, getDeviceId());
+            httpquery.setHeader(mQUERY_UserName, getUserName());
+            httpquery.setHeader(mQUERY_Password, getPassword());
+            httpquery.setHeader(mQUERY_Domain, getDomain());
+            
+//            Header[] hs = httpquery.getAllHeaders();
+//            for (Header h : hs) {
+//                Log.v(TAG, "h " + h.getName() + " " + h.getValue());
+//            }
             
             result = httpclient.execute(httpquery);
         } catch (ClientProtocolException e) {
@@ -573,9 +810,8 @@ public class DirectLeaderApplication extends Application {
      * @return HttpResponse
      */
     private HttpResponse sendDataGet(String url) {
-        // TODO: Добавить проверку на наличие интернета
         Log.v(TAG, url);
-        HttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = new DefaultHttpClient(getHttpParams());
         HttpGet httpquery = new HttpGet(url);
         HttpResponse result = null;
         try {
@@ -585,10 +821,42 @@ public class DirectLeaderApplication extends Application {
             httpquery.setHeader("Content-type", "application/json");
             // Обязательные заголовки
             // При checkAuth заголовки не передавать, иначе 400 Bad Request
-            httpquery.setHeader(mQUERY_UdidKey, getDeviceId());
+            httpquery.setHeader(mQUERY_DeviceId, getDeviceId());
+            httpquery.setHeader(mQUERY_UserName, getUserName());
+            httpquery.setHeader(mQUERY_Password, getPassword());
+            httpquery.setHeader(mQUERY_Domain, getDomain());
+            
+            result = httpclient.execute(httpquery);
+        } catch (ClientProtocolException e) {
+            Log.v(TAG, "ClientProtocolException " + e.getLocalizedMessage());
+        } catch (IOException e) {
+            Log.v(TAG, "IOException " + e.getLocalizedMessage());
+        }
+        httpclient = null;
+        httpquery = null;
+        return result;
+    }
+    /**
+     * Отправка данных на Portal Service
+     * @param url
+     * @return
+     */
+    private HttpResponse sendDataGetPortal(String url) {
+        Log.v(TAG, url);
+        HttpClient httpclient = new DefaultHttpClient(getHttpParams());
+        HttpGet httpquery = new HttpGet(url);
+        HttpResponse result = null;
+        try {
+            //sets a request header so the page receving the request
+            //will know what to do with it
+            httpquery.setHeader("Accept", "application/json");
+            httpquery.setHeader("Content-type", "application/json");
+            // Обязательные заголовки
+            // При checkAuth заголовки не передавать, иначе 400 Bad Request
+//            httpquery.setHeader(mQUERY_DeviceId, getDeviceId());
 //            httpquery.setHeader(mQUERY_UserName, getUserName());
-//            httpquery.setHeader(mQUERY_Password, "");
-//            httpquery.setHeader(mQUERY_Domain, "");
+//            httpquery.setHeader(mQUERY_Password, getPassword());
+//            httpquery.setHeader(mQUERY_Domain, getDomain());
             
             result = httpclient.execute(httpquery);
         } catch (ClientProtocolException e) {
@@ -608,7 +876,7 @@ public class DirectLeaderApplication extends Application {
      */
     private HttpResponse sendDataPostJSON(String url, JSONObject json) {
         Log.v(TAG, url);
-        HttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = new DefaultHttpClient(getHttpParams());
         HttpPost httpquery = new HttpPost(url);
         HttpResponse result = null;
         try {
@@ -618,11 +886,10 @@ public class DirectLeaderApplication extends Application {
             //sets the post request as the resulting string
             httpquery.setEntity(se);
          // Обязательные заголовки
-            // При checkAuth заголовки не передавать, иначе 400 Bad Request
-//            httpquery.setHeader(mQUERY_UdidKey, getDeviceId());
-//            httpquery.setHeader(mQUERY_UserName, getUserName());
-//            httpquery.setHeader(mQUERY_Password, "");
-//            httpquery.setHeader(mQUERY_Domain, "");
+            httpquery.setHeader(mQUERY_DeviceId, getDeviceId());
+            httpquery.setHeader(mQUERY_UserName, getUserName());
+            httpquery.setHeader(mQUERY_Password, getPassword());
+            httpquery.setHeader(mQUERY_Domain, getDomain());
             //sets a request header so the page receving the request
             //will know what to do with it
             httpquery.setHeader("Accept", "application/json");
@@ -637,6 +904,18 @@ public class DirectLeaderApplication extends Application {
         httpclient = null;
         httpquery = null;
         return result;
+    }
+    private HttpParams getHttpParams() {
+        HttpParams httpParameters = new BasicHttpParams();
+        // Set the timeout in milliseconds until a connection is established.
+        // The default value is zero, that means the timeout is not used. 
+        int timeoutConnection = 10000;
+        HttpConnectionParams.setConnectionTimeout(httpParameters, timeoutConnection);
+        // Set the default socket timeout (SO_TIMEOUT) 
+        // in milliseconds which is the timeout for waiting for data.
+        int timeoutSocket = 20000;
+        HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
+        return httpParameters;
     }
     /**
      * Чтение HttpResponse в JSON Array

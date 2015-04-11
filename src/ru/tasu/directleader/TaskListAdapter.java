@@ -139,11 +139,13 @@ public class TaskListAdapter extends ArrayAdapter<Task> {
         if (dateCreatedString.equalsIgnoreCase("30/12/1899")) {
             dateCreatedString = "";
         }
-    	String propertyText = String.format(activity.getResources().getString(R.string.task_fragment_listitem_property_text), dateCreatedString, task.getAuthor().getName());
+        if (task.getAuthor() != null) {
+            String propertyText = String.format(activity.getResources().getString(R.string.task_fragment_listitem_property_text), dateCreatedString, task.getAuthor().getName());
+            propertyTextView.setText(propertyText);
+        }
     	
     	titleTextView.setText(task.getTitle());
     	dateTextView.setText(dateString);
-    	propertyTextView.setText(propertyText);
     	
         statusReaded.setEnabled(false); // Чтобы иконка оранжевая была
         

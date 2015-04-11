@@ -35,13 +35,16 @@ public class UpdateIntentService extends Service {
                 int remove_count = rab_ds.deleteAllRabotnics();
                 Log.v(TAG, "remove_count " + remove_count);
                 JSONObject rabotnicJson;
+                Log.v(TAG, "UPDATE CIRCLE START");
                 for (int i = 0; i < data.length(); i++) {
                     rabotnicJson = data.optJSONObject(i);
                     if (rabotnicJson != null) {
-                        final Rabotnic rabotnic = new Rabotnic(rabotnicJson);
-                        rab_ds.createRabotnik(rabotnic);
+                        rab_ds.createRabotnikFromJSON(rabotnicJson);
+//                        final Rabotnic rabotnic = new Rabotnic(rabotnicJson);
+//                        rab_ds.createRabotnik(rabotnic);
                     }
                 }
+                Log.v(TAG, "UPDATE CIRCLE FINISH");
                 Log.v(TAG, "getRabotnics() UPDATED");
             } else {
                 Log.v(TAG, "Почему-то не удалось получить данные. Обновление не произошло");

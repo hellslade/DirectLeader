@@ -83,6 +83,10 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
             try {
                 URL url = new URL(sUrl[0]);
                 connection = (HttpURLConnection) url.openConnection();
+                connection.addRequestProperty(mDirect.mQUERY_DeviceId, mDirect.getDeviceId());
+                connection.addRequestProperty(mDirect.mQUERY_UserName, mDirect.getUserName());
+                connection.addRequestProperty(mDirect.mQUERY_Password, mDirect.getPassword());
+                connection.addRequestProperty(mDirect.mQUERY_Domain, mDirect.getDomain());
                 connection.connect();
 
                 // expect HTTP 200 OK, so we don't mistakenly save error report
@@ -269,7 +273,7 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
                         file.createNewFile();
                         fileOutputPath = file.getAbsolutePath();
                         Log.v(TAG, "файл " + fileOutputPath);
-                        String url = String.format(mDirect.GET_DOCUMENT, mAttachment.getId());
+                        String url = String.format(mDirect.getDirectLeaderServiceURL() + mDirect.GET_DOCUMENT, mAttachment.getId());
                         new DownloadDocumentAsyncTask(getActivity()).execute(url);
                     } catch (IOException e) {
                         Log.v(TAG, "Не удалось создать файл");

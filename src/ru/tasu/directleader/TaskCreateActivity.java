@@ -128,10 +128,18 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 pg.dismiss();
             }
             if (result == null) {
-                String errorText = getResources().getString(R.string.create_task_dialog_fragment_service_error_text);
+                final String errorText = getResources().getString(R.string.create_task_dialog_fragment_service_error_text);
                 Toast.makeText(TaskCreateActivity.this, errorText, Toast.LENGTH_LONG).show();
             } else {
-                finish();
+                final int statusCode = result.optInt("statusCode");
+                if (statusCode == 200) {
+                    final String errorText = getResources().getString(R.string.create_task_dialog_fragment_success_text);
+                    Toast.makeText(TaskCreateActivity.this, errorText, Toast.LENGTH_LONG).show();
+                    finish();
+                } else {
+                    final String errorText = getResources().getString(R.string.create_task_dialog_fragment_failed_text);
+                    Toast.makeText(TaskCreateActivity.this, errorText, Toast.LENGTH_LONG).show();
+                }
             }
         }
     }

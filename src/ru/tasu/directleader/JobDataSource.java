@@ -252,8 +252,8 @@ public class JobDataSource {
         String sql = String.format("SELECT count(%s._id) FROM %s, %s, %s WHERE %s.%s='Высокая' AND %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=?;", 
                 DBHelper.JOB_TABLE, DBHelper.JOB_TABLE, DBHelper.TASK_TABLE, DBHelper.RABOTNIC_TABLE,
                 DBHelper.TASK_TABLE, DBHelper.TASK_IMPORTANCE, DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER, DBHelper.RABOTNIC_TABLE, DBHelper.RABOTNIC_CODE,
-                DBHelper.JOB_TABLE, DBHelper.JOB_MAIN_TASK_JOB, DBHelper.TASK_TABLE, DBHelper.TASK_ID, DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER,
-                DBHelper.JOB_TABLE, DBHelper.JOB_FINAL_DATE);
+                DBHelper.JOB_TABLE, DBHelper.JOB_MAIN_TASK_JOB, DBHelper.TASK_TABLE, DBHelper.TASK_ID, DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER
+                );
         Cursor cursor = database.rawQuery(sql, new String[]{code});
         cursor.moveToFirst();
         count[0] = cursor.getInt(0);
@@ -269,7 +269,7 @@ public class JobDataSource {
         count[1] = cursor.getInt(0);
         cursor.close();
         // red count
-        sql = String.format("SELECT count(%s._id) FROM %s, %s, %s WHERE %s.%s='Высокая' AND %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=? AND job.final_date < date();", 
+        sql = String.format("SELECT count(%s._id) FROM %s, %s, %s WHERE %s.%s='Высокая' AND %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=? AND job.final_date < date() AND job.final_date <> '1899-12-30 00:00:00';", 
                 DBHelper.JOB_TABLE, DBHelper.JOB_TABLE, DBHelper.TASK_TABLE, DBHelper.RABOTNIC_TABLE,
                 DBHelper.TASK_TABLE, DBHelper.TASK_IMPORTANCE, DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER, DBHelper.RABOTNIC_TABLE, DBHelper.RABOTNIC_CODE,
                 DBHelper.JOB_TABLE, DBHelper.JOB_MAIN_TASK_JOB, DBHelper.TASK_TABLE, DBHelper.TASK_ID, DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER,
@@ -286,8 +286,8 @@ public class JobDataSource {
         String sql = String.format("SELECT count(%s._id) FROM %s, %s, %s WHERE %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=?;", 
                 DBHelper.JOB_TABLE, DBHelper.JOB_TABLE, DBHelper.TASK_TABLE, DBHelper.RABOTNIC_TABLE,
                 DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER, DBHelper.RABOTNIC_TABLE, DBHelper.RABOTNIC_CODE,
-                DBHelper.JOB_TABLE, DBHelper.JOB_MAIN_TASK_JOB, DBHelper.TASK_TABLE, DBHelper.TASK_ID, DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER,
-                DBHelper.JOB_TABLE, DBHelper.JOB_FINAL_DATE);
+                DBHelper.JOB_TABLE, DBHelper.JOB_MAIN_TASK_JOB, DBHelper.TASK_TABLE, DBHelper.TASK_ID, DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER
+                );
         Cursor cursor = database.rawQuery(sql, new String[]{code});
         cursor.moveToFirst();
         count[0] = cursor.getInt(0);
@@ -303,7 +303,7 @@ public class JobDataSource {
         count[1] = cursor.getInt(0);
         cursor.close();
 
-        sql = String.format("SELECT count(%s._id) FROM %s, %s, %s WHERE %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=? AND job.final_date < date();", 
+        sql = String.format("SELECT count(%s._id) FROM %s, %s, %s WHERE %s.%s=%s.%s AND %s.%s=%s.%s AND %s.%s=? AND job.final_date < date() AND job.final_date <> '1899-12-30 00:00:00';", 
                 DBHelper.JOB_TABLE, DBHelper.JOB_TABLE, DBHelper.TASK_TABLE, DBHelper.RABOTNIC_TABLE,
                 DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER, DBHelper.RABOTNIC_TABLE, DBHelper.RABOTNIC_CODE,
                 DBHelper.JOB_TABLE, DBHelper.JOB_MAIN_TASK_JOB, DBHelper.TASK_TABLE, DBHelper.TASK_ID, DBHelper.JOB_TABLE, DBHelper.JOB_PERFORMER,

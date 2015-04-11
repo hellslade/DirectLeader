@@ -69,7 +69,9 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
                 final TextView performerNameTextView = (TextView) itemLayout.findViewById(R.id.performerNameTextView);
                 
                 performerNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-                performerNameTextView.setText(j.getUser().getName());
+                if (j.getUser() != null) {
+                    performerNameTextView.setText(j.getUser().getName());
+                }
                 itemLayout.setTag(j);
 //                itemLayout.setOnClickListener(performerClickListener);
                 performersLayout.addView(itemLayout);
@@ -130,7 +132,9 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
                 commentTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
                 dataTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
                 
-                authorNameTextView.setText(h.getUser().getName());
+                if (h.getUser() != null) {
+                    authorNameTextView.setText(h.getUser().getName());
+                }
                 commentTextView.setText(h.getMessage());
                 dataTextView.setText(h.getDate(true));
                 
@@ -323,8 +327,10 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         if (deadlineString.equals("30/12/1899")) {
             deadlineString = "";
         }
-        String property = String.format(getResources().getString(R.string.task_detail_fragment_property_text), mTask.getAuthor().getName(), dateCreatedString, deadlineString);
-        propertyTextView.setText(property);
+        if (mTask.getAuthor() != null) {
+            String property = String.format(getResources().getString(R.string.task_detail_fragment_property_text), mTask.getAuthor().getName(), dateCreatedString, deadlineString);
+            propertyTextView.setText(property);
+        }
         
         String dateString = mTask.getDeadline(true);
         if (dateString.equals("30/12/1899")) {

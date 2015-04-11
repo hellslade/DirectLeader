@@ -3,12 +3,13 @@ package ru.tasu.directleader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONObject;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 public class RabotnicDataSource {
     // Database fields
@@ -28,7 +29,6 @@ public class RabotnicDataSource {
     }
     public Rabotnic createRabotnik(Rabotnic new_rabotnik) {
         ContentValues values = new ContentValues();
-//        values.put(DBHelper.RABOTNIC__ID, new_history.getId());
         values.put(DBHelper.RABOTNIC_CODE, new_rabotnik.getCode());
         values.put(DBHelper.RABOTNIC_ID, new_rabotnik.getId());
         values.put(DBHelper.RABOTNIC_LOGIN, new_rabotnik.getLogin());
@@ -45,6 +45,22 @@ public class RabotnicDataSource {
         Rabotnic newRabotnik = cursorToRabotnic(cursor);
         cursor.close();
         return newRabotnik;
+    }
+    public boolean createRabotnikFromJSON(JSONObject json) {
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.RABOTNIC_CODE, json.optString("Code"));
+        values.put(DBHelper.RABOTNIC_ID, json.optLong("Id"));
+        values.put(DBHelper.RABOTNIC_LOGIN, json.optString("Login"));
+        values.put(DBHelper.RABOTNIC_NAME, json.optString("Name"));
+        values.put(DBHelper.RABOTNIC_PHOTO, json.optString("Photo"));
+        values.put(DBHelper.RABOTNIC_PODR, json.optString("Podr"));
+        values.put(DBHelper.RABOTNIC_POST_KIND, json.optString("PostKind"));
+        long insertId = database.insert(DBHelper.RABOTNIC_TABLE, null, values);
+        if (insertId != -1) {
+            return true;
+        } else {
+            return false;
+        }
     }
     public Rabotnic getRabotnicById(long Id) {
         Rabotnic rabotnic = null;
@@ -75,19 +91,26 @@ public class RabotnicDataSource {
     public Rabotnic[] getAllRabotnicsWithTaskCount() {
         Rabotnic[] rabotnics = null;
         
-        String sql = "SELECT rabotnic.*, count(j._id) as a FROM " +
-        		"(SELECT rabotnic.*, count(job._id) as b FROM rabotnic LEFT JOIN job ON job.performer=rabotnic.code AND job.final_date = date() GROUP BY (rabotnic._id)) as rabotnic " +
-        		"LEFT JOIN job as j ON j.performer=rabotnic.code AND j.final_date < date() GROUP BY (rabotnic._id);";
+        String sql = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code GROUP BY (rabotnic._id);";
         Cursor cursor = database.rawQuery(sql, null);
         cursor.moveToFirst();
         rabotnics = new Rabotnic[cursor.getCount()];
         int i = 0;
         while (!cursor.isAfterLast()) {
             final Rabotnic rabotnic = cursorToRabotnic(cursor);
-            rabotnic.setCurrentJobs(cursor.getInt(8));
-            rabotnic.setOverdueJobs(cursor.getInt(9));
-            rabotnic.setTotalJobs(cursor.getInt(8) + cursor.getInt(9));
+            rabotnic.setTotalJobs(cursor.getInt(8));
+            // Получим просроченные задания
+            final String sqlOverdue = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.final_date < date() AND j.final_date <> '1899-12-30 00:00:00' AND rabotnic.code == ?;";
+            final Cursor cursorOverdue = database.rawQuery(sqlOverdue, new String[]{rabotnic.getCode()});
+            cursorOverdue.moveToFirst();
+            rabotnic.setOverdueJobs(cursorOverdue.getInt(8));
+            // Получим текущие задания
+            final String sqlCurrent = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.final_date = date() AND rabotnic.code == ?;";
+            final Cursor cursorCurrent = database.rawQuery(sqlCurrent, new String[]{rabotnic.getCode()});
+            cursorCurrent.moveToFirst();
+            rabotnic.setCurrentJobs(cursorCurrent.getInt(8));
             rabotnics[i++] = rabotnic;
+            
             cursor.moveToNext();
         }
         
