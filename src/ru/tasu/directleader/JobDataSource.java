@@ -94,7 +94,7 @@ public class JobDataSource {
         while (!cursor.isAfterLast()) {
             final Job job = cursorToJob(cursor);
             job.setAttachmentCount(attach_ds.getAttachmentsCountByTaskId(job.getMainTaskJob()));
-            job.setImportance(cursor.getString(13));
+            job.setImportance(cursor.getString(14));
             job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
             job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(15)));
             jobs[i++] = (job);
@@ -103,17 +103,17 @@ public class JobDataSource {
         cursor.close();
         return jobs;
     }
-    @Deprecated
-    public Job getJobById(long Id) {
+    
+    public Job getJobById(long id) {
         Cursor cursor = database.query(DBHelper.JOB_TABLE,
-                allColumns, DBHelper.JOB_ID + " = " + Id, null, null, null, null);
+                allColumns, DBHelper.JOB_ID + " = " + id, null, null, null, null);
         cursor.moveToFirst();
-        RabotnicDataSource rabotnic_ds = new RabotnicDataSource(mContext);
-        rabotnic_ds.open();
+//        RabotnicDataSource rabotnic_ds = new RabotnicDataSource(mContext);
+//        rabotnic_ds.open();
         Job job = null;
         if (cursor.getCount() > 0) {
             job = cursorToJob(cursor);
-            job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
+//            job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
         }
         cursor.close();
         return job;
@@ -140,7 +140,7 @@ public class JobDataSource {
             job = cursorToJob(cursor);
             job.setAttachmentCount(attach_ds.getAttachmentsCountByTaskId(job.getMainTaskJob()));
 //            job.setSubtaskCount(task_ds.getTaskById(job.getMainTaskJob()).getSubtaskCount());
-            job.setImportance(cursor.getString(13));
+            job.setImportance(cursor.getString(14));
             job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
             job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(15)));
             jobs.add(job);
@@ -172,7 +172,7 @@ public class JobDataSource {
             job = cursorToJob(cursor);
             job.setAttachmentCount(attach_ds.getAttachmentsCountByTaskId(job.getMainTaskJob()));
 //            job.setSubtaskCount(task_ds.getTaskById(job.getMainTaskJob()).getSubtaskCount());
-            job.setImportance(cursor.getString(13));
+            job.setImportance(cursor.getString(14));
             job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
             job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(15)));
             jobs.add(job);
@@ -204,7 +204,7 @@ public class JobDataSource {
             job = cursorToJob(cursor);
             job.setAttachmentCount(attach_ds.getAttachmentsCountByTaskId(job.getMainTaskJob()));
 //            job.setSubtaskCount(task_ds.getTaskById(job.getMainTaskJob()).getSubtaskCount());
-            job.setImportance(cursor.getString(13));
+            job.setImportance(cursor.getString(14));
             job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
             job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(15)));
             jobs.add(job);
@@ -236,7 +236,7 @@ public class JobDataSource {
         while (!cursor.isAfterLast()) {
             job = cursorToJob(cursor);
             job.setAttachmentCount(attach_ds.getAttachmentsCountByTaskId(job.getMainTaskJob()));
-            job.setImportance(cursor.getString(13));
+            job.setImportance(cursor.getString(14));
             job.setUser(rabotnic_ds.getRabotnicByCode(job.getPerformer()));
             job.setAuthor(rabotnic_ds.getRabotnicByCode(cursor.getString(15)));
             jobs.add(job);
@@ -337,14 +337,28 @@ public class JobDataSource {
         }
     }
     public int deleteAllJobs() {
+        // ИСпользуется при обновлении БД. Удаляются все задачи, потом заполняются из сервиса.
         int count = database.delete(DBHelper.JOB_TABLE, "1", null);
         return count;
     }
     public int deleteJobById(long id) {
+        // Удаляем также родительский Task, если в нем более нет Job'ов
+        TaskDataSource tds = new TaskDataSource(mContext);
+        tds.open();
+        long taskId = -1;
+        Job job = getJobById(id);
+        taskId = job.getMainTaskJob();
+        // При выполнении действия над задачей, удаляем ее из БД
         int count = database.delete(DBHelper.JOB_TABLE, "id = ?", new String[] {String.valueOf(id)});
+        Job[] jobs = getJobsByTaskId(taskId);
+        if (jobs.length == 0) {
+            // В Task'e не осталось ни одного job'a, удалить Task
+            tds.deleteTaskById(taskId);
+        }
         return count;
     }
     public int deleteJobsByTaskId(long id) {
+        // При удалении Task'а удаляютс все связанные job'ы
         int count = database.delete(DBHelper.JOB_TABLE, "main_task_job = ?", new String[] {String.valueOf(id)});
         return count;
     }

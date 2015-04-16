@@ -6,6 +6,7 @@ import java.util.List;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -147,6 +148,7 @@ public class JobMyListAdapter extends ArrayAdapter<Job> implements Filterable {
     	titleTextView.setText(job.getSubject());
     	dateTextView.setText(dateString);
         
+    	Log.v(TAG, "job.getImportance() " + job.getImportance());
         if (job.getImportance().equalsIgnoreCase("Высокая")) {
             statusImportance.setVisibility(View.VISIBLE);
         } else {

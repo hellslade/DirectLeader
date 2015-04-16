@@ -41,6 +41,7 @@ public class TaskDataSource {
         values.put(DBHelper.TASK_DEADLINE, new_task.getDeadline());
         values.put(DBHelper.TASK_EXECUTED, new_task.getExecuted());
         values.put(DBHelper.TASK_ID, new_task.getId());
+        Log.v("createTask", "TASK_IMPORTANCE " + new_task.getImportance());
         values.put(DBHelper.TASK_IMPORTANCE, new_task.getImportance());
         values.put(DBHelper.TASK_OBSERVERS, new_task.getObservers());
         values.put(DBHelper.TASK_PARTICIPANTS, new_task.getParticipants());
@@ -292,9 +293,13 @@ public class TaskDataSource {
         history_ds.open();
         job_ds.open();
         
-        attachment_ds.deleteAttachmentsByTaskId(id);
-        history_ds.deleteHistoriesByTaskId(id);
-        job_ds.deleteJobsByTaskId(id);
+        int c;
+        c = attachment_ds.deleteAttachmentsByTaskId(id);
+        Log.v("deleteTaskById", "deleted attachments count " + c);
+        c = history_ds.deleteHistoriesByTaskId(id);
+        Log.v("deleteTaskById", "deleted histories count " + c);
+        c = job_ds.deleteJobsByTaskId(id);
+        Log.v("deleteTaskById", "deleted jobs count " + c);
         
         int count = database.delete(DBHelper.TASK_TABLE, "id = ?", new String[] {String.valueOf(id)});
         return count;

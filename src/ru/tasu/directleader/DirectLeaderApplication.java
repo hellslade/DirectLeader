@@ -780,10 +780,10 @@ public class DirectLeaderApplication extends Application {
             httpquery.setHeader("Content-type", "application/json");
             // Обязательные заголовки
             // При checkAuth заголовки не передавать, иначе 400 Bad Request
-//            Log.v(TAG, mQUERY_DeviceId + " " + getDeviceId());
-//            Log.v(TAG, mQUERY_UserName + " " + getUserName());
-//            Log.v(TAG, mQUERY_Password + " " + getPassword());
-//            Log.v(TAG, mQUERY_Domain + " " + getDomain());
+            Log.v(TAG, mQUERY_DeviceId + " " + getDeviceId());
+            Log.v(TAG, mQUERY_UserName + " " + getUserName());
+            Log.v(TAG, mQUERY_Password + " " + getPassword());
+            Log.v(TAG, mQUERY_Domain + " " + getDomain());
             httpquery.setHeader(mQUERY_DeviceId, getDeviceId());
             httpquery.setHeader(mQUERY_UserName, getUserName());
             httpquery.setHeader(mQUERY_Password, getPassword());
@@ -821,6 +821,10 @@ public class DirectLeaderApplication extends Application {
             httpquery.setHeader("Content-type", "application/json");
             // Обязательные заголовки
             // При checkAuth заголовки не передавать, иначе 400 Bad Request
+            Log.v(TAG, mQUERY_DeviceId + " " + getDeviceId());
+            Log.v(TAG, mQUERY_UserName + " " + getUserName());
+            Log.v(TAG, mQUERY_Password + " " + getPassword());
+            Log.v(TAG, mQUERY_Domain + " " + getDomain());
             httpquery.setHeader(mQUERY_DeviceId, getDeviceId());
             httpquery.setHeader(mQUERY_UserName, getUserName());
             httpquery.setHeader(mQUERY_Password, getPassword());

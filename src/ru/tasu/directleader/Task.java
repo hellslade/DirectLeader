@@ -186,6 +186,7 @@ public class Task implements Parcelable {
         in.readLongArray(this._subtask_ids);
     }
     public void updateData(JSONObject data) {
+//        Log.v(TAG, "data " + data);
         this._action_list = data.optJSONArray("ActionList");
         
         JSONArray attachments = data.optJSONArray("Attachments");
@@ -254,6 +255,7 @@ public class Task implements Parcelable {
         this._executed = data.optString("Executed");
         this._id = data.optLong("Id");
         this._importance = data.optString("Importance");
+        Log.v(TAG, "this._importance " + this._importance);
         this._route_name = data.optString("RouteName");
         this._state = data.optString("State");
         this._title = data.optString("Title");   
