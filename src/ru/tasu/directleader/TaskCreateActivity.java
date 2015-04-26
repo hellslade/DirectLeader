@@ -104,6 +104,9 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 final Rabotnic user = (Rabotnic)performersLayout.getChildAt(i).getTag();
                 performers.put(user.getCode());
             }
+            String grata = getResources().getString(R.string.create_task_dialog_fragment_importance_text);
+            String nongrata = getResources().getString(R.string.create_task_dialog_fragment_noimportance_text);
+            String importance = importanceView.isChecked() ? grata : nongrata;
             
             try {
                 taskJSON.put("FinalDate", (String)deadlineTextView.getTag());
@@ -111,10 +114,9 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 taskJSON.put("Performers", performers);
                 taskJSON.put("RightsCode", rightsTextView.getText().toString());
                 taskJSON.put("RouteType", routeTypeTextView.getText().toString());
-//            taskJSON.put("StandartRouteCode", );
                 taskJSON.put("Subject", titleEditText.getText().toString());
-//            taskJSON.put("TaskTypeCode", );
                 taskJSON.put("Text", descriptionEditText.getText().toString());
+                taskJSON.put("Importance", importance);
                 return mDirect.PostCreateTask(taskJSON);
             } catch (JSONException e) {
                 Log.v(TAG, "exception in create task asynctask" + e.getLocalizedMessage());

@@ -142,6 +142,9 @@ public class AuthorizeFragment extends Fragment implements OnClickListener {
             Log.v(TAG, "" + result);
             if (result == null) {
                 Toast.makeText(getActivity(), getResources().getString(R.string.authorize_deactivate_failed_message_text), Toast.LENGTH_LONG).show();
+            } else {
+                String url = result.optString("url");
+                showGetUrlDialog(url);
             }
             super.onPostExecute(result);
         }
@@ -213,11 +216,6 @@ public class AuthorizeFragment extends Fragment implements OnClickListener {
         public void onClick(View v) {
             // Show popup menu
             PopupMenu popup = new PopupMenu(getActivity(), v);
-//            if (!mDirect.getUserCode().isEmpty()) {
-//                popup.inflate(R.menu.unauth_popup_menu);
-//            } else {
-//                popup.inflate(R.menu.auth_popup_menu);
-//            }
             popup.inflate(R.menu.auth_popup_menu);
             Menu popupMenu = popup.getMenu();
             if (mDirect.isDeviceActivated()) {
@@ -246,11 +244,7 @@ public class AuthorizeFragment extends Fragment implements OnClickListener {
                             AddNewDevice();
                             return true;
                         case R.id.action_deactivate:
-                            // Разлогиниться
-                            // Удалить БД?
-                            mDirect.Logout();
-                            checkAuth();
-                            new RemoveDeviceAsyncTask().execute();
+                            deactivate();
                             return true;
                         case R.id.action_geturl:
                             new GetURLAsyncTask().execute();
@@ -272,6 +266,44 @@ public class AuthorizeFragment extends Fragment implements OnClickListener {
             popup.show();
         }
     };
+    private void showGetUrlDialog(String url) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(String.format(getResources().getString(R.string.authorize_geturl_success_message_text), url));
+        
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { 
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+    private void deactivate() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(getResources().getString(R.string.authorize_deactivate_warning_message_text));
+        
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { 
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Разлогиниться
+                // Удалить БД?
+                mDirect.Logout();
+                checkAuth();
+                new RemoveDeviceAsyncTask().execute();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
     private void AddNewDevice() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("Введите данные для активации");
@@ -302,7 +334,6 @@ public class AuthorizeFragment extends Fragment implements OnClickListener {
         });
 
         builder.show();
-        // new AddNewDeviceAsyncTask().execute();
     }
     @Override
     public void onClick(View v) {

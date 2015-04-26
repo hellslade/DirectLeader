@@ -606,7 +606,6 @@ public class DirectLeaderApplication extends Application {
     }
     
     public JSONObject GetURLForService() {
-//        saveOrganization("68191351");
         if (!isServiceAvailable(PING_PORTAL_SERVICE)){
             return null;
         }
@@ -617,16 +616,16 @@ public class DirectLeaderApplication extends Application {
         }
         // Обработка ответа
         JSONObject data = new JSONObject();
-        String status = "";
+        String serviceUrl = "";
         Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
         switch (response.getStatusLine().getStatusCode()) {
             case 200: // Успешно
                 Log.v(TAG, "200");
-                status = ReadResponse(response);
-                Log.v(TAG, "status " + status);
+                serviceUrl = ReadResponse(response);
+                Log.v(TAG, "url " + serviceUrl);
                 // Удалим кавычки
-                status = status.replace("\"", "");
-                saveServiceUrl(status);
+                serviceUrl = serviceUrl.replace("\"", "");
+                saveServiceUrl(serviceUrl);
                 break;
             case 400: // BAD REQUEST
                 Log.v(TAG, "400");
@@ -639,7 +638,7 @@ public class DirectLeaderApplication extends Application {
         }
         try {
             data.put("statusCode", response.getStatusLine().getStatusCode());
-            data.put("status", status);
+            data.put("url", serviceUrl);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -730,35 +729,6 @@ public class DirectLeaderApplication extends Application {
             e.printStackTrace();
         }
         return data;
-    }
-    @Deprecated
-    public String downloadDocument(Attachment doc) {
-        String file = "";
-        String url = String.format(getDirectLeaderServiceURL() + GET_DOCUMENT, doc.getId());
-        Log.v(TAG, "url " + url);
-        HttpClient httpclient = new DefaultHttpClient(getHttpParams());
-        HttpGet httpquery = new HttpGet(url);
-        HttpResponse result = null;
-        try {
-            //sets a request header so the page receving the request
-            //will know what to do with it
-            // Обязательные заголовки
-            // При checkAuth заголовки не передавать, иначе 400 Bad Request
-            httpquery.setHeader(mQUERY_DeviceId, getDeviceId());
-            httpquery.setHeader(mQUERY_UserName, getUserName());
-            httpquery.setHeader(mQUERY_Password, getPassword());
-            httpquery.setHeader(mQUERY_Domain, getDomain());
-            
-            result = httpclient.execute(httpquery);
-            file = ReadResponse(result);
-        } catch (ClientProtocolException e) {
-            Log.v(TAG, "ClientProtocolException " + e.getLocalizedMessage());
-        } catch (IOException e) {
-            Log.v(TAG, "IOException " + e.getLocalizedMessage());
-        }
-        httpclient = null;
-        httpquery = null;
-        return file;
     }
     /**
      * Отправка данных методом GET

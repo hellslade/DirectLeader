@@ -54,8 +54,10 @@
     <string name="authorize_activate_failed_message_text">Ошибка активации. Проверьте подключение к Интернет и доступность сервера.</string>
     <string name="authorize_activate_success_message_text">Успешная активация/</string>
     <string name="authorize_deactivate_failed_message_text">Ошибка деактивации. Проверьте подключение к Интернет и доступность сервера.</string>
-    <string name="authorize_deactivate_success_message_text">Успешная деактивация/</string>
+    <string name="authorize_deactivate_success_message_text">Успешная деактивация</string>
+    <string name="authorize_deactivate_warning_message_text">После деактивации, устройству будут недоступны данные Directum, устройство перейдет в Demo режим.</string>
     <string name="authorize_geturl_failed_message_text">Ошибка. Проверьте подключение к Интернет и доступность сервера.</string>
+    <string name="authorize_geturl_success_message_text" formatted="false">Настройки получены. Приложение настроено на url %s</string>
     
     <!-- Окно создания задачи -->
     <string name="create_task_dialog_fragment_theme_text">Тема*</string>
@@ -64,6 +66,8 @@
     <string name="create_task_dialog_fragment_performers_text">Исполнители</string>
     <string name="create_task_dialog_fragment_observers_text">Наблюдатели</string>
     <string name="create_task_dialog_fragment_rights_text">Права:</string>
+    <string name="create_task_dialog_fragment_importance_text">Высокая</string>
+    <string name="create_task_dialog_fragment_noimportance_text">Обычная</string>
     
     <string name="create_task_dialog_fragment_service_error_text">Невозможно выполнить действие, сервис недоступен.</string>
     <string name="create_task_dialog_fragment_internet_error_text">Невозможно создать задачу. Отсутствует подключение к Интернет.</string>
