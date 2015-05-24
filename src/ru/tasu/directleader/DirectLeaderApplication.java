@@ -72,6 +72,7 @@ public class DirectLeaderApplication extends Application {
     private static final String GET_MY_TASKS = "/GetMyTasks"; //?lastSyncDate={LASTSYNCDATE}&onlyInput={ONLYINPUT}&onlyMyJobs={ONLYMYJOBS}
     private static final String GET_RABOTNIC = "/GetRabotnic"; //?lastSyncDate={LASTSYNCDATE}&podr={PODR}
     private static final String GET_PING = "/Ping";
+    private static final String GET_SEARCH_DOCS = "/SearchDocs?criteria=%s"; //?criteria={CRITERIA}
 //    private static final String POST_ADD_EXT_COMMENT = "/AddExtComments";
 //    private static final String POST_CHECK_FINISHED_TASKS = "/CheckFinishedTasks";
 //    private static final String GET_EXPORT_DOCUMENT = "/ExportDocument?docId=%s"; //?docId={DOCID}
@@ -80,7 +81,6 @@ public class DirectLeaderApplication extends Application {
 //    private static final String GET_STRUCTURE = "/GetStructure";
 //    private static final String GET_TASK = "/GetTask?id=%s"; //?id={ID}
 //    private static final String POST_IMPORT_FROM_FILE = "/ImportFromFile";
-//    private static final String GET_SEARCH_DOCS = "/SearchDocs?criteria=%s"; //?criteria={CRITERIA}
     
     // Query's keys
     public static final String mQUERY_DeviceId = "DeviceId";
@@ -603,6 +603,42 @@ public class DirectLeaderApplication extends Application {
     }
     public boolean isDeviceActivated() {
         return mSettings.getBoolean(SETTINGS_ACTIVATE_KEY, false);
+    }
+    
+    public JSONObject SearchDirectum(String criteria) {
+        String url = String.format(getDirectLeaderServiceURL() + GET_SEARCH_DOCS, criteria);
+        JSONObject data = new JSONObject();
+        if (!isServiceAvailable()) {
+            return null;
+        }
+        HttpResponse response = sendDataGet(url);
+        if (response == null) {
+            return null;
+        }
+        // Обработка ответа
+        JSONArray array = new JSONArray();
+        Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+        switch (response.getStatusLine().getStatusCode()) {
+            case 200: // Успешно
+                Log.v(TAG, "200");
+                array = ReadResponseJSONArray(response);
+                break;
+            case 400: // BAD REQUEST
+                Log.v(TAG, "400");
+                data = ReadResponseJSONObject(response);
+                break;
+            default:
+                Log.v(TAG, "default");
+                Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+                data = ReadResponseJSONObject(response);
+        }
+        try {
+            data.put("statusCode", response.getStatusLine().getStatusCode());
+            data.put("data", array);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return data;
     }
     
     public JSONObject GetURLForService() {

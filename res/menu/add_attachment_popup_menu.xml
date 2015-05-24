@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" >
+    
+    <item
+        android:id="@+id/action_attachment_camera"
+        android:visible="false"
+        android:title="@string/action_attachment_camera"/>
+    <item
+        android:id="@+id/action_attachment_pick_device"
+        android:title="@string/action_attachment_pick_device"/>
+    <item
+        android:id="@+id/action_attachment_search_directum"
+        android:title="@string/action_attachment_search_directum"/>
+</menu>

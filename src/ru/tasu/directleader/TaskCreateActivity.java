@@ -11,20 +11,26 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Random;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import ru.tasu.directleader.JobDetailFragment.ExecJobActionAsyncTask;
+import ru.tasu.directleader.TaskDetailFragment.ExecTaskActionAsyncTask;
 import ru.tasu.directleader.UsersDialogFragment.OnUserSelectListener;
 import ru.tasu.directleader.UsersDialogFragment.UserType;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
@@ -36,13 +42,19 @@ import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.PopupMenu.OnMenuItemClickListener;
 
 public class TaskCreateActivity extends Activity implements OnClickListener, OnUserSelectListener {
     private static final String TAG = "TaskCreateActivity";
     public static final String TITLE_KEY = "title_key";
+    
+    public final int IMAGE_PICK_REQUEST_CODE = 0x000001;
+    public final int DIRECTUM_PICK_REQUEST_CODE = 0x000002;
     
     class GetClientSettingsAsyncTask extends AsyncTask<Void, Void, JSONObject> {
         @Override
@@ -172,7 +184,7 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
     
     private EditText titleEditText, descriptionEditText;
     private TextView performersLabelView, observersLabelView, rightsLabelView, routeTypeTextView, deadlineTextView, rightsTextView, performersTextView, observersTextView;
-    private ImageButton attachmentButton, cancelButton, okButton;
+    private ImageButton attachmentButton, cancelButton, okButton, backButton, addButton;
     
     private CheckBox importanceView;
     
@@ -181,6 +193,12 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
     private JSONObject clientSettings;
     private UserType Usertype;
     private List<Rabotnic> mRabotnics = new ArrayList<Rabotnic>();
+    
+    private LinearLayout mTaskLayout, mAttachmentsLayout, mContentLayout;
+    private RecyclerView mRecyclerView;
+    private TaskAttachmentAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private List<Attachment> mDataSet;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -192,6 +210,24 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         preTitle = getIntent().getExtras().getString(TITLE_KEY, "");
         
         setContentView(R.layout.task_create_activity);
+        
+        mTaskLayout = (LinearLayout)findViewById(R.id.taskLayout);
+        mAttachmentsLayout = (LinearLayout)findViewById(R.id.attachmentLayout);
+        mContentLayout = (LinearLayout)findViewById(R.id.contentLayout);
+        
+        mRecyclerView = (RecyclerView)findViewById(R.id.attachmentRecyclerView);
+        // use this setting to improve performance if you know that changes
+        // in content do not change the layout size of the RecyclerView
+        mRecyclerView.setHasFixedSize(true);
+        // use a linear layout manager
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
+        // specify an adapter (see also next example)
+        mDataSet = new ArrayList<Attachment>();
+        mAdapter = new TaskAttachmentAdapter(mDataSet, null);
+        mRecyclerView.setAdapter(mAdapter);
         
         titleEditText = (EditText)findViewById(R.id.titleEditText);
         descriptionEditText = (EditText)findViewById(R.id.descriptionEditText);
@@ -211,6 +247,9 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         cancelButton = (ImageButton)findViewById(R.id.cancelButton);
         okButton = (ImageButton)findViewById(R.id.okButton);
         
+        backButton = (ImageButton)findViewById(R.id.backButton);
+        addButton = (ImageButton)findViewById(R.id.addButton);
+        
         performersLayout = (ViewGroup)findViewById(R.id.performersLayout);
         observersLayout = (ViewGroup)findViewById(R.id.observersLayout);
         
@@ -219,7 +258,38 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         setFonts();
         initData();
         this.setFinishOnTouchOutside(false);
+
+        SwipeDismissRecyclerViewTouchListener touchListener = new SwipeDismissRecyclerViewTouchListener(mRecyclerView, new SwipeDismissRecyclerViewTouchListener.DismissCallbacks() {
+            @Override
+            public void onDismiss(RecyclerView recyclerView, int[] reverseSortedPositions) {
+                for (int position : reverseSortedPositions) {
+                    mDataSet.remove(position);
+                    //mAdapter.notifyItemRemoved(position);
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
+            @Override
+            public boolean canDismiss(int position) {
+                return true;
+            }
+        });
+        mRecyclerView.setOnTouchListener(touchListener);
     }
+    private SwipeDismissTouchListener.DismissCallbacks swipeDismissListener = new SwipeDismissTouchListener.DismissCallbacks() {
+        @Override
+        public void onDismiss(View view, Object token) {
+            String path = ((TextView) view).getText().toString();
+            if (mDataSet.contains(path)) {
+                final int index = mDataSet.indexOf(path);
+                mDataSet.remove(index);
+                mAdapter.notifyDataSetChanged();
+            }
+        }
+        @Override
+        public boolean canDismiss(Object token) {
+            return true;
+        }
+    };
     private void setFonts() {
         titleEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         descriptionEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
@@ -236,6 +306,8 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         
         cancelButton.setOnClickListener(this);
         okButton.setOnClickListener(this);
+        backButton.setOnClickListener(this);
+        addButton.setOnClickListener(this);
         
         routeTypeTextView.setOnClickListener(this);
         deadlineTextView.setOnClickListener(this);
@@ -243,6 +315,8 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         
         performersLabelView.setOnClickListener(this);
         observersLabelView.setOnClickListener(this);
+        
+        attachmentButton.setOnClickListener(this);
         
         try {
             // Читаем из файла настройки
@@ -369,19 +443,13 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
     };
     @Override
     public void onClick(View v) {
+        FlipAnimator animator;
         switch (v.getId()) {
             case R.id.cancelButton:
                 finish();
                 break;
             case R.id.okButton:
                 new TaskCreateAsyncTask().execute();
-                /*if (mDirect.isServiceAvailable()) {
-                    new TaskCreateAsyncTask().execute();
-                } else {
-                    String errorText = getResources().getString(R.string.create_task_dialog_fragment_internet_error_text);
-                    Toast.makeText(this, errorText, Toast.LENGTH_LONG).show();
-                }
-                // */
                 break;
             case R.id.deadlineTextView:
                 // get the current date and time
@@ -400,8 +468,51 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
             case R.id.observersLabelView:
                 showUsersDialog(UserType.OBSERVER);
                 break;
+            case R.id.attachmentButton:
+                mAttachmentsLayout.getLayoutParams().height = mTaskLayout.getMeasuredHeight();
+                animator = new FlipAnimator(mTaskLayout, mAttachmentsLayout, mTaskLayout.getWidth() / 2, mTaskLayout.getHeight() / 2);
+                if (mTaskLayout.getVisibility() == View.GONE) {
+                    animator.reverse();
+                }
+                mContentLayout.startAnimation(animator);
+                break;
+            case R.id.backButton:
+                animator = new FlipAnimator(mTaskLayout, mAttachmentsLayout, mTaskLayout.getWidth() / 2, mTaskLayout.getHeight() / 2);
+                if (mTaskLayout.getVisibility() == View.GONE) {
+                    animator.reverse();
+                }
+                mContentLayout.startAnimation(animator);
+                break;
+            case R.id.addButton:
+                pickAttachment(findViewById(R.id.addButton));
+                break;
         }
     }
+    private void pickAttachment(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        popup.inflate(R.menu.add_attachment_popup_menu);
+        popup.setOnMenuItemClickListener(actionsMenuItemClickListener);
+        popup.show();
+    }
+    OnMenuItemClickListener actionsMenuItemClickListener = new OnMenuItemClickListener() {
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_attachment_camera:
+                    break;
+                case R.id.action_attachment_pick_device:
+                    Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                    photoPickerIntent.setType("*/*");
+                    startActivityForResult(photoPickerIntent, IMAGE_PICK_REQUEST_CODE);
+                    break;
+                case R.id.action_attachment_search_directum:
+                    Intent i = new Intent(TaskCreateActivity.this, SearchDirectumActivity.class);
+                    startActivityForResult(i, DIRECTUM_PICK_REQUEST_CODE);
+                    break;
+            }
+            return true;
+        }
+    };
     private void showUsersDialog(UserType type) {
         Log.v(TAG, "showUsersDialog " + type.ordinal());
         Usertype = type;
@@ -446,27 +557,55 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         popup.show();
     }
     private void showRightsPopup(View v) {
-           // Show popup menu
-           PopupMenu popup = new PopupMenu(this, v);
-           Menu menu = popup.getMenu();
-           try {
-               JSONArray routeTypes = clientSettings.optJSONArray("Rights");
-               for (int i=0; i<routeTypes.length(); i++) {
-                   final String type = routeTypes.getString(i);
-                   menu.add(type);
-               }
-           } catch (JSONException e) {
-               Log.v(TAG, "Ошибка при парсинге Rights " + e.getMessage());
-           }
-           popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-               @Override
-               public boolean onMenuItemClick(MenuItem item) {
-                   String title = (String)item.getTitle();
-                   rightsTextView.setText(title);
-                   return true;
-               }
-           });
-           
-           popup.show();
-       }
+        // Show popup menu
+        PopupMenu popup = new PopupMenu(this, v);
+        Menu menu = popup.getMenu();
+        try {
+            JSONArray routeTypes = clientSettings.optJSONArray("Rights");
+            for (int i=0; i<routeTypes.length(); i++) {
+                final String type = routeTypes.getString(i);
+                menu.add(type);
+            }
+        } catch (JSONException e) {
+            Log.v(TAG, "Ошибка при парсинге Rights " + e.getMessage());
+        }
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                String title = (String)item.getTitle();
+                rightsTextView.setText(title);
+                return true;
+            }
+        });
+        popup.show();
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.v(TAG, "onActivityResult " + data);
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == IMAGE_PICK_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK & data != null) {
+                Uri photoUri = data.getData();
+                Log.v(TAG, "photoUri " + photoUri);
+                if (photoUri != null) {
+                    Log.v("TAG", "photoUri != null");
+                    final File fi = new File(photoUri.getPath());
+                    String name = fi.getAbsolutePath(); //photoUri.getPath();
+                    String ext = ""; //name.substring(name.lastIndexOf("."));;
+//                    Log.v(TAG, "ext " + ext);
+                    long id = -1;
+                    final Attachment f = new Attachment("", "", "", ext, id, "", name, false, 0, 0);
+                    mDataSet.add(f);
+                    mAdapter.notifyItemInserted(mDataSet.size());
+                }
+            }
+        }
+        if (requestCode == DIRECTUM_PICK_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK & data != null) {
+                Log.v(TAG, "directum search ok");
+//                mDataSet.add(f);
+//                mAdapter.notifyItemInserted(mDataSet.size());
+            }
+        }
+    }
 }

@@ -26,6 +26,9 @@
     <string name="action_all">Все</string>
     <string name="action_favorite">Избранные</string>
     <string name="action_important">Важные</string>
+    <string name="action_attachment_camera">Снимок на камеру</string>
+    <string name="action_attachment_pick_device">Выбрать с устройства</string>
+    <string name="action_attachment_search_directum">Поиск в Directum</string>
     
     <!-- Окно настроек приложения -->
     <string name="preferences_category_connection_title">Подключение</string>
@@ -155,6 +158,9 @@
     <string name="update_db_process_rabotnic_message_text">Обновление данных, пожалуйста, подождите..</string>
     <string name="update_db_process_task_message_text">Обновление данных, пожалуйста, подождите..</string>
     <string name="update_db_process_client_settings_message_text">Обновление данных, пожалуйста, подождите..</string>
+    
+    <string name="search_direcrum_searchprocess_task_message">Поиск данных в Directum, пожалуйста, подождите..</string>
+    <string name="search_direcrum_searchfailed_message">Не удалось выполнить поиск</string>
     
     <string name="update_db_finished_message_text">Обновление данных завершено</string>
     
