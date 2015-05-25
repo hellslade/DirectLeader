@@ -52,6 +52,8 @@
     <string name="authorize_failed_message_text">Ошибка авторизации. Проверьте подключение к Интернет и введенные данные.</string>
     <string name="authorize_process_message_text">Авторизация, пожалуйста, подождите...</string>
     <string name="authorize_add_device_message_text">Активация устройства, пожалуйста, подождите...</string>
+    <string name="authorize_device_name_hint_message_text">Введите название устройства</string>
+    <string name="authorize_device_key_hint_message_text">Введите ключ организации</string>
     <string name="authorize_remove_device_message_text">Деактивация устройства, пожалуйста, подождите...</string>
     <string name="authorize_get_url_message_text">Получение настроек, пожалуйста, подождите...</string>
     <string name="authorize_activate_failed_message_text">Ошибка активации. Проверьте подключение к Интернет и доступность сервера.</string>

@@ -313,6 +313,8 @@ public class AuthorizeFragment extends Fragment implements OnClickListener {
         ll.setOrientation(LinearLayout.VERTICAL);
         final EditText inputName = new EditText(getActivity());
         final EditText inputKey = new EditText(getActivity());
+        inputName.setHint(R.string.authorize_device_name_hint_message_text);
+        inputKey.setHint(R.string.authorize_device_key_hint_message_text);
         ll.addView(inputName);
         ll.addView(inputKey);
         builder.setView(ll);

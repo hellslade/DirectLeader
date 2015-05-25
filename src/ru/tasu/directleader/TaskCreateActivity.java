@@ -226,7 +226,7 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
         // specify an adapter (see also next example)
         mDataSet = new ArrayList<Attachment>();
-        mAdapter = new TaskAttachmentAdapter(mDataSet, null);
+        mAdapter = new TaskAttachmentAdapter((DirectLeaderApplication)getApplication(), mDataSet, null);
         mRecyclerView.setAdapter(mAdapter);
         
         titleEditText = (EditText)findViewById(R.id.titleEditText);

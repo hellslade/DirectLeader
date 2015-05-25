@@ -1,9 +1,5 @@
 package ru.tasu.directleader;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +27,7 @@ public class SearchDirectumActivity extends Activity implements OnClickListener 
     private static final String TAG = "SearchDirectumActivity";
     
     public final int IMAGE_PICK_REQUEST_CODE = 0x000001;
+    public final String CHECKED_ATTACHMENT_IDS = "checked_attachment_ids";
     
     class SearchDirectumAsyncTask extends AsyncTask<String, Void, JSONObject> {
         ProgressDialog pg = new ProgressDialog(SearchDirectumActivity.this);
@@ -82,11 +79,11 @@ public class SearchDirectumActivity extends Activity implements OnClickListener 
     private EditText searchEditText;
     
     private RecyclerView mRecyclerView;
-    private TaskAttachmentAdapter mAdapter;
+    private SearchDirectumAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private List<Attachment> mDataSet;
     
-    private Intent attachments;
+    private ArrayList<Long> checkedIds;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -109,7 +106,7 @@ public class SearchDirectumActivity extends Activity implements OnClickListener 
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
         // specify an adapter (see also next example)
         mDataSet = new ArrayList<Attachment>();
-        mAdapter = new TaskAttachmentAdapter(mDataSet, null);
+        mAdapter = new SearchDirectumAdapter((DirectLeaderApplication)getApplication(), mDataSet, clickListener);
         mRecyclerView.setAdapter(mAdapter);
         
         initData();
@@ -119,8 +116,7 @@ public class SearchDirectumActivity extends Activity implements OnClickListener 
         searchEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     }
     private void initData() {
-        attachments = new Intent();
-        
+    	checkedIds = new ArrayList<Long>();
         searchEditText = (EditText)findViewById(R.id.searchEditText);
         
         ((ImageButton)findViewById(R.id.cancelButton)).setOnClickListener(this);
@@ -129,6 +125,23 @@ public class SearchDirectumActivity extends Activity implements OnClickListener 
         
         setResult(Activity.RESULT_CANCELED, null);
     }
+    OnClickListener clickListener = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			int itemPosition = mRecyclerView.getChildAdapterPosition(v);
+			Attachment attach = mDataSet.get(itemPosition);
+			Log.v(TAG, "clickListener " + itemPosition);
+			if (attach != null) {
+				if (checkedIds.contains(attach.getId())) {
+					checkedIds.remove(attach.getId());
+				} else {
+					checkedIds.add(attach.getId());
+				}
+			}
+			mAdapter.updateCheckedItems(checkedIds);
+			mAdapter.notifyItemChanged(itemPosition);
+		}
+	};
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -136,6 +149,11 @@ public class SearchDirectumActivity extends Activity implements OnClickListener 
                 finish();
                 break;
             case R.id.okButton:
+            	Intent attachments = new Intent();
+            	Bundle b = new Bundle();
+            	attachments.putParcelableArrayListExtra(CHECKED_ATTACHMENT_IDS, checkedIds);
+            	b.putParcelableArrayList(CHECKED_ATTACHMENT_IDS, checkedIds);
+            	attachments.putExtras(b);
                 setResult(Activity.RESULT_OK, attachments);
                 break;
             case R.id.searchButton:
