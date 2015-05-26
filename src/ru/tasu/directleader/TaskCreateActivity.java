@@ -1,8 +1,10 @@
 package ru.tasu.directleader;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,27 +12,34 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import ru.tasu.directleader.TaskDetailFragment.ExecTaskActionAsyncTask;
 import ru.tasu.directleader.UsersDialogFragment.OnUserSelectListener;
 import ru.tasu.directleader.UsersDialogFragment.UserType;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
+import android.support.v4.provider.DocumentFile;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
@@ -43,17 +52,16 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.PopupMenu;
+import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.PopupMenu.OnMenuItemClickListener;
 
 public class TaskCreateActivity extends Activity implements OnClickListener, OnUserSelectListener {
     private static final String TAG = "TaskCreateActivity";
     public static final String TITLE_KEY = "title_key";
     
-    public final int IMAGE_PICK_REQUEST_CODE = 0x000001;
+    public final int FILE_PICK_REQUEST_CODE = 0x000001;
     public final int DIRECTUM_PICK_REQUEST_CODE = 0x000002;
     
     class GetClientSettingsAsyncTask extends AsyncTask<Void, Void, JSONObject> {
@@ -120,7 +128,55 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
             String nongrata = getResources().getString(R.string.create_task_dialog_fragment_noimportance_text);
             String importance = importanceView.isChecked() ? grata : nongrata;
             
+            // Attachments
+//            	{
+//            	"Content":"Строковое содержимое",
+//            	"DocId":2147483647,
+//            	"Ext":"Строковое содержимое",
+//            	"Name":"Строковое содержимое"
+//            	}
+            JSONArray attachmentsJSON = new JSONArray();
+            for (Attachment att : mDataSet) {
+            	final JSONObject attJSON = new JSONObject();
+            	if (att.getId() == -1) {
+            		// Файл с устройства
+            		try {
+            			File file = new File(att.getName());
+            	        int length = (int) file.length();
+            	        BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file));
+            	        byte[] bytes = new byte[length];
+            	        reader.read(bytes, 0, length);
+            	        reader.close();
+            	        
+            			String base64 = Base64.encodeToString(bytes, Base64.DEFAULT);
+	            		attJSON.put("Content", base64);
+	            		attJSON.put("DocId", "");
+	            		attJSON.put("Ext", att.getExt());
+	            		attJSON.put("Name", att.getCTitle());
+	            		attachmentsJSON.put(attJSON);
+            		} catch (JSONException ex) {
+            			Log.v(TAG, "Не удалось прикрепить файл с устройства " + ex.getLocalizedMessage());
+            		} catch (FileNotFoundException ex) {
+            			Log.v(TAG, "Не удалось прикрепить файл с устройства " + ex.getLocalizedMessage());
+            		} catch (IOException ex) {
+             			Log.v(TAG, "Не удалось прикрепить файл с устройства " + ex.getLocalizedMessage());
+             		}
+            	} else {
+            		// Файл из Директума
+            		try {
+	            		attJSON.put("Content", "");
+	            		attJSON.put("DocId", att.getId());
+	            		attJSON.put("Ext", "");
+	            		attJSON.put("Name", "");
+	            		attachmentsJSON.put(attJSON);
+            		} catch (JSONException ex) {
+            			Log.v(TAG, "Не удалось прикрепить документ из директума " + ex.getLocalizedMessage());
+            		}
+            	}
+            }
+            Log.v(TAG, "ATTACHMENTS " + attachmentsJSON);
             try {
+            	taskJSON.put("Attachments", attachmentsJSON);
                 taskJSON.put("FinalDate", (String)deadlineTextView.getTag());
                 taskJSON.put("Observers", observers);
                 taskJSON.put("Performers", performers);
@@ -129,7 +185,8 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 taskJSON.put("Subject", titleEditText.getText().toString());
                 taskJSON.put("Text", descriptionEditText.getText().toString());
                 taskJSON.put("Importance", importance);
-                return mDirect.PostCreateTask(taskJSON);
+                //return mDirect.PostCreateTask(taskJSON);
+                return null;
             } catch (JSONException e) {
                 Log.v(TAG, "exception in create task asynctask" + e.getLocalizedMessage());
             }
@@ -200,6 +257,8 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
     private RecyclerView.LayoutManager mLayoutManager;
     private List<Attachment> mDataSet;
     
+    private ArrayList<Attachment> mAttachments = new ArrayList<Attachment>();
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -263,7 +322,16 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
             @Override
             public void onDismiss(RecyclerView recyclerView, int[] reverseSortedPositions) {
                 for (int position : reverseSortedPositions) {
+                	Attachment att = mDataSet.get(position);
                     mDataSet.remove(position);
+                    Attachment to_remove = null;
+                    for (Attachment attach : mAttachments) {
+                    	if (attach.getId() == att.getId()) {
+                    		to_remove = attach;
+                    		break;
+                    	}
+                    }
+                    mAttachments.remove(to_remove);
                     //mAdapter.notifyItemRemoved(position);
                     mAdapter.notifyDataSetChanged();
                 }
@@ -275,7 +343,7 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         });
         mRecyclerView.setOnTouchListener(touchListener);
     }
-    private SwipeDismissTouchListener.DismissCallbacks swipeDismissListener = new SwipeDismissTouchListener.DismissCallbacks() {
+    /*private SwipeDismissTouchListener.DismissCallbacks swipeDismissListener = new SwipeDismissTouchListener.DismissCallbacks() {
         @Override
         public void onDismiss(View view, Object token) {
             String path = ((TextView) view).getText().toString();
@@ -289,7 +357,7 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         public boolean canDismiss(Object token) {
             return true;
         }
-    };
+    };*/
     private void setFonts() {
         titleEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         descriptionEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
@@ -503,10 +571,13 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 case R.id.action_attachment_pick_device:
                     Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
                     photoPickerIntent.setType("*/*");
-                    startActivityForResult(photoPickerIntent, IMAGE_PICK_REQUEST_CODE);
+                    startActivityForResult(photoPickerIntent, FILE_PICK_REQUEST_CODE);
                     break;
                 case R.id.action_attachment_search_directum:
                     Intent i = new Intent(TaskCreateActivity.this, SearchDirectumActivity.class);
+                    Bundle b = new Bundle();
+                    b.putParcelableArrayList(SearchDirectumActivity.CHECKED_ATTACHMENT_KEY, mAttachments);
+                    i.putExtras(b);
                     startActivityForResult(i, DIRECTUM_PICK_REQUEST_CODE);
                     break;
             }
@@ -579,22 +650,51 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         });
         popup.show();
     }
+    
+    @TargetApi(Build.VERSION_CODES.KITKAT) 
+    private String getRealPathFromURI(Uri contentURI) {
+    	String[] column = { MediaStore.Images.Media.DATA };  
+    	Cursor cursor;
+    	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+	    	String wholeID = DocumentsContract.getDocumentId(contentURI);
+	        // Split at colon, use second item in the array
+	        String id = wholeID.split(":")[1];
+	        // where id is equal to             
+	        String sel = MediaStore.Images.Media._ID + "=?";
+	        cursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column, sel, new String[]{ id }, null);
+    	} else {
+    		cursor = getContentResolver().query(contentURI, column, null, null, null);
+    	}
+        String filePath = "";
+
+        int columnIndex = cursor.getColumnIndex(column[0]);
+
+        if (cursor.moveToFirst()) {
+            filePath = cursor.getString(columnIndex);
+        }   
+        cursor.close();
+        return filePath;
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.v(TAG, "onActivityResult " + data);
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == IMAGE_PICK_REQUEST_CODE) {
+        if (requestCode == FILE_PICK_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK & data != null) {
-                Uri photoUri = data.getData();
-                Log.v(TAG, "photoUri " + photoUri);
-                if (photoUri != null) {
-                    Log.v("TAG", "photoUri != null");
-                    final File fi = new File(photoUri.getPath());
-                    String name = fi.getAbsolutePath(); //photoUri.getPath();
-                    String ext = ""; //name.substring(name.lastIndexOf("."));;
-//                    Log.v(TAG, "ext " + ext);
+                Uri selectedFile = data.getData();
+                Log.v(TAG, "selectedFile " + selectedFile);
+                if (selectedFile != null) {
+                    String realPath = getRealPathFromURI(selectedFile);
+                    Log.v(TAG, "realPath " + realPath);
+                    Log.v(TAG, "selectedFile.toString() " + selectedFile.toString());
+                    File fi = new File(realPath);
+                    Log.v("TAG", "selectedFile != null");
+                    String ctitle = fi.getName();
+                    String name = fi.getAbsolutePath(); // Полный путь к файлу
+                    String ext = name.substring(name.lastIndexOf(".")+1);;
+                    Log.v(TAG, "ext " + ext);
                     long id = -1;
-                    final Attachment f = new Attachment("", "", "", ext, id, "", name, false, 0, 0);
+                    final Attachment f = new Attachment("", ctitle, "", ext, id, "", name, false, 0, 0);
                     mDataSet.add(f);
                     mAdapter.notifyItemInserted(mDataSet.size());
                 }
@@ -603,8 +703,20 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         if (requestCode == DIRECTUM_PICK_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK & data != null) {
                 Log.v(TAG, "directum search ok");
-//                mDataSet.add(f);
-//                mAdapter.notifyItemInserted(mDataSet.size());
+                Bundle b = data.getExtras();
+                mAttachments = b.getParcelableArrayList(SearchDirectumActivity.CHECKED_ATTACHMENT_KEY);
+                // Удалить все аттачменты добавленные из директума, и добавить их заново
+                Iterator itr = mDataSet.iterator();
+                while(itr.hasNext()) {
+                    Attachment att = (Attachment)itr.next();
+                    if(att.getId() != -1) {
+                        itr.remove();
+                    }
+                }
+                mAdapter.notifyDataSetChanged();
+//                mDataSet.re
+                mDataSet.addAll(mAttachments);
+                mAdapter.notifyDataSetChanged();
             }
         }
     }

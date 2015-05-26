@@ -26,8 +26,8 @@ import android.widget.Toast;
 public class SearchDirectumActivity extends Activity implements OnClickListener {
     private static final String TAG = "SearchDirectumActivity";
     
-    public final int IMAGE_PICK_REQUEST_CODE = 0x000001;
-    public final String CHECKED_ATTACHMENT_IDS = "checked_attachment_ids";
+    public static final int IMAGE_PICK_REQUEST_CODE = 0x000001;
+    public static final String CHECKED_ATTACHMENT_KEY = "checked_attachment_key";
     
     class SearchDirectumAsyncTask extends AsyncTask<String, Void, JSONObject> {
         ProgressDialog pg = new ProgressDialog(SearchDirectumActivity.this);
@@ -83,7 +83,8 @@ public class SearchDirectumActivity extends Activity implements OnClickListener 
     private RecyclerView.LayoutManager mLayoutManager;
     private List<Attachment> mDataSet;
     
-    private ArrayList<Long> checkedIds;
+    private ArrayList<Long> checkedIds = null;
+    private ArrayList<Attachment> checkedAttachs = null;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -109,14 +110,27 @@ public class SearchDirectumActivity extends Activity implements OnClickListener 
         mAdapter = new SearchDirectumAdapter((DirectLeaderApplication)getApplication(), mDataSet, clickListener);
         mRecyclerView.setAdapter(mAdapter);
         
+        Bundle b = getIntent().getExtras();
+        if (b != null) {
+        	checkedAttachs = b.getParcelableArrayList(CHECKED_ATTACHMENT_KEY);
+        	checkedIds = new ArrayList<Long>();
+        	for (Attachment attach : checkedAttachs) {
+        		checkedIds.add(attach.getId());
+        	}
+        	mAdapter.updateCheckedItems(checkedIds);
+        }
         initData();
         setFonts();
+        
     }
     private void setFonts() {
         searchEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     }
     private void initData() {
-    	checkedIds = new ArrayList<Long>();
+    	if (checkedAttachs == null) {
+    		checkedIds = new ArrayList<Long>();
+    		checkedAttachs = new ArrayList<Attachment>();
+    	}
         searchEditText = (EditText)findViewById(R.id.searchEditText);
         
         ((ImageButton)findViewById(R.id.cancelButton)).setOnClickListener(this);
@@ -133,9 +147,21 @@ public class SearchDirectumActivity extends Activity implements OnClickListener 
 			Log.v(TAG, "clickListener " + itemPosition);
 			if (attach != null) {
 				if (checkedIds.contains(attach.getId())) {
+//					checkedAttachs.remove(attach);
+					Attachment to_remove = null;
+					for (Attachment att : checkedAttachs) {
+						if (att.getId() == attach.getId()) {
+							to_remove = att;
+							break;
+						}
+					}
+					if (to_remove != null) {
+						checkedAttachs.remove(to_remove);
+					}
 					checkedIds.remove(attach.getId());
 				} else {
 					checkedIds.add(attach.getId());
+					checkedAttachs.add(attach);
 				}
 			}
 			mAdapter.updateCheckedItems(checkedIds);
@@ -151,10 +177,10 @@ public class SearchDirectumActivity extends Activity implements OnClickListener 
             case R.id.okButton:
             	Intent attachments = new Intent();
             	Bundle b = new Bundle();
-            	attachments.putParcelableArrayListExtra(CHECKED_ATTACHMENT_IDS, checkedIds);
-            	b.putParcelableArrayList(CHECKED_ATTACHMENT_IDS, checkedIds);
+            	b.putParcelableArrayList(CHECKED_ATTACHMENT_KEY, checkedAttachs);
             	attachments.putExtras(b);
                 setResult(Activity.RESULT_OK, attachments);
+                finish();
                 break;
             case R.id.searchButton:
                 String searchString = searchEditText.getText().toString();
