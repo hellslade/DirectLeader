@@ -12,7 +12,6 @@ import android.widget.TextView;
 class TaskAttachmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final String TAG = "TaskAttachmentAdapter";
     private List<Attachment> mDataSet;
-    private SwipeDismissTouchListener.DismissCallbacks mSwipeCallback;
     
     private DirectLeaderApplication mDirect;
     
@@ -21,28 +20,12 @@ class TaskAttachmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public ViewHolder(View v) {
             super(v);
             nameTextView = (TextView)v.findViewById(R.id.nameTextView);
-            nameTextView.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                }
-            });
-            v.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                }
-            });
-            // Create a generic swipe-to-dismiss touch listener.
-            if (mSwipeCallback != null) {
-                nameTextView.setOnTouchListener(new SwipeDismissTouchListener(nameTextView, null, mSwipeCallback));
-                v.setOnTouchListener(new SwipeDismissTouchListener(nameTextView, null, mSwipeCallback));
-            }
             nameTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         }
     }
 
-    public TaskAttachmentAdapter(DirectLeaderApplication app, List<Attachment> data, SwipeDismissTouchListener.DismissCallbacks swipeCallback) {
+    public TaskAttachmentAdapter(DirectLeaderApplication app, List<Attachment> data) {
         mDataSet = data;
-        mSwipeCallback = swipeCallback;
         mDirect = app;
     }
     // Create new views (invoked by the layout manager)

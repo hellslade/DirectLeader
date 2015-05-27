@@ -78,6 +78,7 @@
     <string name="create_task_dialog_fragment_internet_error_text">Невозможно создать задачу. Отсутствует подключение к Интернет.</string>
     <string name="create_task_dialog_fragment_success_text">Задача успешно создана.</string>
     <string name="create_task_dialog_fragment_failed_text">Не удалось создать задачу.</string>
+    <string name="create_task_dialog_fragment_attach_failed_text">Невозможно прикрепить файл.</string>
     
     <!-- Окно списка заданий (Job) -->
     <string name="myjob_fragment_header_title_text">Тема, Создано, Инициатор</string>

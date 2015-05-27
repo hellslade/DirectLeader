@@ -150,9 +150,10 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
             	        
             			String base64 = Base64.encodeToString(bytes, Base64.DEFAULT);
 	            		attJSON.put("Content", base64);
-	            		attJSON.put("DocId", "");
+	            		attJSON.put("DocId", null);
 	            		attJSON.put("Ext", att.getExt());
 	            		attJSON.put("Name", att.getCTitle());
+	            		Log.v(TAG, "att.getCTitle() " + att.getCTitle());
 	            		attachmentsJSON.put(attJSON);
             		} catch (JSONException ex) {
             			Log.v(TAG, "Не удалось прикрепить файл с устройства " + ex.getLocalizedMessage());
@@ -185,8 +186,8 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 taskJSON.put("Subject", titleEditText.getText().toString());
                 taskJSON.put("Text", descriptionEditText.getText().toString());
                 taskJSON.put("Importance", importance);
-                //return mDirect.PostCreateTask(taskJSON);
-                return null;
+                return mDirect.PostCreateTask(taskJSON);
+//                return null;
             } catch (JSONException e) {
                 Log.v(TAG, "exception in create task asynctask" + e.getLocalizedMessage());
             }
@@ -285,7 +286,7 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
         // specify an adapter (see also next example)
         mDataSet = new ArrayList<Attachment>();
-        mAdapter = new TaskAttachmentAdapter((DirectLeaderApplication)getApplication(), mDataSet, null);
+        mAdapter = new TaskAttachmentAdapter((DirectLeaderApplication)getApplication(), mDataSet);
         mRecyclerView.setAdapter(mAdapter);
         
         titleEditText = (EditText)findViewById(R.id.titleEditText);
@@ -318,9 +319,11 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         initData();
         this.setFinishOnTouchOutside(false);
 
+        
         SwipeDismissRecyclerViewTouchListener touchListener = new SwipeDismissRecyclerViewTouchListener(mRecyclerView, new SwipeDismissRecyclerViewTouchListener.DismissCallbacks() {
             @Override
             public void onDismiss(RecyclerView recyclerView, int[] reverseSortedPositions) {
+            	Log.v(TAG, "touchListener");
                 for (int position : reverseSortedPositions) {
                 	Attachment att = mDataSet.get(position);
                     mDataSet.remove(position);
@@ -332,7 +335,6 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                     	}
                     }
                     mAttachments.remove(to_remove);
-                    //mAdapter.notifyItemRemoved(position);
                     mAdapter.notifyDataSetChanged();
                 }
             }
@@ -341,11 +343,13 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 return true;
             }
         });
+        // */
         mRecyclerView.setOnTouchListener(touchListener);
     }
-    /*private SwipeDismissTouchListener.DismissCallbacks swipeDismissListener = new SwipeDismissTouchListener.DismissCallbacks() {
+    private SwipeDismissTouchListener.DismissCallbacks swipeDismissListener = new SwipeDismissTouchListener.DismissCallbacks() {
         @Override
         public void onDismiss(View view, Object token) {
+        	Log.v(TAG, "swipeDismissListener");
             String path = ((TextView) view).getText().toString();
             if (mDataSet.contains(path)) {
                 final int index = mDataSet.indexOf(path);
@@ -357,7 +361,7 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         public boolean canDismiss(Object token) {
             return true;
         }
-    };*/
+    };
     private void setFonts() {
         titleEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         descriptionEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
@@ -651,30 +655,6 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         popup.show();
     }
     
-    @TargetApi(Build.VERSION_CODES.KITKAT) 
-    private String getRealPathFromURI(Uri contentURI) {
-    	String[] column = { MediaStore.Images.Media.DATA };  
-    	Cursor cursor;
-    	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-	    	String wholeID = DocumentsContract.getDocumentId(contentURI);
-	        // Split at colon, use second item in the array
-	        String id = wholeID.split(":")[1];
-	        // where id is equal to             
-	        String sel = MediaStore.Images.Media._ID + "=?";
-	        cursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column, sel, new String[]{ id }, null);
-    	} else {
-    		cursor = getContentResolver().query(contentURI, column, null, null, null);
-    	}
-        String filePath = "";
-
-        int columnIndex = cursor.getColumnIndex(column[0]);
-
-        if (cursor.moveToFirst()) {
-            filePath = cursor.getString(columnIndex);
-        }   
-        cursor.close();
-        return filePath;
-    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.v(TAG, "onActivityResult " + data);
@@ -684,14 +664,17 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                 Uri selectedFile = data.getData();
                 Log.v(TAG, "selectedFile " + selectedFile);
                 if (selectedFile != null) {
-                    String realPath = getRealPathFromURI(selectedFile);
-                    Log.v(TAG, "realPath " + realPath);
-                    Log.v(TAG, "selectedFile.toString() " + selectedFile.toString());
+                	String realPath = ImageFilePath.getPath(getApplicationContext(), selectedFile);
+                	Log.v(TAG, "realPath " + realPath);
+                	if (realPath == null) {
+                		String errorAttachText = getResources().getString(R.string.create_task_dialog_fragment_attach_failed_text);
+                		Toast.makeText(mDirect, errorAttachText, Toast.LENGTH_LONG).show();
+                		return;
+                	}
                     File fi = new File(realPath);
-                    Log.v("TAG", "selectedFile != null");
-                    String ctitle = fi.getName();
                     String name = fi.getAbsolutePath(); // Полный путь к файлу
-                    String ext = name.substring(name.lastIndexOf(".")+1);;
+                    String ctitle = fi.getName().substring(0, fi.getName().lastIndexOf("."));
+                    String ext = name.substring(name.lastIndexOf(".")+1);
                     Log.v(TAG, "ext " + ext);
                     long id = -1;
                     final Attachment f = new Attachment("", ctitle, "", ext, id, "", name, false, 0, 0);
