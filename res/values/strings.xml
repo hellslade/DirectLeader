@@ -107,6 +107,7 @@
     <string name="job_detail_fragment_documents_text">Документов</string>
     <string name="job_detail_fragment_startdate_text">Начало</string>
     <string name="job_detail_fragment_documentslist_text">Документы:</string>
+    <string name="job_detail_fragment_resolutionlist_text">Резолюция:</string>
     <string name="job_detail_fragment_comment_text">Комментарий:</string>
     <string name="job_detail_fragment_history_text">История:</string>
     

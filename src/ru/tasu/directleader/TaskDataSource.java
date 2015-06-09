@@ -20,7 +20,7 @@ public class TaskDataSource {
     private Context mContext; 
     private String[] allColumns = {DBHelper.TASK__ID, DBHelper.TASK_ACTION_LIST, DBHelper.TASK_AUTHOR_CODE, DBHelper.TASK_CREATED, DBHelper.TASK_DEADLINE, DBHelper.TASK_EXECUTED,
             DBHelper.TASK_ID, DBHelper.TASK_IMPORTANCE, DBHelper.TASK_OBSERVERS, DBHelper.TASK_PARTICIPANTS, DBHelper.TASK_ROUTE_NAME, 
-            DBHelper.TASK_STATE, DBHelper.TASK_SUBTASK_IDS, DBHelper.TASK_TITLE};
+            DBHelper.TASK_STATE, DBHelper.TASK_SUBTASK_IDS, DBHelper.TASK_TITLE, DBHelper.TASK_REFERENCE_DETAIL, DBHelper.TASK_REFERENCE_HEADER};
 
     public TaskDataSource(Context context) {
         dbHelper = DBHelper.getInstance(context);
@@ -49,6 +49,8 @@ public class TaskDataSource {
         values.put(DBHelper.TASK_STATE, new_task.getState());
         values.put(DBHelper.TASK_SUBTASK_IDS, new_task.getSubtaskIds());
         values.put(DBHelper.TASK_TITLE, new_task.getTitle());
+        values.put(DBHelper.TASK_REFERENCE_DETAIL, new_task.getReferenceDetail());
+        values.put(DBHelper.TASK_REFERENCE_HEADER, new_task.getReferenceHeader());
         long insertId = database.insert(DBHelper.TASK_TABLE, null, values);
         
         // Нужно создать соответствующие записи в таблице attachment, job, history
@@ -106,7 +108,8 @@ public class TaskDataSource {
         cursor.close();
         return task;
     }
-    public List<Task> getAllTasksWithoutJobs() {
+    @Deprecated
+    public List<Task> getAllTasksWithoutJobs123() {
         Log.v("TaskDataSource", "START getAllTasksWithoutJobs");
         List<Task> tasks = new ArrayList<Task>();
 
@@ -157,8 +160,8 @@ public class TaskDataSource {
         while (!cursor.isAfterLast()) {
             final Task task = cursorToTask(cursor);
             // Получить attachement, history для текущей task
-            task.setAttachmentCount(cursor.getInt(15));
-            task.setHistoryCount(cursor.getInt(14));
+            task.setAttachmentCount(cursor.getInt(17));
+            task.setHistoryCount(cursor.getInt(16));
             // Получить автора задания
             task.setAuthor(rabotnic_ds.getRabotnicByCode(task.getAuthorCode()));
             tasks.add(task);
@@ -215,22 +218,6 @@ public class TaskDataSource {
         // Make sure to close the cursor
         cursor.close();
         return tasks;
-    }
-    /**
-     * Получить список заданий сотрудников
-     * @return
-     */
-    public int getCountOfStaffTasksOld() {
-        int count = 0;
-
-        Cursor cursor = database.query(DBHelper.TASK_TABLE,
-                new String[]{DBHelper.TASK__ID}, null, null, null, null, null);
-
-//        cursor.moveToFirst();
-        count = cursor.getCount();
-        // Make sure to close the cursor
-        cursor.close();
-        return count;
     }
     public int[] getCountOfStaffTasks() {
         int[] count = {0, 0, 0};
@@ -314,6 +301,8 @@ public class TaskDataSource {
 //        JSONArray action_list, JSONArray attachments, JSONArray history, JSONArray jobs, JSONArray observers, JSONArray participants, JSONArray subtask_ids,
 //        String author_code, String created, String deadline, String executed, long id, String importance, String route_name, String state, String title
         JSONArray action_list = new JSONArray();
+        JSONArray ref_detail = new JSONArray();
+        JSONArray ref_header = new JSONArray();
         JSONArray attachments = new JSONArray();
         JSONArray history = new JSONArray();
         JSONArray jobs = new JSONArray();
@@ -325,11 +314,14 @@ public class TaskDataSource {
             observers = new JSONArray(cursor.getString(8));
             participants = new JSONArray(cursor.getString(9));
             subtask_ids = new JSONArray(cursor.getString(12));
+            ref_detail = new JSONArray(cursor.getString(14));
+            ref_header = new JSONArray(cursor.getString(15));
         } catch (JSONException e) {
             e.printStackTrace();
         }
         
         Task task = new Task(action_list, attachments, history, jobs, observers, participants, subtask_ids, 
+        		ref_detail, ref_header, 
                 cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getLong(6), cursor.getString(7), cursor.getString(10), 
                 cursor.getString(11), cursor.getString(13));
 //      Log.v("cursorToStore", cursor.getInt(0)+" "+cursor.getString(1)+" "+cursor.getString(2)+" "+cursor.getString(3)+" "+cursor.getInt(4)+" "+cursor.getString(5));

@@ -69,14 +69,118 @@ public class Task implements Parcelable {
     private Rabotnic _author;
     private int _attachment_count;
     private int _history_count;
-//    private ?? _user_status; // непонятная херня
+    private JSONArray _reference_detail;
+    private JSONArray _reference_header;
+    
+/*    
+References: [
+    {
+    ReferenceDetail: [
+	    [
+		    {
+			    Key: "ИД",
+			    Value: "46243"
+		    },
+		    {
+			    Key: "Вид",
+			    Value: "3342"
+		    },
+		    {
+			    Key: "ПодразделениеТ",
+			    Value: "Д000003"
+		    },
+		    {
+			    Key: "PerformerT",
+			    Value: "НД000030"
+		    },
+		    {
+			    Key: "ДатаТ",
+			    Value: null
+		    },
+	    ],
+	    [
+		    {
+			    Key: "ИД",
+			    Value: "46244"
+		    },
+		    {
+			    Key: "Вид",
+			    Value: "3342"
+		    },
+		    {
+			    Key: "ПодразделениеТ",
+			    Value: "11"
+		    },
+		    {
+			    Key: "PerformerT",
+			    Value: "НД000027"
+		    },
+		    {
+			    Key: "ДатаТ",
+			    Value: null
+		    },
+	    ]
+    ],
+    ReferenceHeader: [
+	    {
+		    Key: "ИД",
+		    Value: "167926"
+	    },
+	    {
+		    Key: "Вид",
+		    Value: "3342"
+	    },
+	    {
+		    Key: "Аналитика-оригинал",
+		    Value: "ОД000010"
+	    },
+	    {
+		    Key: "Наименование",
+		    Value: "Поручение №2 от 17.04.2015. Содержание (167926)"
+	    },
+	    {
+		    Key: "Текст",
+		    Value: "Содержание"
+	    },
+	    {
+		    Key: "Дата",
+		    Value: "17.04.2015"
+	    },
+	    {
+		    Key: "Employee",
+		    Value: "НД000023"
+	    },
+	    {
+		    Key: "Ссылка",
+		    Value: "2"
+	    },
+	    {
+		    Key: "Дата2",
+		    Value: "18.05.2015"
+	    },
+	    {
+		    Key: "Работник",
+		    Value: "НД000023"
+	    },
+	    {
+		    Key: "LongString",
+		    Value: "Григорьев А.А.; Баклаев С.И."
+	    },
+    ]
+}
+],
+// */
     
     public Task(JSONObject json) {
         updateData(json);
     }
     public Task(JSONArray action_list, JSONArray attachments, JSONArray history, JSONArray jobs, JSONArray observers, JSONArray participants, JSONArray subtask_ids,
+    		JSONArray reference_detail, JSONArray reference_header, 
             String author_code, String created, String deadline, String executed, long id, String importance, String route_name, String state, String title) {
         this._action_list = action_list;
+        
+        this._reference_detail = reference_detail;
+        this._reference_header = reference_header;
         
         if (attachments != null) {
             this._attachments = new Attachment[attachments.length()];
@@ -148,6 +252,16 @@ public class Task implements Parcelable {
         } catch (JSONException e) {
             Log.v(TAG, "_action_list read exception " + e.getMessage());
         }
+        try {
+            this._reference_detail = new JSONArray(in.readString());
+        } catch (JSONException e) {
+            Log.v(TAG, "_reference_detail read exception " + e.getMessage());
+        }
+        try {
+            this._reference_header = new JSONArray(in.readString());
+        } catch (JSONException e) {
+            Log.v(TAG, "_reference_header read exception " + e.getMessage());
+        }
         this._author_code = in.readString();
         this._created = in.readString();
         this._deadline = in.readString();
@@ -188,6 +302,21 @@ public class Task implements Parcelable {
     public void updateData(JSONObject data) {
 //        Log.v(TAG, "data " + data);
         this._action_list = data.optJSONArray("ActionList");
+        
+        this._reference_detail = new JSONArray();
+        this._reference_header = new JSONArray();
+        JSONArray _reference = data.optJSONArray("References");
+        if (_reference != null && _reference.length() > 0) {
+        	JSONObject ref = _reference.optJSONObject(0);
+        	if (ref != null && ref.has("ReferenceDetail")) {
+        		this._reference_detail = ref.optJSONArray("ReferenceDetail");
+        	}
+        	if (ref != null && ref.has("ReferenceHeader")) {
+        		this._reference_header = ref.optJSONArray("ReferenceHeader");
+        	}
+        }
+        Log.v(TAG, "this._reference_detail " + this._reference_detail);
+        Log.v(TAG, "this._reference_header " + this._reference_header);
         
         JSONArray attachments = data.optJSONArray("Attachments");
         if (attachments != null) {
@@ -262,6 +391,18 @@ public class Task implements Parcelable {
     }
     public String getActionList() {
         return this._action_list.toString();
+    }
+    public String getReferenceDetail() {
+        return this._reference_detail.toString();
+    }
+    public String getReferenceHeader() {
+        return this._reference_header.toString();
+    }
+    public JSONArray getReferenceDetailJSON() {
+        return this._reference_detail;
+    }
+    public JSONArray getReferenceHeaderJSON() {
+        return this._reference_header;
     }
     public String getAuthorCode() {
         return this._author_code;
@@ -427,6 +568,8 @@ public class Task implements Parcelable {
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
         parcel.writeString(this._action_list.toString());
+        parcel.writeString(this._reference_detail.toString());
+        parcel.writeString(this._reference_header.toString());
         parcel.writeString(this._author_code);
         parcel.writeString(this._created);
         parcel.writeString(this._deadline);

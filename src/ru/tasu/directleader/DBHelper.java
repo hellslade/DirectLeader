@@ -145,6 +145,8 @@ private static final String TAG = "DBHelper";
     public static final String TASK_STATE = "state";
     public static final String TASK_SUBTASK_IDS = "subtask_ids";
     public static final String TASK_TITLE = "title";
+    public static final String TASK_REFERENCE_DETAIL = "reference_detail";
+    public static final String TASK_REFERENCE_HEADER = "reference_header";
     private static final String TASK_CREATE_TABLE = 
             String.format("create table %s (" +
                     "%s integer primary key, " +
@@ -160,10 +162,12 @@ private static final String TAG = "DBHelper";
                     "%s text, " +
                     "%s text, " +
                     "%s text, " +
+                    "%s text, " +
+                    "%s text, " +
                     "%s text)",
                     TASK_TABLE,
                     TASK__ID, TASK_ACTION_LIST, TASK_AUTHOR_CODE, TASK_CREATED, TASK_DEADLINE, TASK_EXECUTED, TASK_ID, TASK_IMPORTANCE, 
-                    TASK_OBSERVERS, TASK_PARTICIPANTS, TASK_ROUTE_NAME, TASK_STATE, TASK_SUBTASK_IDS, TASK_TITLE);
+                    TASK_OBSERVERS, TASK_PARTICIPANTS, TASK_ROUTE_NAME, TASK_STATE, TASK_SUBTASK_IDS, TASK_TITLE, TASK_REFERENCE_DETAIL, TASK_REFERENCE_HEADER);
     
     static public File getCacheDir(Context context) {
         File cache = null;

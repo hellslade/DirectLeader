@@ -116,7 +116,9 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
                 commentTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
                 dataTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
                 
-                authorNameTextView.setText(h.getUser().getName());
+                if (h.getUser() != null) {
+                	authorNameTextView.setText(h.getUser().getName());
+                }
                 commentTextView.setText(h.getMessage());
                 dataTextView.setText(h.getDate(true));
                 

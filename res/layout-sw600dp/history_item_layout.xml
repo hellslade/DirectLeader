@@ -10,7 +10,8 @@
         android:id="@+id/photoIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        android:layout_margin="20dp"
+        android:layout_centerVertical="true"
         android:src="@drawable/ic_nophoto"/>
     <TextView 
         android:id="@+id/authorNameTextView"
@@ -18,25 +19,28 @@
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/photoIcon"
         android:layout_alignTop="@id/photoIcon"
+        android:layout_toLeftOf="@+id/dataTextView"
         android:gravity="left"
         android:maxLines="1"
         android:layout_marginBottom="10dp"
         android:singleLine="true"
         android:text=""/>
     <TextView 
-        android:id="@+id/dataTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/authorNameTextView"
-        android:layout_toRightOf="@id/photoIcon"
-        android:text=""/>
-    <TextView 
         android:id="@+id/commentTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/photoIcon"
+        android:layout_alignLeft="@id/authorNameTextView"
+        android:layout_toLeftOf="@+id/dataTextView"
+        android:layout_below="@id/authorNameTextView"
         android:gravity="left"
-        android:layout_marginLeft="10dp"
         android:text=""/>
-    
+    <TextView 
+        android:id="@id/dataTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@id/photoIcon"
+        android:text=""/>
 </RelativeLayout>

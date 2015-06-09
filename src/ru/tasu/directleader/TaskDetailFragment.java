@@ -33,6 +33,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.PopupMenu.OnMenuItemClickListener;
@@ -105,6 +106,33 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
             }
             if (attachments.length == 0) {
                 documentsListLabel.setVisibility(View.GONE);
+            }
+        }
+    }
+    class GetResolutionAsyncTask extends AsyncTask<Void, Void, ReferenceHeader> {
+        @Override
+        protected ReferenceHeader doInBackground(Void... params) {
+            JSONArray ref_header = mTask.getReferenceHeaderJSON();
+            if (ref_header.length() == 0) {
+            	return null;
+            }
+            return new ReferenceHeader(ref_header);
+        }
+        @Override
+        protected void onPostExecute(ReferenceHeader ref_header) {
+            super.onPostExecute(ref_header);
+            resolutionLayout.removeAllViews();
+            
+            if (ref_header != null) {
+                final RelativeLayout itemLayout = (RelativeLayout) getActivity().getLayoutInflater().inflate(R.layout.resolution_item_layout, null);
+                final TextView resolutionNameTextView = (TextView) itemLayout.findViewById(R.id.resolutionNameTextView);
+                resolutionNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+                resolutionNameTextView.setText(ref_header.getResolutionTitle());
+                itemLayout.setTag(ref_header);
+                itemLayout.setOnClickListener(resolutionClickListener);
+                resolutionLayout.addView(itemLayout);
+            } else {
+            	resolutionListLabel.setVisibility(View.GONE);
             }
         }
     }
@@ -202,10 +230,11 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
     // 
     private TextView dateTextView, stateTextView, importanceTextView, flagTextView, documentsTextView, jobsTextView, subtasksTextView, commentsTextView;
     
-    private TextView documentsListLabel, historiesLabel, performersListLabel;
-    private LinearLayout documentsLayout, historiesLayout, performersLayout;
+    private TextView documentsListLabel, historiesLabel, performersListLabel, resolutionListLabel;
+    private LinearLayout documentsLayout, historiesLayout, performersLayout, resolutionLayout;
     
     private RelativeLayout taskCountLayout;
+    private ScrollView mScrollView;
     
     private ImageView importanceView, attachmentView, discussionView;
     
@@ -258,9 +287,11 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         
         setFonts();
         updateData();
+        //retainScrollViewPosition();
         return rootView;
     }
     private void initViews(View v) {
+    	mScrollView = (ScrollView) v.findViewById(R.id.taskScrollView);
         ((TextView) v.findViewById(R.id.dateLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.stateLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         ((TextView) v.findViewById(R.id.importanceLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
@@ -270,11 +301,10 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         ((TextView) v.findViewById(R.id.commentsLabel)).setTypeface(mDirect.mPFDinDisplayPro_Reg);
         
         documentsListLabel = (TextView) v.findViewById(R.id.documentsListLabel);
-        documentsListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         historiesLabel = (TextView) v.findViewById(R.id.historiesLabel);
-        historiesLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        documentsListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         performersListLabel = (TextView) v.findViewById(R.id.performersListLabel);
-        performersListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        resolutionListLabel = (TextView) v.findViewById(R.id.resolutionListLabel);
         
         dateTextView = (TextView) v.findViewById(R.id.dateTextView);
         stateTextView = (TextView) v.findViewById(R.id.stateTextView);
@@ -288,6 +318,7 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         documentsLayout = (LinearLayout) v.findViewById(R.id.documentsLayout);
         historiesLayout = (LinearLayout) v.findViewById(R.id.historiesLayout);
         performersLayout = (LinearLayout) v.findViewById(R.id.performersLayout);
+        resolutionLayout = (LinearLayout) v.findViewById(R.id.resolutionLayout);
         taskCountLayout = (RelativeLayout) v.findViewById(R.id.taskCountLayout);
         taskCountLayout.setOnClickListener(new OnClickListener() {
             @Override
@@ -308,9 +339,12 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
     }
     private void setFonts() {
         actionsView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-//        subtaskView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         taskTitleTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
         propertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        
+        historiesLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        performersListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        resolutionListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         
         for (TextView tv : new TextView[]{dateTextView, stateTextView, importanceTextView,
                 flagTextView, documentsTextView, jobsTextView, subtasksTextView, commentsTextView}) {
@@ -351,6 +385,7 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         new GetJobsAsyncTask().execute();
         new GetDocumentsAsyncTask().execute();
         new GetHistoriesAsyncTask().execute();
+        new GetResolutionAsyncTask().execute();
     }
     OnClickListener actionsClickListener = new OnClickListener() {
         @Override
@@ -411,6 +446,33 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
             }
         }
     };
+    OnClickListener resolutionClickListener = new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+        	Log.v(TAG, "resolutionClickListener ");
+        	if (mListener != null) {
+        		// Открытие резолюции
+//        		ReferenceHeader ref_header = (ReferenceHeader)v.getTag();
+                Bundle args = new Bundle();
+                args.putParcelable(ResolutionDetailFragment.TASK_KEY, mTask);
+                mListener.OnOpenFragment(ResolutionDetailFragment.class.getName(), args);
+                //saveScrollViewPosition();
+            }
+        }
+    };
+    private int scrollX, scrollY;
+    private void saveScrollViewPosition() {
+    	scrollX = mScrollView.getScrollX();
+    	scrollY = mScrollView.getScrollY();
+    }
+    private void retainScrollViewPosition() {
+    	mScrollView.post(new Runnable() {
+			@Override
+			public void run() {
+				mScrollView.scrollTo(scrollX, scrollY);
+			}
+		});
+    }
     private void showDownloadDialog(Attachment doc) {
         Log.v(TAG, "showDownloadDialog " + doc.getName());
         FragmentTransaction ft = getFragmentManager().beginTransaction();
