@@ -129,6 +129,9 @@
     <string name="task_detail_fragment_history_text">История:</string>
     <string name="task_create_processing_task_text">Создание задачи, пожалуйста, подождите</string>
     
+    <!-- Окно резолюции (Resolution)-->
+    <string name="resolution_detail_fragment_property_text" formatted="false">Сводящий:\u00A0%s, Срок исполнения:\u00A0%s, Поручение:\u00A0%s</string>
+    
     <!-- Окно Сотрудники -->
     <string name="staff_fragment_sort_fio_text">ФИО</string>
     <string name="staff_fragment_sort_overdue_text">Просроченные</string>
@@ -162,6 +165,9 @@
     <string name="update_db_process_rabotnic_message_text">Обновление данных, пожалуйста, подождите..</string>
     <string name="update_db_process_task_message_text">Обновление данных, пожалуйста, подождите..</string>
     <string name="update_db_process_client_settings_message_text">Обновление данных, пожалуйста, подождите..</string>
+    
+    <string name="reference_save_progress_message_text">Сохранение резолюции, пожалуйста, подождите..</string>
+    <string name="reference_save_progress_nointernet_message_text">Ошибка. Проверьте подключение к Интернет и доступность сервера.</string>
     
     <string name="search_direcrum_searchprocess_task_message">Поиск данных в Directum, пожалуйста, подождите..</string>
     <string name="search_direcrum_searchfailed_message">Не удалось выполнить поиск</string>

@@ -39,6 +39,8 @@ public class ReferenceDetail implements Parcelable {
 	private Map<String, String> _data = new HashMap<String, String>();
 	// Default HashMap keys
 	private static final String _defaultTitleKey = "Наименование";
+	private static final String _poruchenieKey = "Доп2Т";
+	private static final String _dataKey = "Дата2Т";
 
 	public ReferenceDetail(JSONArray json) {
 		updateData(json);
@@ -55,6 +57,31 @@ public class ReferenceDetail implements Parcelable {
 	}
 	public ReferenceDetail(Parcel in) {
 		_data = in.readHashMap(HashMap.class.getClassLoader());
+	}
+	public Map<String, String> getData() {
+		return this._data;
+	}
+	/**
+	 * Поручение
+	 * @return
+	 */
+	public String getPoruchenieText() {
+		String result = "unspecified";
+		if (_data.containsKey(_poruchenieKey)) {
+			result = _data.get(_poruchenieKey);
+		}
+		return result;
+	}
+	/**
+	 * Срок исполнения
+	 * @return
+	 */
+	public String getDataText() {
+		String result = "unspecified";
+		if (_data.containsKey(_dataKey)) {
+			result = _data.get(_dataKey);
+		}
+		return result;
 	}
 	public String getResolutionTitle() {
 		return getResolutionTitle(_defaultTitleKey);

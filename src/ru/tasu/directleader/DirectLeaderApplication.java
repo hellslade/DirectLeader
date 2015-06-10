@@ -73,6 +73,7 @@ public class DirectLeaderApplication extends Application {
     private static final String GET_RABOTNIC = "/GetRabotnic"; //?lastSyncDate={LASTSYNCDATE}&podr={PODR}
     private static final String GET_PING = "/Ping";
     private static final String GET_SEARCH_DOCS = "/SearchDocs?criteria=%s"; //?criteria={CRITERIA}
+    private static final String POST_SAVE_REFERENCE = "/SaveReference";
 //    private static final String POST_ADD_EXT_COMMENT = "/AddExtComments";
 //    private static final String POST_CHECK_FINISHED_TASKS = "/CheckFinishedTasks";
 //    private static final String GET_EXPORT_DOCUMENT = "/ExportDocument?docId=%s"; //?docId={DOCID}
@@ -440,7 +441,7 @@ public class DirectLeaderApplication extends Application {
         }
         // Обработка ответа
         JSONObject data = new JSONObject();
-        String task_id = "";;
+        String task_id = "";
         Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
         switch (response.getStatusLine().getStatusCode()) {
             case 200: // Успешно
@@ -460,6 +461,27 @@ public class DirectLeaderApplication extends Application {
         try {
             data.put("statusCode", response.getStatusLine().getStatusCode());
             data.put("task_id", task_id);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+    public JSONObject PostSaveReference(JSONObject json) {
+        if (!isServiceAvailable()) {
+            return null;
+        }
+        String url = getDirectLeaderServiceURL() + POST_SAVE_REFERENCE;
+        HttpResponse response = sendDataPostJSON(url, json);
+        if (response == null) {
+            return null;
+        }
+        // Обработка ответа
+        JSONObject data = new JSONObject();
+        Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+        data = ReadResponseJSONObject(response);
+        
+        try {
+            data.put("statusCode", response.getStatusLine().getStatusCode());
         } catch (JSONException e) {
             e.printStackTrace();
         }
