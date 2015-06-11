@@ -24,6 +24,7 @@ import ru.tasu.directleader.UsersDialogFragment.UserType;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -591,11 +592,11 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
     private void showUsersDialog(UserType type) {
         Log.v(TAG, "showUsersDialog " + type.ordinal());
         Usertype = type;
-        UsersDialogFragment newFragment = UsersDialogFragment.newInstance((ArrayList<Rabotnic>)mRabotnics);
+        UsersDialogFragment newFragment = UsersDialogFragment.newInstance((ArrayList<Rabotnic>)mRabotnics, this);
         newFragment.show(getFragmentManager(), "users_dialog");
     }
     @Override
-    public void onUserSelect(Rabotnic user) {
+    public void onUserSelect(DialogFragment fragment, Rabotnic user) {
         switch (Usertype) {
             case PERFORMER:
                 Log.v(TAG, "new Permormer " + user.getName());

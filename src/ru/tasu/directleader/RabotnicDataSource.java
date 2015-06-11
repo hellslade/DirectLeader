@@ -15,7 +15,7 @@ public class RabotnicDataSource {
     // Database fields
     private SQLiteDatabase database;
     private DBHelper dbHelper;
-    private String[] allColumns = {DBHelper.RABOTNIC__ID, DBHelper.RABOTNIC_CODE, DBHelper.RABOTNIC_ID, DBHelper.RABOTNIC_LOGIN, DBHelper.RABOTNIC_NAME,
+    private String[] allColumns = {DBHelper.RABOTNIC__ID, DBHelper.RABOTNIC_CODE, DBHelper.RABOTNIC_CODERAB, DBHelper.RABOTNIC_ID, DBHelper.RABOTNIC_LOGIN, DBHelper.RABOTNIC_NAME,
             DBHelper.RABOTNIC_PHOTO, DBHelper.RABOTNIC_PODR, DBHelper.RABOTNIC_POST_KIND};
 
     public RabotnicDataSource(Context context) {
@@ -30,6 +30,7 @@ public class RabotnicDataSource {
     public Rabotnic createRabotnik(Rabotnic new_rabotnik) {
         ContentValues values = new ContentValues();
         values.put(DBHelper.RABOTNIC_CODE, new_rabotnik.getCode());
+        values.put(DBHelper.RABOTNIC_CODERAB, new_rabotnik.getCodeRab());
         values.put(DBHelper.RABOTNIC_ID, new_rabotnik.getId());
         values.put(DBHelper.RABOTNIC_LOGIN, new_rabotnik.getLogin());
         values.put(DBHelper.RABOTNIC_NAME, new_rabotnik.getName());
@@ -49,6 +50,7 @@ public class RabotnicDataSource {
     public boolean createRabotnikFromJSON(JSONObject json) {
         ContentValues values = new ContentValues();
         values.put(DBHelper.RABOTNIC_CODE, json.optString("Code"));
+        values.put(DBHelper.RABOTNIC_CODERAB, json.optString("CodeRab"));
         values.put(DBHelper.RABOTNIC_ID, json.optLong("Id"));
         values.put(DBHelper.RABOTNIC_LOGIN, json.optString("Login"));
         values.put(DBHelper.RABOTNIC_NAME, json.optString("Name"));
@@ -77,10 +79,17 @@ public class RabotnicDataSource {
         Rabotnic rabotnic = null;
         Cursor cursor = database.query(DBHelper.RABOTNIC_TABLE,
                 allColumns, DBHelper.RABOTNIC_CODE + " = ?", new String[]{code}, null, null, null, "1");
-//        String sql = "SELECT * FROM rabotnic WHERE code = ? LIMIT 1;";
-//        Log.v("RabotnicDataSource", "getRabotnicByCode() START");
-//        Cursor cursor = database.rawQuery(sql, new String[]{code});
-//        Log.v("RabotnicDataSource", "getRabotnicByCode() END");
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+            rabotnic = cursorToRabotnic(cursor);
+        }
+        cursor.close();
+        return rabotnic;
+    }
+    public Rabotnic getRabotnicByCodeRab(String codeRab) {
+        Rabotnic rabotnic = null;
+        Cursor cursor = database.query(DBHelper.RABOTNIC_TABLE,
+                allColumns, DBHelper.RABOTNIC_CODERAB + " = ?", new String[]{codeRab}, null, null, null, "1");
         cursor.moveToFirst();
         if (cursor.getCount() > 0) {
             rabotnic = cursorToRabotnic(cursor);
@@ -144,11 +153,11 @@ public class RabotnicDataSource {
     private Rabotnic cursorToRabotnic(Cursor cursor) {
 //        Log.v("RabotnicDataSource", "cursorToRabotnic() START");
         //int id, String address, String point, String work_hours, int brand, String last_modified
-//        DBHelper.RABOTNIC__ID, DBHelper.RABOTNIC_CODE, DBHelper.RABOTNIC_ID, DBHelper.RABOTNIC_LOGIN, DBHelper.RABOTNIC_NAME,
+//        DBHelper.RABOTNIC__ID, DBHelper.RABOTNIC_CODE, DBHelper.RABOTNIC_CODERAB, DBHelper.RABOTNIC_ID, DBHelper.RABOTNIC_LOGIN, DBHelper.RABOTNIC_NAME,
 //        DBHelper.RABOTNIC_PHOTO, DBHelper.RABOTNIC_PODR, DBHelper.RABOTNIC_POST_KIND
 //        String code, long id, String login, String name, String photo, String podr, String podt_kind
-        // Вместо photo "cursor.getString(5)" передаю пустую строку, почему-то photo очень тормозит создание объекта 
-        Rabotnic rabotnic = new Rabotnic(cursor.getString(1), cursor.getLong(2), cursor.getString(3), cursor.getString(4), "", cursor.getString(6), cursor.getString(7));
+        // Вместо photo "cursor.getString(6)" передаю пустую строку, почему-то photo очень тормозит создание объекта 
+        Rabotnic rabotnic = new Rabotnic(cursor.getString(1), cursor.getString(2), cursor.getLong(3), cursor.getString(4), cursor.getString(5), "", cursor.getString(7), cursor.getString(8));
 //      Log.v("cursorToStore", cursor.getInt(0)+" "+cursor.getString(1)+" "+cursor.getString(2)+" "+cursor.getString(3)+" "+cursor.getInt(4)+" "+cursor.getString(5));
 //        Log.v("RabotnicDataSource", "cursorToRabotnic() END");
         return rabotnic;

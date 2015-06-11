@@ -40,11 +40,13 @@ public class UsersDialogFragment extends DialogFragment {
         }
         @Override
         protected List<Rabotnic> doInBackground(Void... params) {
-            RabotnicDataSource rds = new RabotnicDataSource(getActivity());
-            rds.open();
-            List<Rabotnic> rabs = rds.getAllRabotnics();
-            rds.close();
-            return rabs;
+        	if (mRabotnics == null) {
+        		RabotnicDataSource rds = new RabotnicDataSource(getActivity());
+                rds.open();
+                mRabotnics = rds.getAllRabotnics();
+                rds.close();
+            }
+        	return mRabotnics;
         }
         @Override
         protected void onPostExecute(List<Rabotnic> result) {
@@ -69,13 +71,12 @@ public class UsersDialogFragment extends DialogFragment {
     
     private OnUserSelectListener mListener;
     
-    private ArrayList<Rabotnic> mRabotnics;
+    private List<Rabotnic> mRabotnics;
     
-    static UsersDialogFragment newInstance(ArrayList<Rabotnic> rabotnics) {
+    static UsersDialogFragment newInstance(List<Rabotnic> rabotnics, OnUserSelectListener listener) {
         UsersDialogFragment f = new UsersDialogFragment();
-        Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList("rabotnics", rabotnics);
-        f.setArguments(bundle);
+        f.setOnUserSelectListener(listener);
+        f.mRabotnics = rabotnics;
         return f;
     }
 
@@ -85,10 +86,6 @@ public class UsersDialogFragment extends DialogFragment {
         
         mDirect = (DirectLeaderApplication) getActivity().getApplication();
         mSettings = mDirect.getSettings();
-        
-        if (getArguments() != null) {
-            mRabotnics = getArguments().getParcelableArrayList("rabotnics");
-        }
         
         int style = DialogFragment.STYLE_NO_TITLE;
         int theme = android.R.style.Theme_Holo_Light_Dialog;
@@ -108,14 +105,8 @@ public class UsersDialogFragment extends DialogFragment {
         
         setFonts();
         initSearch();
-        if (mRabotnics == null) {
-            new GetUsersAsyncTask().execute();
-        } else {
-            mAdapter.clear();
-            mAdapter.addAll(mRabotnics);
-            mAdapter.sort(fioComparator);
-            mAdapter.notifyDataSetChanged();
-        }
+        new GetUsersAsyncTask().execute();
+        
         usersListView.setOnItemClickListener(itemClickListener);
         return v;
     }
@@ -138,6 +129,9 @@ public class UsersDialogFragment extends DialogFragment {
             }
         });
     }
+    private void setOnUserSelectListener(OnUserSelectListener listener) {
+    	mListener = listener;
+    }
     final private Comparator<Rabotnic> fioComparator = new Comparator<Rabotnic>() {
         public int compare(Rabotnic r1, Rabotnic r2) {
             return r1.getName().toUpperCase(Utils.mLocale).compareTo(r2.getName().toUpperCase(Utils.mLocale));
@@ -147,20 +141,12 @@ public class UsersDialogFragment extends DialogFragment {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View v, int pos, long id) {
             if (mListener != null) {
-                mListener.onUserSelect(mAdapter.getItem(pos));
+                mListener.onUserSelect(UsersDialogFragment.this, mAdapter.getItem(pos));
                 mAdapter.remove(mAdapter.getItem(pos));
             }
         }
     };
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (OnUserSelectListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement OnUserSelectListener");
-        }
-    };
     public interface OnUserSelectListener {
-        public void onUserSelect(Rabotnic user);
+        public void onUserSelect(DialogFragment fragment, Rabotnic user);
     }
 }

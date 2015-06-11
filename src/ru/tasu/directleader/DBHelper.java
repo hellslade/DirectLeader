@@ -109,6 +109,7 @@ private static final String TAG = "DBHelper";
     public static final String RABOTNIC_TABLE = "rabotnic";
     public static final String RABOTNIC__ID = "_id";
     public static final String RABOTNIC_CODE = "code";
+    public static final String RABOTNIC_CODERAB = "coderab";
     public static final String RABOTNIC_ID = "id";
     public static final String RABOTNIC_LOGIN = "login";
     public static final String RABOTNIC_NAME = "name";
@@ -119,6 +120,7 @@ private static final String TAG = "DBHelper";
             String.format("create table %s (" +
                     "%s integer primary key, " +
                     "%s text, " +
+                    "%s text, " +
                     "%s integer, " +
                     "%s text, " +
                     "%s text, " +
@@ -126,7 +128,7 @@ private static final String TAG = "DBHelper";
                     "%s text, " +
                     "%s text)",
                     RABOTNIC_TABLE,
-                    RABOTNIC__ID, RABOTNIC_CODE, RABOTNIC_ID, RABOTNIC_LOGIN, RABOTNIC_NAME, RABOTNIC_PHOTO, RABOTNIC_PODR, RABOTNIC_POST_KIND);
+                    RABOTNIC__ID, RABOTNIC_CODE, RABOTNIC_CODERAB, RABOTNIC_ID, RABOTNIC_LOGIN, RABOTNIC_NAME, RABOTNIC_PHOTO, RABOTNIC_PODR, RABOTNIC_POST_KIND);
     
     private static final String RABOTNIC_CREATE_INDEX = String.format("CREATE INDEX %s_%s ON %s (%s COLLATE NOCASE);", RABOTNIC_TABLE, RABOTNIC_CODE, RABOTNIC_TABLE, RABOTNIC_CODE);
             

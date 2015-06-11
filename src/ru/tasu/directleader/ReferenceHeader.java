@@ -92,6 +92,18 @@ public class ReferenceHeader implements Parcelable {
 		}
 		return title;
 	}
+	public void setCodeRab(String code) {
+		this._data.put("Работник", code);
+	}
+	public void setOnControl(String control) {
+		this._data.put("ControlType", control);
+	}
+	public void setDate(String date) {
+		this._data.put("Дата", date);
+	}
+	public void setDatePlan(String date) {
+		this._data.put("Дата2", date);
+	}
 	
 	public static final Parcelable.Creator<ReferenceHeader> CREATOR = new Parcelable.Creator<ReferenceHeader>() {
 

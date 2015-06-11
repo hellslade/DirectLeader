@@ -16,6 +16,7 @@ public class Rabotnic implements Parcelable {
     
     // Описание полей
     private String _code;
+    private String _codeRab;
     private long _id;
     private String _login; // Наверно поле не используется
     private String _name;
@@ -39,8 +40,9 @@ public class Rabotnic implements Parcelable {
     public Rabotnic(JSONObject json) {
         updateData(json);
     }
-    public Rabotnic(String code, long id, String login, String name, String photo, String podr, String post_kind) {
+    public Rabotnic(String code, String codeRab, long id, String login, String name, String photo, String podr, String post_kind) {
         this._code = code;
+        this._codeRab = codeRab;
         this._id = id;
         this._login = login;
         this._name = name;
@@ -50,6 +52,7 @@ public class Rabotnic implements Parcelable {
     }
     public Rabotnic(Parcel in) {
         this._code = in.readString();
+        this._codeRab = in.readString();
         this._id = in.readLong();
         this._login = in.readString();
         this._name = in.readString();
@@ -59,6 +62,7 @@ public class Rabotnic implements Parcelable {
     }
     public void updateData(JSONObject data) {
         this._code = data.optString("Code");
+        this._codeRab = data.optString("CodeRab");
         this._id = data.optLong("Id");
         this._login = data.optString("Login");
         this._name = data.optString("Name");
@@ -68,6 +72,9 @@ public class Rabotnic implements Parcelable {
     }
     public String getCode() {
         return this._code;
+    }
+    public String getCodeRab() {
+        return this._codeRab;
     }
     public long getId() {
         return this._id;
@@ -127,6 +134,7 @@ public class Rabotnic implements Parcelable {
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
         parcel.writeString(this._code);
+        parcel.writeString(this._codeRab);
         parcel.writeLong(this._id);
         parcel.writeString(this._login);
         parcel.writeString(this._name);

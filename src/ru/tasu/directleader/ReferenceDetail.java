@@ -93,6 +93,9 @@ public class ReferenceDetail implements Parcelable {
 		}
 		return title;
 	}
+	public void setCodeRab(String code) {
+		this._data.put("PerformerT", code);
+	}
 	
 	public static final Parcelable.Creator<ReferenceDetail> CREATOR = new Parcelable.Creator<ReferenceDetail>() {
 
