@@ -1,108 +1,84 @@
 package ru.tasu.directleader;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 //ReferenceHeader: [
-//    {
-//	    Key: "ИД",
-//	    Value: "167926"
-//    },
-//    {
-//	    Key: "Вид",
-//	    Value: "3342"
-//    },
-//    {
-//	    Key: "Аналитика-оригинал",
-//	    Value: "ОД000010"
-//    },
-//    {
-//	    Key: "Наименование",
-//	    Value: "Поручение №2 от 17.04.2015. Содержание (167926)"
-//    },
-//    {
-//	    Key: "Текст",
-//	    Value: "Содержание"
-//    },
-//    {
-//	    Key: "Дата",
-//	    Value: "17.04.2015"
-//    },
-//    {
-//	    Key: "Employee",
-//	    Value: "НД000023"
-//    },
-//    {
-//	    Key: "Ссылка",
-//	    Value: "2"
-//    },
-//    {
-//	    Key: "Дата2",
-//	    Value: "18.05.2015"
-//    },
-//    {
-//	    Key: "Работник",
-//	    Value: "НД000023"
-//    },
-//    {
-//	    Key: "LongString",
-//	    Value: "Григорьев А.А.; Баклаев С.И."
-//    },
-//  ]
+//	{
+//		DataType: "rdtString",
+//		Id: 167967,
+//		IsVisible: true,
+//		Name: "Наименование",
+//		Title: "Наименование",
+//		TypeReference: "",
+//		Value: "Поручение №1 от 15.06.2015. В работу (167967)"
+//	},{
+//		DataType: "rdtText",
+//		Id: 167967,
+//		IsVisible: true,
+//		Name: "Текст",
+//		Title: "Содержание",
+//		TypeReference: "",
+//		Value: "В работу"
+//	},{
+//		DataType: "rdtDate",
+//		Id: 167967,
+//		IsVisible: true,
+//		Name: "Дата",
+//		Title: "Дата поручения",
+//		TypeReference: "",
+//		Value: "15.06.2015"
+//	},{
+//		DataType: "rdtDate",
+//		Id: 167967,
+//		IsVisible: true,
+//		Name: "Дата2",
+//		Title: "Срок",
+//		TypeReference: "",
+//		Value: "15.07.2015"
+//	},{
+//		DataType: "rdtPick",
+//		Id: 167967,
+//		IsVisible: true,
+//		Name: "ControlType",
+//		Title: "На контроле",
+//		TypeReference: "",
+//		Value: "No"
+//	},{
+//		DataType: "rdtReference",
+//		Id: 167967,
+//		IsVisible: true,
+//		Name: "Работник",
+//		Title: "Контролер",
+//		TypeReference: "РАБ",
+//		Value: null
+//	}
+//]
 
-public class ReferenceHeader implements Parcelable {
+public class ReferenceHeader extends Reference implements Parcelable {
 	private static final String TAG = "ReferenceHeader";
 	
-	private Map<String, String> _data = new HashMap<String, String>();
-	// Default HashMap keys
-	private static final String _defaultTitleKey = "Наименование";
-
 	public ReferenceHeader(JSONArray json) {
 		updateData(json);
 	}
-	public void updateData(JSONArray json) {
-		String key, value;
-		JSONObject obj;
-		for (int i=0 ; i<json.length() ; i++) {
-			obj = json.optJSONObject(i);
-			key = obj.optString("Key");
-			value = obj.optString("Value");
-			_data.put(key, value);
-		}
-	}
 	public ReferenceHeader(Parcel in) {
-		_data = in.readHashMap(HashMap.class.getClassLoader());
-	}
-	public Map<String, String> getData() {
-		return this._data;
+		in.readList(_data, List.class.getClassLoader());
 	}
 	public String getResolutionTitle() {
-		return getResolutionTitle(_defaultTitleKey);
-	}
-	public String getResolutionTitle(String titleKey) {
-		String title = "unspecified";
-		if (_data.containsKey(titleKey)) {
-			title = _data.get(titleKey);
+//		Name: "Наименование",
+		JSONObject obj = getAttributeByName("Наименование");
+		if (obj == null) {
+			return "";
 		}
-		return title;
-	}
-	public void setCodeRab(String code) {
-		this._data.put("Работник", code);
-	}
-	public void setOnControl(String control) {
-		this._data.put("ControlType", control);
-	}
-	public void setDate(String date) {
-		this._data.put("Дата", date);
-	}
-	public void setDatePlan(String date) {
-		this._data.put("Дата2", date);
+		return obj.optString("Value");
 	}
 	
 	public static final Parcelable.Creator<ReferenceHeader> CREATOR = new Parcelable.Creator<ReferenceHeader>() {
@@ -121,6 +97,6 @@ public class ReferenceHeader implements Parcelable {
     }
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
-    	parcel.writeMap(_data);
+    	parcel.writeList(_data);
     }
 }

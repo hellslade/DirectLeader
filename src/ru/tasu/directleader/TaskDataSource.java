@@ -41,7 +41,6 @@ public class TaskDataSource {
         values.put(DBHelper.TASK_DEADLINE, new_task.getDeadline());
         values.put(DBHelper.TASK_EXECUTED, new_task.getExecuted());
         values.put(DBHelper.TASK_ID, new_task.getId());
-        Log.v("createTask", "TASK_IMPORTANCE " + new_task.getImportance());
         values.put(DBHelper.TASK_IMPORTANCE, new_task.getImportance());
         values.put(DBHelper.TASK_OBSERVERS, new_task.getObservers());
         values.put(DBHelper.TASK_PARTICIPANTS, new_task.getParticipants());
@@ -257,6 +256,27 @@ public class TaskDataSource {
         // Make sure to close the cursor
         cursor.close();
         return title;
+    }
+    public Task updateTask(Task task) {
+    	ContentValues values = new ContentValues();
+    	values.put(DBHelper.TASK_ACTION_LIST, task.getActionList());
+        values.put(DBHelper.TASK_AUTHOR_CODE, task.getAuthorCode());
+        values.put(DBHelper.TASK_CREATED, task.getCreated());
+        values.put(DBHelper.TASK_DEADLINE, task.getDeadline());
+        values.put(DBHelper.TASK_EXECUTED, task.getExecuted());
+        values.put(DBHelper.TASK_ID, task.getId());
+        values.put(DBHelper.TASK_IMPORTANCE, task.getImportance());
+        values.put(DBHelper.TASK_OBSERVERS, task.getObservers());
+        values.put(DBHelper.TASK_PARTICIPANTS, task.getParticipants());
+        values.put(DBHelper.TASK_ROUTE_NAME, task.getRouteName());
+        values.put(DBHelper.TASK_STATE, task.getState());
+        values.put(DBHelper.TASK_SUBTASK_IDS, task.getSubtaskIds());
+        values.put(DBHelper.TASK_TITLE, task.getTitle());
+        values.put(DBHelper.TASK_REFERENCE_DETAIL, task.getReferenceDetail());
+        values.put(DBHelper.TASK_REFERENCE_HEADER, task.getReferenceHeader());
+		int num = database.update(DBHelper.TASK_TABLE, values, "id=?", new String[]{String.valueOf(task.getId())});
+		
+    	return getTaskById(task.getId());
     }
     
     public int deleteAllTasks() {

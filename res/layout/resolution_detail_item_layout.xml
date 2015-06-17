@@ -32,7 +32,7 @@
 		        android:maxLines="1"
 		        android:singleLine="true"
 		        android:layout_weight="2"
-		        android:text="Григорьев Александр Андреевич"/>
+		        android:text=""/>
             <TextView 
                 android:id="@+id/detailPropertyTextView"
                 android:layout_width="match_parent"

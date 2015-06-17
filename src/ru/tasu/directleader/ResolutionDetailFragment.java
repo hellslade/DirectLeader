@@ -1,11 +1,14 @@
 package ru.tasu.directleader;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,21 +23,29 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,24 +53,6 @@ import android.widget.Toast;
 public class ResolutionDetailFragment extends Fragment implements OnClickListener {
     private static final String TAG = "ResolutionDetailFragment";
 
-    private static final String[] visibleHeaderFields = new String[]{"Дата","Дата2", "Текст", "ControlType", "Работник"};
-    private static final Map<String, String> titlesHeaderFields = new HashMap<String, String>();
-    static {
-    	titlesHeaderFields.put("Дата", "Дата поручения");
-    	titlesHeaderFields.put("Дата2", "План. Дата");
-    	titlesHeaderFields.put("Текст", "Текст резолюции");
-    	titlesHeaderFields.put("ControlType", "На котроле");
-    	titlesHeaderFields.put("Работник", "Контролер");
-    }
-    private static final String[] visibleDetailFields = new String[]{"Доп2Т","PerformerT", "ДаНетТ", "Дата2Т"};
-    private static final Map<String, String> titlesDetailFields = new HashMap<String, String>();
-    static {
-    	titlesDetailFields.put("Доп2Т", "Поручение");
-    	titlesDetailFields.put("PerformerT", "Исполнитель");
-    	titlesDetailFields.put("ДаНетТ", "Сводящий");
-    	titlesDetailFields.put("Дата2Т", "Срок исполнения");
-    }
-    
     class GetResolutionDetailAsyncTask extends AsyncTask<Void, Void, List<ReferenceDetail>> {
         @Override
         protected List<ReferenceDetail> doInBackground(Void... params) {
@@ -83,44 +76,61 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	        		    	panel.invalidate();
 	        		    }
 	        		});
-	                Map<String, String> data = detail.getData();
-	                final TextView detailAuthorTextView = (TextView) detailItemLayout.findViewById(R.id.detailAuthorTextView);
-	                final TextView detailPropertyTextView = (TextView) detailItemLayout.findViewById(R.id.detailPropertyTextView);
-	                detailAuthorTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-	                detailPropertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-	                Rabotnic rabotnic = rds.getRabotnicByCodeRab(data.get("PerformerT"));
-	                detailAuthorTextView.setText(rabotnic.getName());
-	                String propText = getResources().getString(R.string.resolution_detail_fragment_property_text);
-	                propText = String.format(propText, data.get("ДаНетТ"), detail.getDataText(), detail.getPoruchenieText());
-	                detailPropertyTextView.setText(propText);
-	                final LinearLayout contentLayout = (LinearLayout) detailItemLayout.findViewById(R.id.contentLayout);
-	                
-	            	String value;
-//	            	for (String key : data.keySet()) {
-            		for (String key : visibleDetailFields) {
-	            		value = data.get(key);
-		                final LinearLayout itemLayout = (LinearLayout) getActivity().getLayoutInflater().inflate(R.layout.reference_detail_item_layout, null);
-		                final TextView detailKeyTextView = (TextView) itemLayout.findViewById(R.id.detailKeyTextView);
-		                detailKeyTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-		                detailKeyTextView.setText(titlesDetailFields.get(key));
-//		                detailKeyTextView.setText(key);
-
-		                final TextView detailValueTextView = (TextView) itemLayout.findViewById(R.id.detailValueTextView);
-		                detailValueTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-		                
-		                if (key.equalsIgnoreCase("PerformerT")) {
-		                	detailValueTextView.setText(rabotnic.getName());
-		                	detailValueTextView.setOnClickListener(detailUserSelectClickListener);
-		                	detailValueTextView.setTag(detail);
-		                } else {
-		                	detailValueTextView.setText(value);
-		                }
-		                detailItemLayout.setTag(detail);
-		                detailValueTextView.setTag(detailItemLayout);
-//		                itemLayout.setTag(detail);
-		                contentLayout.addView(itemLayout);
+	                LayoutParams lp = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+	            	lp.weight = 1;
+	            	
+	            	final TextView detailAuthorTextView = (TextView) detailItemLayout.findViewById(R.id.detailAuthorTextView);
+	            	final TextView detailPropertyTextView = (TextView) detailItemLayout.findViewById(R.id.detailPropertyTextView);
+	            	detailAuthorTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
+	            	detailPropertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+	            	
+	            	Rabotnic rabotnic = rds.getRabotnicByCodeRab(detail.getAttributeItemValue("PerformerT"));
+	            	if (rabotnic != null) {
+	            		detailAuthorTextView.setText(rabotnic.getName());
 	            	}
-	                referenceDetailLayout.addView(detailItemLayout);
+	            	String propText = getResources().getString(R.string.resolution_detail_fragment_property_text);
+	            	propText = String.format(propText, detail.getAttributeItemValue("ДаНетТ"), detail.getAttributeItemValue("Дата2Т"), detail.getAttributeItemValue("Доп2Т"));
+	            	detailPropertyTextView.setText(propText);
+	            	
+	            	final LinearLayout contentLayout = (LinearLayout) detailItemLayout.findViewById(R.id.contentLayout);
+	            	
+	            	List<JSONObject> data = detail.getVisibleAttributes();
+	            	for (JSONObject obj : data) {
+	            		final LinearLayout itemLayout = (LinearLayout) getActivity().getLayoutInflater().inflate(R.layout.reference_detail_item_layout, null);
+	            		final TextView detailNameTextView = (TextView) itemLayout.findViewById(R.id.detailNameTextView);
+	            		detailNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
+	            		detailNameTextView.setText(obj.optString("Title"));
+	            		View valueView = null;
+	            		if (obj.optString("DataType").equalsIgnoreCase("rdtString")) {
+	            			valueView = getTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
+	            			((TextView)valueView).setText(obj.optString("Value"));
+	            			
+		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtText")) {
+		            		valueView = getEditTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
+		            		((EditText)valueView).setText(obj.optString("Value"));
+		            		
+		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtDate")) {
+		            		valueView = getDateView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
+		            		((TextView)valueView).setText(obj.optString("Value"));
+		            		
+		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtPick")) {
+		            		valueView = getCheckBoxView(getActivity(), obj.optString("Name"), detail, "Да", "Нет", detailItemLayout);
+		            		((Switch)valueView).setChecked(obj.optString("Value").equalsIgnoreCase("Да") ? true : false);
+		            		
+		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtReference")) {
+		            		Rabotnic user = rds.getRabotnicByCodeRab(obj.optString("Value"));
+		            		valueView = getUserView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
+		            		if (user != null) {
+		            			((TextView)valueView).setText(user.getName());
+		            		}
+		            	}
+	            		if (valueView != null) {
+	            			valueView.setLayoutParams(lp);
+	            			itemLayout.addView(valueView);
+	            		}
+	            		contentLayout.addView(itemLayout);
+	            	}
+            		referenceDetailLayout.addView(detailItemLayout);
 	            }
             }
             //*/
@@ -129,6 +139,8 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     class GetResolutionHeaderAsyncTask extends AsyncTask<Void, Void, ReferenceHeader> {
         @Override
         protected ReferenceHeader doInBackground(Void... params) {
+        	JSONArray ref_header = mTask.getReferenceHeaderJSON();
+            mReferenceHeader = new ReferenceHeader(ref_header);
             return mReferenceHeader;
         }
         @Override
@@ -137,100 +149,52 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
             RabotnicDataSource rds = new RabotnicDataSource(mDirect);
             rds.open();
             if (ref_header != null) {
-            	Map<String, String> data = ref_header.getData();
+            	referenceHeaderLayout.removeAllViews();
+            	LayoutParams lp = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+            	lp.weight = 1;
             	
-            	final TextView dateTextView = (TextView) referenceHeaderLayout.findViewById(R.id.dateTextView);
-            	final TextView dateValueTextView = (TextView) referenceHeaderLayout.findViewById(R.id.dateValueTextView);
-            	final TextView datePlanTextView = (TextView) referenceHeaderLayout.findViewById(R.id.datePlanTextView);
-            	final TextView datePlanValueTextView = (TextView) referenceHeaderLayout.findViewById(R.id.datePlanValueTextView);
-            	final TextView controlTextView = (TextView) referenceHeaderLayout.findViewById(R.id.controlTextView);
-            	final Switch contolValueCheckbox = (Switch) referenceHeaderLayout.findViewById(R.id.contolValueCheckbox);
-            	final TextView controlerTextView = (TextView) referenceHeaderLayout.findViewById(R.id.controlerTextView);
-            	final TextView controlerValueTextView = (TextView) referenceHeaderLayout.findViewById(R.id.controlerValueTextView);
-            	final TextView descriptionValueEditText = (TextView) referenceHeaderLayout.findViewById(R.id.descriptionValueEditText);
-            	
-            	dateTextView			.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-    			dateValueTextView		.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-    			datePlanTextView		.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-    			datePlanValueTextView	.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-    			controlTextView			.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-    			contolValueCheckbox		.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-    			controlerTextView		.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-    			controlerValueTextView	.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-    			descriptionValueEditText.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-    			
-    			dateValueTextView		 .setText(data.get("Дата"));
-    			datePlanValueTextView	 .setText(data.get("Дата2"));
-    			contolValueCheckbox		 .setChecked(data.get("ControlType").equalsIgnoreCase("Yes") ? true : false);
-    			controlerValueTextView	 .setText(rds.getRabotnicByCodeRab(data.get("Работник")).getName());
-    			descriptionValueEditText .setText(data.get("Текст"));
-    			
-    			dateValueTextView		.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						final Calendar c = Calendar.getInstance();
-		                new DatePickerDialog(getActivity(), new OnDateSetListener() {
-							@Override
-							public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-								String myFormat = "dd.MM.yyyy"; //In which you need put here
-		    		            SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Utils.mLocale);
-		    		            final Calendar c = Calendar.getInstance();
-		    		            c.set(year, monthOfYear, dayOfMonth);
-		    		            dateValueTextView.setText(sdf.format(c.getTime()));
-//		    		            dateValueTextView.setTag(String.format("%s-%s-%s", year, monthOfYear, dayOfMonth));
-							}
-						},
-						c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
-					}
-				});
-    			datePlanValueTextView	.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						final Calendar c = Calendar.getInstance();
-		                new DatePickerDialog(getActivity(), new OnDateSetListener() {
-							@Override
-							public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-								String myFormat = "dd.MM.yyyy"; //In which you need put here
-		    		            SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Utils.mLocale);
-		    		            final Calendar c = Calendar.getInstance();
-		    		            c.set(year, monthOfYear, dayOfMonth);
-		    		            datePlanValueTextView.setText(sdf.format(c.getTime()));
-//		    		            datePlanValueTextView.setTag(String.format("%s-%s-%s", year, monthOfYear, dayOfMonth));
-							}
-						},
-						c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
-					}
-				}); 
-    			contolValueCheckbox		.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-					@Override
-					public void onCheckedChanged(CompoundButton arg0, boolean isChecked) {
-						mReferenceHeader.setOnControl(isChecked == true ? "Yes" : "No");
-					}
-				}); 
-    			controlerValueTextView	.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						UsersDialogFragment frag = UsersDialogFragment.newInstance(null, new OnUserSelectListener() {
-							@Override
-							public void onUserSelect(DialogFragment fragment, Rabotnic user) {
-								mReferenceHeader.setCodeRab(user.getCodeRab());
-								fragment.dismiss();
-								controlerValueTextView.setText(user.getName());
-							}
-						});
-						frag.show(getFragmentManager(), "userSelect");
-					}
-				}); 
-    			descriptionValueEditText.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-					}
-				}); 
+            	List<JSONObject> data = ref_header.getVisibleAttributes();
+            	for (JSONObject obj : data) {
+            		final LinearLayout headerItemLayout = (LinearLayout) getActivity().getLayoutInflater().inflate(R.layout.reference_header_item_layout, null);
+            		final TextView headerNameTextView = (TextView) headerItemLayout.findViewById(R.id.headerNameTextView);
+            		headerNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
+            		headerNameTextView.setText(obj.optString("Title"));
+            		View valueView = null;
+            		if (obj.optString("DataType").equalsIgnoreCase("rdtString")) {
+            			valueView = getTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
+            			((TextView)valueView).setText(obj.optString("Value"));
+            			
+	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtText")) {
+	            		valueView = getEditTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
+	            		((EditText)valueView).setText(obj.optString("Value"));
+	            		
+	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtDate")) {
+	            		valueView = getDateView(getActivity(), obj.optString("Name"), mReferenceHeader);
+	            		((TextView)valueView).setText(obj.optString("Value"));
+	            		
+	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtPick")) {
+	            		valueView = getCheckBoxView(getActivity(), obj.optString("Name"), mReferenceHeader);
+	            		((Switch)valueView).setChecked(obj.optString("Value").equalsIgnoreCase("Yes") ? true : false);
+	            		
+	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtReference")) {
+	            		Rabotnic user = rds.getRabotnicByCodeRab(obj.optString("Value"));
+	            		valueView = getUserView(getActivity(), obj.optString("Name"), mReferenceHeader);
+	            		((TextView)valueView).setText(user.getName());
+	            	}
+            		if (valueView != null) {
+            			valueView.setLayoutParams(lp);
+            			headerItemLayout.addView(valueView);
+            		}
+            		
+            		referenceHeaderLayout.addView(headerItemLayout);
+            	}
             }
         }
     }
     class SaveReferenceAsyncTask extends AsyncTask<Void, Void, JSONObject> {
     	ProgressDialog pg = new ProgressDialog(getActivity());
+    	JSONArray detail = new JSONArray(); // Array of JSONArray of JSONObject
+		JSONArray header = new JSONArray(); // Array of JSONObject
     	@Override
     	protected void onPreExecute() {
     		pg.setCancelable(false);
@@ -242,47 +206,25 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	protected JSONObject doInBackground(Void... params) {
     		boolean success = true;
     		JSONObject json = new JSONObject();
-    		JSONArray detail = new JSONArray(); // Array of JSONArray of JSONObject
-    		JSONArray header = new JSONArray(); // Array of JSONObject
     		
-    		Map<String, String> data = mReferenceHeader.getData();
-        	String value;
-        	for (String key : data.keySet()) {
-        		value = data.get(key);
-        		final JSONObject pair = new JSONObject();
-        		try {
-					pair.put("Key", key);
-//					if (value.equalsIgnoreCase("null")) {
-//						pair.put("Value", null);
-//					} else {
-//						pair.put("Value", value);
-//					}
-					pair.put("Value", value);
-				} catch (JSONException e) {
-					success = false;
-					e.printStackTrace();
-				}
-        		header.put(pair);
-        	}
-        	
-        	for (ReferenceDetail ref_detail : mReferenceDetail) {
+    		List<JSONObject> data = mReferenceHeader.getData();
+    		for (JSONObject headerItem : data) {
+//    			if (headerItem.optString("Value").equalsIgnoreCase("null")) {
+//    				headerItem.put("Value", "");
+//    			}
+    			header.put(headerItem);
+    		}
+    		for (ReferenceDetail ref_detail : mReferenceDetail) {
 	        	data = ref_detail.getData();
-	        	value = "";
 	        	final JSONArray detail_json_array = new JSONArray();
-	        	for (String key : data.keySet()) {
-	        		value = data.get(key);
-	        		final JSONObject pair = new JSONObject();
-	        		try {
-						pair.put("Key", key);
-						pair.put("Value", value);
-					} catch (JSONException e) {
-						success = false;
-						e.printStackTrace();
-					}
-	        		detail_json_array.put(pair);
+	        	for (JSONObject detailItem : data) {
+//	    			if (detailItem.optString("Value").equalsIgnoreCase("null")) {
+//	    				detailItem.put("Value", "");
+//	    			}
+	        		detail_json_array.put(detailItem);
 	        	}
 	        	detail.put(detail_json_array);
-        	}
+    		}
         	
     		try {
 				json.put("ReferenceHeader", header);
@@ -308,12 +250,20 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     				boolean result = json.optBoolean("result");
     				final String message = json.optString("Message");
     				AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-    				if (result) {
+    				if (result || message.equalsIgnoreCase("Сохранение прошло успешно")) {
     					// Сохранение резолюции прошло успешно
     					alertDialog.setTitle("Успешно");
+    					// Сохранить reference в Task
+    					mTask.setReferenceHeader(header);
+    					mTask.setReferenceDetail(detail);
+    					// Записать обновленный Task в БД
+    					TaskDataSource tds = new TaskDataSource(mDirect);
+    					tds.open();
+    					mTask = tds.updateTask(mTask);
+    				} else {
+    					// В любом случае показать диалоговое окно с результатом.
+    					alertDialog.setTitle("Ошибка");
     				}
-    				// В любом случае показать диалоговое окно с результатом.
-    				alertDialog.setTitle("Ошибка");
     				alertDialog.setMessage(message);
     				alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
     				        public void onClick(DialogInterface dialog, int which) {
@@ -351,9 +301,209 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     private List<ReferenceDetail> mReferenceDetail = null;
     
     private ImageButton saveButton;
-//    private TextView taskTitleTextView, propertyTextView;
     private LinearLayout referenceHeaderLayout, referenceDetailLayout;
-    // 
+
+    // View's for ReferenceHeader & ReferenceDetail
+    private TextView getCheckBoxView(Context context, String attrName, final Reference ref) {
+    	return getCheckBoxView(context, attrName, ref, "Yes", "No", null);
+    }
+    private TextView getCheckBoxView(Context context, String attrName, final Reference ref, final String trueValue, final String falseValue, final View layout) {
+    	final Switch view = new Switch(context);
+    	view.setTag(attrName);
+    	view.setBackgroundResource(R.drawable.transparent_back_selector);
+    	view.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton arg0, boolean isChecked) {
+				String attrName = (String)view.getTag();
+				String attrValue = isChecked == true ? trueValue : falseValue;
+				ref.setAttributeItemValue(attrName, attrValue);
+				if (layout != null) {
+	            	updateDetailSummary(layout, ref);
+	            }
+			}
+		}); 
+
+    	return view;
+    }
+    private TextView getEditTextView(Context context, String attrName, final Reference ref) {
+    	return getEditTextView(context, attrName, ref, null);
+    }
+    private TextView getEditTextView(Context context, String attrName, final Reference ref, final View layout) {
+    	final EditText view = new EditText(context);
+    	view.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+    	view.setTag(attrName);
+    	view.setBackgroundResource(R.drawable.edittext_background_rounded);
+    	view.setGravity(Gravity.LEFT);
+    	view.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+    	view.setSingleLine(false);
+    	view.setLines(3);
+    	int padding = (int)(10 * getResources().getDisplayMetrics().density + 0.5f);
+    	view.setPadding(padding, padding, padding, padding);
+    	view.setClickable(true);
+    	view.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+			}
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
+			@Override
+			public void afterTextChanged(Editable s) {
+				String attrName = (String)view.getTag();
+				String attrValue = s.toString();
+				ref.setAttributeItemValue(attrName, attrValue);
+				if (layout != null) {
+	            	updateDetailSummary(layout, ref);
+	            }
+			}
+		}); 
+
+    	return view;
+    }
+    private TextView getUserView(Context context, String attrName, final Reference ref) {
+    	return getUserView(context, attrName, ref, null);
+    }
+    private TextView getUserView(Context context, String attrName, final Reference ref, final View layout) {
+    	final TextView view = new TextView(context);
+    	view.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+    	view.setTag(attrName);
+    	view.setBackgroundResource(R.drawable.transparent_back_selector);
+    	int padding = (int)(10 * getResources().getDisplayMetrics().density + 0.5f);
+    	view.setPadding(padding, padding, padding, padding);
+    	view.setClickable(true);
+    	view.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				UsersDialogFragment frag = UsersDialogFragment.newInstance(null, new OnUserSelectListener() {
+					@Override
+					public void onUserSelect(DialogFragment fragment, Rabotnic user) {
+						fragment.dismiss();
+						view.setText(user.getName());
+						String attrName = (String)view.getTag();
+						String attrValue = user.getCodeRab();
+						ref.setAttributeItemValue(attrName, attrValue);
+						if (layout != null) {
+    		            	updateDetailSummary(layout, ref);
+    		            }
+					}
+				});
+				frag.show(getFragmentManager(), "userSelect");
+			}
+		}); 
+
+    	return view;
+    }
+    private TextView getTextView(Context context, String attrName, final Reference ref) {
+    	return getTextView(context, attrName, ref, null);
+    }
+    private TextView getTextView(Context context, String attrName, final Reference ref, final View layout) {
+    	final TextView view = new TextView(context);
+    	view.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+    	view.setTag(attrName);
+    	view.setBackgroundResource(R.drawable.transparent_back_selector);
+    	int padding = (int)(10 * getResources().getDisplayMetrics().density + 0.5f);
+    	view.setPadding(padding, padding, padding, padding);
+    	view.setClickable(true);
+    	view.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+				builder.setTitle("Введите текст");
+
+				// Set up the input
+				final EditText input = new EditText(getActivity());
+				// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+				input.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+				input.setText(view.getText().toString());
+				builder.setView(input);
+
+				// Set up the buttons
+				builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { 
+				    @Override
+				    public void onClick(DialogInterface dialog, int which) {
+				    	String attrName = (String)view.getTag();
+				    	String attrValue = input.getText().toString();
+				    	view.setText(attrValue);
+				    	ref.setAttributeItemValue(attrName, attrValue);
+				    	if (layout != null) {
+    		            	updateDetailSummary(layout, ref);
+    		            }
+				    }
+				});
+				builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				    @Override
+				    public void onClick(DialogInterface dialog, int which) {
+				        dialog.cancel();
+				    }
+				});
+
+				builder.show();
+			}
+		}); 
+
+    	return view;
+    }
+    private TextView getDateView(Context context, String attrName, final Reference ref) {
+    	return getDateView(context, attrName, ref, null);
+    }
+    private TextView getDateView(Context context, String attrName, final Reference ref, final View layout) {
+    	final TextView view = new TextView(context);
+    	view.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+    	view.setTag(attrName);
+    	view.setBackgroundResource(R.drawable.transparent_back_selector);
+    	int padding = (int)(10 * getResources().getDisplayMetrics().density + 0.5f);
+    	view.setPadding(padding, padding, padding, padding);
+    	view.setClickable(true);
+    	view.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				final Calendar c = Calendar.getInstance();
+                new DatePickerDialog(getActivity(), new OnDateSetListener() {
+					@Override
+					public void onDateSet(DatePicker picker, int year, int monthOfYear, int dayOfMonth) {
+						String myFormat = "dd.MM.yyyy"; //In which you need put here
+    		            SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Utils.mLocale);
+    		            final Calendar c = Calendar.getInstance();
+    		            c.set(year, monthOfYear, dayOfMonth);
+    		            String attrName = (String)view.getTag();
+    		            String attrValue = sdf.format(c.getTime());
+    		            view.setText(attrValue);
+    		            ref.setAttributeItemValue(attrName, attrValue);
+//    		            view.setTag(String.format("%s-%s-%s", year, monthOfYear, dayOfMonth));
+    		            if (layout != null) {
+    		            	updateDetailSummary(layout, ref);
+    		            }
+					}
+				},
+				c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+			}
+		}); 
+
+    	return view;
+    }
+    
+    
+    private void updateDetailSummary(View detailItemLayout, Reference detail) {
+    	RabotnicDataSource rds = new RabotnicDataSource(mDirect);
+        rds.open();
+        
+        final TextView detailAuthorTextView = (TextView) detailItemLayout.findViewById(R.id.detailAuthorTextView);
+    	final TextView detailPropertyTextView = (TextView) detailItemLayout.findViewById(R.id.detailPropertyTextView);
+    	
+        Rabotnic rabotnic = rds.getRabotnicByCodeRab(detail.getAttributeItemValue("PerformerT"));
+        if (rabotnic != null) {
+    		detailAuthorTextView.setText(rabotnic.getName());
+    	}
+    	String propText = getResources().getString(R.string.resolution_detail_fragment_property_text);
+    	propText = String.format(propText, detail.getAttributeItemValue("ДаНетТ"), detail.getAttributeItemValue("Дата2Т"), detail.getAttributeItemValue("Доп2Т"));
+    	detailPropertyTextView.setText(propText);
+    }
+    private void addCloningReferenceDetail() {
+    	ReferenceDetail detail = mReferenceDetail.get(mReferenceDetail.size()-1);
+    	ReferenceDetail new_detail = new ReferenceDetail(detail);
+    	new_detail.clearValues();
+    	mReferenceDetail.add(new_detail);
+    }
     
     public static Fragment newInstance(Bundle args) {  // must pass some args
         ResolutionDetailFragment f = new ResolutionDetailFragment();
@@ -386,9 +536,6 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
         }
         Log.v(TAG, "mTask ");
         
-//        taskTitleTextView = (TextView)rootView.findViewById(R.id.taskTitleTextView);
-//        propertyTextView = (TextView)rootView.findViewById(R.id.propertyTextView);
-        
         initViews(rootView);
         
         setFonts();
@@ -400,109 +547,36 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	referenceDetailLayout = (LinearLayout) v.findViewById(R.id.referenceDetailLayout);
     	saveButton = (ImageButton) v.findViewById(R.id.saveButton);
     	saveButton.setOnClickListener(this);
+    	Button addDetailReference = (Button) v.findViewById(R.id.addDetailReference);
+    	addDetailReference.setOnClickListener(this);
     	
-    	JSONArray ref_header = mTask.getReferenceHeaderJSON();
-        mReferenceHeader = new ReferenceHeader(ref_header);
-        
-        JSONArray ref_details = mTask.getReferenceDetailJSON();
+    	JSONArray ref_details = mTask.getReferenceDetailJSON();
         mReferenceDetail = new ArrayList<ReferenceDetail>();
         for (int i=0; i<ref_details.length(); i++) {
         	mReferenceDetail.add(new ReferenceDetail(ref_details.optJSONArray(i)));
         }
     }
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+    	super.onActivityCreated(savedInstanceState);
+    	
+    }
     private void setFonts() {
-//        taskTitleTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-//        propertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        
-//        for (TextView tv : new TextView[]{performerTextView, dateTextView, stateTextView, importanceTextView,
-//                flagTextView, documentsTextView, startDateTextView}) {
-//            tv.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-//        }
     }
     
     private void updateData() {
         new GetResolutionDetailAsyncTask().execute();
     	new GetResolutionHeaderAsyncTask().execute();
     }
-	OnClickListener detailUserSelectClickListener = new OnClickListener() {
-		@Override
-		public void onClick(View v) {
-			final TextView view = (TextView) v;
-			final LinearLayout layout = (LinearLayout) v.getTag();
-			final ReferenceDetail detail = (ReferenceDetail)layout.getTag();
-			Log.v(TAG, "view text " + view.getText().toString());
-			UsersDialogFragment frag = UsersDialogFragment.newInstance(null, new OnUserSelectListener() {
-				@Override
-				public void onUserSelect(DialogFragment fragment, Rabotnic user) {
-					detail.setCodeRab(user.getCodeRab());
-					updateDetailItemLayout(layout, detail);
-					fragment.dismiss();
-				}
-			});
-			frag.show(getFragmentManager(), "userSelect");
-		}
-	};
-	private void updateDetailItemLayout(LinearLayout detailItemLayout, ReferenceDetail detail) {
-        final ExpandablePanel panel = (ExpandablePanel) detailItemLayout.findViewById(R.id.expandablePanel);
-        panel.setOnExpandListener(new ExpandablePanel.OnExpandListener() {
-		    public void onCollapse(View handle, View content) {
-		    	panel.invalidate();
-		    }
-		    public void onExpand(View handle, View content) {
-		    	panel.invalidate();
-		    }
-		});
-        RabotnicDataSource rds = new RabotnicDataSource(mDirect);
-        rds.open();
-        Map<String, String> data = detail.getData();
-        final TextView detailAuthorTextView = (TextView) detailItemLayout.findViewById(R.id.detailAuthorTextView);
-        final TextView detailPropertyTextView = (TextView) detailItemLayout.findViewById(R.id.detailPropertyTextView);
-        detailAuthorTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-        detailPropertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        Rabotnic rabotnic = rds.getRabotnicByCodeRab(data.get("PerformerT"));
-        detailAuthorTextView.setText(rabotnic.getName());
-        String propText = getResources().getString(R.string.resolution_detail_fragment_property_text);
-        propText = String.format(propText, data.get("ДаНетТ"), detail.getDataText(), detail.getPoruchenieText());
-        detailPropertyTextView.setText(propText);
-        final LinearLayout contentLayout = (LinearLayout) detailItemLayout.findViewById(R.id.contentLayout);
-        contentLayout.removeAllViews();
-    	String value;
-		for (String key : visibleDetailFields) {
-    		value = data.get(key);
-            final LinearLayout itemLayout = (LinearLayout) getActivity().getLayoutInflater().inflate(R.layout.reference_detail_item_layout, null);
-            final TextView detailKeyTextView = (TextView) itemLayout.findViewById(R.id.detailKeyTextView);
-            detailKeyTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
-            detailKeyTextView.setText(titlesDetailFields.get(key));
-//            detailKeyTextView.setText(key);
-
-            final TextView detailValueTextView = (TextView) itemLayout.findViewById(R.id.detailValueTextView);
-            detailValueTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-            
-            if (key.equalsIgnoreCase("PerformerT")) {
-            	detailValueTextView.setText(rabotnic.getName());
-            	detailValueTextView.setOnClickListener(detailUserSelectClickListener);
-            	detailValueTextView.setTag(detail);
-            } else {
-            	detailValueTextView.setText(value);
-            }
-            detailItemLayout.setTag(detail);
-            detailValueTextView.setTag(detailItemLayout);
-            contentLayout.addView(itemLayout);
-    	}
-		detailItemLayout.invalidate();
-	}
-	OnClickListener detailValueClickListener = new OnClickListener() {
-		@Override
-		public void onClick(View v) {
-			TextView view = (TextView) v;
-			Log.v(TAG, "view text " + view.getText().toString());
-		}
-	}; 
     @Override
     public void onClick(View v) {
     	switch (v.getId()) {
     		case R.id.saveButton:
     			new SaveReferenceAsyncTask().execute();
+    			break;
+    		case R.id.addDetailReference:
+    			addCloningReferenceDetail();
+    			updateData();
     			break;
     	}
         if (mListener != null) {

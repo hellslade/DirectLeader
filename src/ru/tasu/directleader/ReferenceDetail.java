@@ -1,102 +1,103 @@
 package ru.tasu.directleader;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 //ReferenceDetail: [
-//[
-//    {
-//	    Key: "ИД",
-//	    Value: "46243"
-//    },
-//    {
-//	    Key: "Вид",
-//	    Value: "3342"
-//    },
-//    {
-//	    Key: "ПодразделениеТ",
-//	    Value: "Д000003"
-//    },
-//    {
-//	    Key: "PerformerT",
-//	    Value: "НД000030"
-//    },
-//    {
-//	    Key: "ДатаТ",
-//	    Value: null
-//    },
-//],
+//	[
+//		{
+//			DataType: "rdtInteger",
+//			HeadId: 167967,
+//			Id: 46261,
+//			IsVisible: false,
+//			Name: "ИДЗапГлавРазд",
+//			Title: "ИД записи главного раздела",
+//			TypeReference: "",
+//			Value: "167967"
+//		},{
+//			DataType: "rdtPick",
+//			HeadId: 167967,
+//			Id: 46261,
+//			IsVisible: true,
+//			Name: "ДаНетТ",
+//			Title: "Ответственный",
+//			TypeReference: "",
+//			Value: "Нет"
+//		},{
+//			DataType: "rdtReference",
+//			HeadId: 167967,
+//			Id: 46261,
+//			IsVisible: true,
+//			Name: "PerformerT",
+//			Title: "Исполнитель",
+//			TypeReference: "РАБ",
+//			Value: "НД000023"
+//		},{
+//			DataType: "rdtDate",
+//			HeadId: 167967,
+//			Id: 46261,
+//			IsVisible: true,
+//			Name: "Дата2Т",
+//			Title: "Срок исполнения",
+//			TypeReference: "",
+//			Value: "16.06.2015"
+//		},{
+//			DataType: "rdtString",
+//			HeadId: 167967,
+//			Id: 46261,
+//			IsVisible: true,
+//			Name: "Доп2Т",
+//			Title: "Текст",
+//			TypeReference: "",
+//			Value: "Подготовить отчет"
+//		}
+//	]
+//]
 
-public class ReferenceDetail implements Parcelable {
+public class ReferenceDetail extends Reference implements Parcelable {
 	private static final String TAG = "ReferenceDetail";
 	
-	private Map<String, String> _data = new HashMap<String, String>();
-	// Default HashMap keys
-	private static final String _defaultTitleKey = "Наименование";
-	private static final String _poruchenieKey = "Доп2Т";
-	private static final String _dataKey = "Дата2Т";
-
+	public ReferenceDetail(ReferenceDetail source) {
+		for (JSONObject json : source._data) {
+			try {
+				final JSONObject copy = new JSONObject(json.toString());
+				this._data.add(copy);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	public ReferenceDetail(JSONArray json) {
 		updateData(json);
 	}
-	public void updateData(JSONArray json) {
-		String key, value;
-		JSONObject obj;
-		for (int i=0 ; i<json.length() ; i++) {
-			obj = json.optJSONObject(i);
-			key = obj.optString("Key");
-			value = obj.optString("Value");
-			_data.put(key, value);
-		}
-	}
 	public ReferenceDetail(Parcel in) {
-		_data = in.readHashMap(HashMap.class.getClassLoader());
+		in.readList(_data, List.class.getClassLoader());
 	}
-	public Map<String, String> getData() {
-		return this._data;
-	}
-	/**
-	 * Поручение
-	 * @return
-	 */
-	public String getPoruchenieText() {
-		String result = "unspecified";
-		if (_data.containsKey(_poruchenieKey)) {
-			result = _data.get(_poruchenieKey);
+	public void clearValues() {
+		// Очистить значения, необходимо при копировании
+		String value;
+		for (JSONObject attr : _data) {
+			if (attr.optString("Name").equalsIgnoreCase("ИДЗапГлавРазд")) {
+				value = "-1"; // Это значение нельзя делать пустым, иначе потеряется detail и не будет привязана к текущему header
+			} else {
+				value = "";
+			}
+			try {
+				attr.put("Value", value);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
 		}
-		return result;
 	}
-	/**
-	 * Срок исполнения
-	 * @return
-	 */
-	public String getDataText() {
-		String result = "unspecified";
-		if (_data.containsKey(_dataKey)) {
-			result = _data.get(_dataKey);
-		}
-		return result;
-	}
-	public String getResolutionTitle() {
-		return getResolutionTitle(_defaultTitleKey);
-	}
-	public String getResolutionTitle(String titleKey) {
-		String title = "unspecified";
-		if (_data.containsKey(titleKey)) {
-			title = _data.get(titleKey);
-		}
-		return title;
-	}
-	public void setCodeRab(String code) {
-		this._data.put("PerformerT", code);
-	}
-	
 	public static final Parcelable.Creator<ReferenceDetail> CREATOR = new Parcelable.Creator<ReferenceDetail>() {
 
         public ReferenceDetail createFromParcel(Parcel in) {
@@ -113,6 +114,6 @@ public class ReferenceDetail implements Parcelable {
     }
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
-    	parcel.writeMap(_data);
+    	parcel.writeList(_data);
     }
 }

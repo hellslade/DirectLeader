@@ -130,7 +130,7 @@
     <string name="task_create_processing_task_text">Создание задачи, пожалуйста, подождите</string>
     
     <!-- Окно резолюции (Resolution)-->
-    <string name="resolution_detail_fragment_property_text" formatted="false">Сводящий:\u00A0%s, Срок исполнения:\u00A0%s, Поручение:\u00A0%s</string>
+    <string name="resolution_detail_fragment_property_text" formatted="false">Ответственный:\u00A0%s, Срок исполнения:\u00A0%s, Поручение:\u00A0%s</string>
     
     <!-- Окно Сотрудники -->
     <string name="staff_fragment_sort_fio_text">ФИО</string>

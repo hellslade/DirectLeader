@@ -404,6 +404,12 @@ References: [
     public JSONArray getReferenceHeaderJSON() {
         return this._reference_header;
     }
+    public void setReferenceHeader(JSONArray json) {
+    	this._reference_header = json;
+    }
+    public void setReferenceDetail(JSONArray json) {
+    	this._reference_detail = json;
+    }
     public String getAuthorCode() {
         return this._author_code;
     }
