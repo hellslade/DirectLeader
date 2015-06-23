@@ -32,7 +32,7 @@ public class TaskDataSource {
     public void close() {
         dbHelper.close();
     }
-    public Task createTask(Task new_task) {
+    public void createTask(Task new_task) {
         ContentValues values = new ContentValues();
 //        values.put(DBHelper.Task__ID, new_Task.getId());
         values.put(DBHelper.TASK_ACTION_LIST, new_task.getActionList());
@@ -74,13 +74,13 @@ public class TaskDataSource {
             job_ds.createJob(job);
         }
         
-        Cursor cursor = database.query(DBHelper.TASK_TABLE,
+        /*Cursor cursor = database.query(DBHelper.TASK_TABLE,
                 allColumns, DBHelper.TASK__ID + " = " + insertId, null,
                 null, null, null);
         cursor.moveToFirst();
         Task newTask = cursorToTask(cursor);
         cursor.close();
-        return newTask;
+        return newTask;*/
     }
     public Task getTaskById(long taskId) {
         Task task = null;
@@ -107,39 +107,19 @@ public class TaskDataSource {
         cursor.close();
         return task;
     }
-    @Deprecated
-    public List<Task> getAllTasksWithoutJobs123() {
-        Log.v("TaskDataSource", "START getAllTasksWithoutJobs");
-        List<Task> tasks = new ArrayList<Task>();
-
+    public JSONArray getAllTaskIds() {
         Cursor cursor = database.query(DBHelper.TASK_TABLE,
-                allColumns, null, null, null, null, null);
+                new String[]{DBHelper.TASK_ID}, null, null, null, null, null);
 
         cursor.moveToFirst();
-        Task task = null;
-        AttachmentDataSource attachment_ds = new AttachmentDataSource(mContext);
-        HistoryDataSource history_ds = new HistoryDataSource(mContext);
-//        JobDataSource job_ds = new JobDataSource(mContext);
-        RabotnicDataSource rabotnic_ds = new RabotnicDataSource(mContext);
-        attachment_ds.open();
-        history_ds.open();
-//        job_ds.open();
-        rabotnic_ds.open();
+        JSONArray taskIds = new JSONArray();
         while (!cursor.isAfterLast()) {
-            task = cursorToTask(cursor);
-            // ѕолучить attachement, history, job дл€ текущей task
-            task.setAttachment(attachment_ds.getAttachmentsByTaskId(task.getId()));
-            task.setHistory(history_ds.getHistoriesByTaskId(task.getId()));
-//            task.setJob(job_ds.getJobsByTaskId(task.getId()));
-            // ѕолучить автора задани€
-            task.setAuthor(rabotnic_ds.getRabotnicByCode(task.getAuthorCode()));
-            tasks.add(task);
+        	taskIds.put(String.valueOf(cursor.getLong(0)));
             cursor.moveToNext();
         }
         // Make sure to close the cursor
         cursor.close();
-        Log.v("TaskDataSource", "END getAllTasksWithoutJobs");
-        return tasks;
+        return taskIds;
     }
     public List<Task> getAllTasksWithoutJobsSQL() {
         Log.v("TaskDataSource", "START getAllTasksWithoutJobsSQL");
@@ -278,17 +258,73 @@ public class TaskDataSource {
 		
     	return getTaskById(task.getId());
     }
-    
-    public int deleteAllTasks() {
+    public void updateTaskWithJobs(Task task) {
+    	ContentValues values = new ContentValues();
+    	values.put(DBHelper.TASK_ACTION_LIST, task.getActionList());
+        values.put(DBHelper.TASK_AUTHOR_CODE, task.getAuthorCode());
+        values.put(DBHelper.TASK_CREATED, task.getCreated());
+        values.put(DBHelper.TASK_DEADLINE, task.getDeadline());
+        values.put(DBHelper.TASK_EXECUTED, task.getExecuted());
+        values.put(DBHelper.TASK_ID, task.getId());
+        values.put(DBHelper.TASK_IMPORTANCE, task.getImportance());
+        values.put(DBHelper.TASK_OBSERVERS, task.getObservers());
+        values.put(DBHelper.TASK_PARTICIPANTS, task.getParticipants());
+        values.put(DBHelper.TASK_ROUTE_NAME, task.getRouteName());
+        values.put(DBHelper.TASK_STATE, task.getState());
+        values.put(DBHelper.TASK_SUBTASK_IDS, task.getSubtaskIds());
+        values.put(DBHelper.TASK_TITLE, task.getTitle());
+        values.put(DBHelper.TASK_REFERENCE_DETAIL, task.getReferenceDetail());
+        values.put(DBHelper.TASK_REFERENCE_HEADER, task.getReferenceHeader());
+		int num = database.update(DBHelper.TASK_TABLE, values, "id=?", new String[]{String.valueOf(task.getId())});
+		
+		// Update соответствующих записей в таблицах attachment, job, history
+        Attachment[] attachments = task.getAttachment();
+        AttachmentDataSource attachment_ds = new AttachmentDataSource(mContext);
+        attachment_ds.open();
+        for (Attachment attach : attachments) {
+            attach.setTaskId(task.getId());
+//            attachment_ds.createAttachment(attach);
+            attachment_ds.insertOrUpdate(attach);
+        }
+        History[] histories = task.getHistory();
+        HistoryDataSource history_ds = new HistoryDataSource(mContext);
+        history_ds.open();
+        for (History history : histories) {
+            history.setTaskId(task.getId());
+//            history_ds.createHistory(history);
+            history_ds.insertOrUpdate(history);
+        }
+        Job[] jobs = task.getJob();
+        JobDataSource job_ds = new JobDataSource(mContext);
+        job_ds.open();
+        for (Job job : jobs) {
+//            job_ds.createJob(job);
+            job_ds.insertOrUpdate(job);
+        }
+        
+//    	return getTaskById(task.getId());
+    }
+    public void insertOrUpdate(Task task) {
+        Cursor cursor = database.query(DBHelper.TASK_TABLE,
+                allColumns, DBHelper.TASK_ID + " = " + task.getId(), null, null, null, null, "1");
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+        	updateTaskWithJobs(task);
+        } else {
+        	createTask(task);
+        }
+    }
+    @Deprecated
+    public int deleteAllTasks123() {
         AttachmentDataSource attachment_ds = new AttachmentDataSource(mContext);
         HistoryDataSource history_ds = new HistoryDataSource(mContext);
         JobDataSource job_ds = new JobDataSource(mContext);
         attachment_ds.open();
         history_ds.open();
         job_ds.open();
-        attachment_ds.deleteAllAttachments();
-        history_ds.deleteAllHistories();
-        job_ds.deleteAllJobs();
+//        attachment_ds.deleteAllAttachments();
+//        history_ds.deleteAllHistories();
+//        job_ds.deleteAllJobs();
         int count = database.delete(DBHelper.TASK_TABLE, "1", null);
         return count;
     }

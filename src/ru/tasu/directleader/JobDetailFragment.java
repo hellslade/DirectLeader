@@ -10,6 +10,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ru.tasu.directleader.TaskDetailFragment.GetResolutionAsyncTask;
+
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
@@ -89,6 +91,39 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
             }
             if (attachments.length == 0) {
                 documentsListLabel.setVisibility(View.GONE);
+            }
+        }
+    }
+    class GetResolutionAsyncTask extends AsyncTask<Void, Void, ReferenceHeader> {
+        @Override
+        protected ReferenceHeader doInBackground(Void... params) {
+        	TaskDataSource tds = new TaskDataSource(mDirect);
+        	tds.open();
+        	Task task = tds.getTaskById(mJob.getMainTaskJob());
+        	if (task == null) {
+        		return null;
+        	}
+        	JSONArray ref_header = task.getReferenceHeaderJSON();
+            if (ref_header.length() == 0) {
+            	return null;
+            }
+            return new ReferenceHeader(ref_header);
+        }
+        @Override
+        protected void onPostExecute(ReferenceHeader ref_header) {
+            super.onPostExecute(ref_header);
+            resolutionLayout.removeAllViews();
+            
+            if (ref_header != null) {
+                final RelativeLayout itemLayout = (RelativeLayout) getActivity().getLayoutInflater().inflate(R.layout.resolution_item_layout, null);
+                final TextView resolutionNameTextView = (TextView) itemLayout.findViewById(R.id.resolutionNameTextView);
+                resolutionNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+                resolutionNameTextView.setText(ref_header.getResolutionTitle());
+                itemLayout.setTag(ref_header);
+                itemLayout.setOnClickListener(resolutionClickListener);
+                resolutionLayout.addView(itemLayout);
+            } else {
+            	resolutionListLabel.setVisibility(View.GONE);
             }
         }
     }
@@ -184,8 +219,8 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
     // 
     private TextView performerTextView, dateTextView, stateTextView, importanceTextView, flagTextView, documentsTextView, startDateTextView;
     
-    private TextView documentsListLabel, historiesLabel;
-    private LinearLayout documentsLayout, historiesLayout;
+    private TextView documentsListLabel, historiesLabel, resolutionListLabel;
+    private LinearLayout documentsLayout, historiesLayout, resolutionLayout;
     
     private EditText commentEditText;
     private CheckBox favoriteView;
@@ -257,7 +292,8 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         documentsListLabel = (TextView) v.findViewById(R.id.documentsListLabel);
         documentsListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);;
         historiesLabel = (TextView) v.findViewById(R.id.historiesLabel);
-        historiesLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);;
+        historiesLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        resolutionListLabel = (TextView) v.findViewById(R.id.resolutionListLabel);
         
         performerTextView = (TextView) v.findViewById(R.id.performerTextView);
         dateTextView = (TextView) v.findViewById(R.id.dateTextView);
@@ -269,6 +305,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         
         documentsLayout = (LinearLayout) v.findViewById(R.id.documentsLayout);
         historiesLayout = (LinearLayout) v.findViewById(R.id.historiesLayout);
+        resolutionLayout = (LinearLayout) v.findViewById(R.id.resolutionLayout);
         
         commentEditText = (EditText) v.findViewById(R.id.commentEditText);
         favoriteView = (CheckBox) v.findViewById(R.id.favoriteView);
@@ -294,6 +331,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         subtaskView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         taskTitleTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
         propertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+        resolutionListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         
         for (TextView tv : new TextView[]{performerTextView, dateTextView, stateTextView, importanceTextView,
                 flagTextView, documentsTextView, startDateTextView}) {
@@ -338,6 +376,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         
         new GetDocumentsAsyncTask().execute();
         new GetHistoriesAsyncTask().execute();
+        new GetResolutionAsyncTask().execute();
     }
     OnCheckedChangeListener favoriteCheckListener = new OnCheckedChangeListener() {
         @Override
@@ -405,6 +444,25 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
                 }
             } else {
                 showDownloadDialog(doc);
+            }
+        }
+    };
+    OnClickListener resolutionClickListener = new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+        	Log.v(TAG, "resolutionClickListener ");
+        	if (mListener != null) {
+        		// Открытие резолюции
+        		TaskDataSource tds = new TaskDataSource(mDirect);
+            	tds.open();
+            	Task task = tds.getTaskById(mJob.getMainTaskJob());
+            	if (task == null) {
+            		return;
+            	}
+                Bundle args = new Bundle();
+                args.putParcelable(ResolutionDetailFragment.TASK_KEY, task);
+                mListener.OnOpenFragment(ResolutionDetailFragment.class.getName(), args);
+                //saveScrollViewPosition();
             }
         }
     };

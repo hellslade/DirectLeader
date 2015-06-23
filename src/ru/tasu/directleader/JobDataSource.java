@@ -32,7 +32,7 @@ public class JobDataSource {
     public void close() {
         dbHelper.close();
     }
-    public Job createJob(Job new_job) {
+    public void createJob(Job new_job) {
         ContentValues values = new ContentValues();
 //        values.put(DBHelper.JOB__ID, new_job.getId());
         values.put(DBHelper.JOB_ACTION_LIST, new_job.getActionList());
@@ -50,13 +50,13 @@ public class JobDataSource {
         values.put(DBHelper.JOB_FAVORITE, new_job.getFavorite());
         long insertId = database.insert(DBHelper.JOB_TABLE, null, values);
         
-        Cursor cursor = database.query(DBHelper.JOB_TABLE,
+        /*Cursor cursor = database.query(DBHelper.JOB_TABLE,
                 allColumns, DBHelper.JOB__ID + " = " + insertId, null,
                 null, null, null);
         cursor.moveToFirst();
         Job newJob = cursorToJob(cursor);
         cursor.close();
-        return newJob;
+        return newJob;*/
     }
     public Job[] getJobsByTaskId(long taskId) {
         Job[] jobs = null;
@@ -315,32 +315,6 @@ public class JobDataSource {
 
         return count;
     }
-    public long[] getFavoriteJobsIds() {
-        long[] jobs;
-        Cursor cursor = database.query(DBHelper.JOB_TABLE,
-                allColumns, DBHelper.JOB_FAVORITE + " = 1", null, null, null, null);
-        cursor.moveToFirst();
-        int i = 0;
-        jobs = new long[cursor.getCount()];
-        while (!cursor.isAfterLast()) {
-            jobs[i++] = (cursor.getLong(4));
-            cursor.moveToNext();
-        }
-        cursor.close();
-        return jobs;
-    }
-    public void setFavoriteJobsIds(long[] ids) {
-        ContentValues cv = new ContentValues();
-        cv.put(DBHelper.JOB_FAVORITE, "1");
-        for (long id : ids) {
-            database.update(DBHelper.JOB_TABLE, cv, "id = ?", new String[] {String.valueOf(id)});
-        }
-    }
-    public int deleteAllJobs() {
-        // »—пользуетс€ при обновлении Ѕƒ. ”дал€ютс€ все задачи, потом заполн€ютс€ из сервиса.
-        int count = database.delete(DBHelper.JOB_TABLE, "1", null);
-        return count;
-    }
     public int deleteJobById(long id) {
         // ”дал€ем также родительский Task, если в нем более нет Job'ов
         TaskDataSource tds = new TaskDataSource(mContext);
@@ -376,6 +350,34 @@ public class JobDataSource {
         Job newJob = cursorToJob(cursor);
         cursor.close();
         return newJob;
+    }
+    public void updateJob(Job job) {
+    	ContentValues values = new ContentValues();
+//      values.put(DBHelper.JOB__ID, new_job.getId());
+      values.put(DBHelper.JOB_ACTION_LIST, job.getActionList());
+      values.put(DBHelper.JOB_END_DATE, job.getEndDate());
+      values.put(DBHelper.JOB_FINAL_DATE, job.getFinalDate());
+//      values.put(DBHelper.JOB_ID, job.getId());
+      values.put(DBHelper.JOB_MAIN_TASK_JOB, job.getMainTaskJob());
+      values.put(DBHelper.JOB_PERFORMER, job.getPerformer());
+      values.put(DBHelper.JOB_READED, job.getReaded());
+      values.put(DBHelper.JOB_RESULT_TITLE, job.getResultTitle());
+      values.put(DBHelper.JOB_START_DATE, job.getStartDate());
+      values.put(DBHelper.JOB_STATE, job.getState());
+      values.put(DBHelper.JOB_STATE_TITLE, job.getStateTitle());
+      values.put(DBHelper.JOB_SUBJECT, job.getSubject());
+      values.put(DBHelper.JOB_FAVORITE, job.getFavorite());
+      int num = database.update(DBHelper.JOB_TABLE, values, "id=?", new String[]{String.valueOf(job.getId())});
+    }
+    public void insertOrUpdate(Job job) {
+    	Cursor cursor = database.query(DBHelper.JOB_TABLE,
+                allColumns, DBHelper.JOB_ID + " = " + job.getId(), null, null, null, null, "1");
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+        	updateJob(job);
+        } else {
+        	createJob(job);
+        }
     }
 
     private Job cursorToJob(Cursor cursor) {

@@ -27,7 +27,7 @@ public class HistoryDataSource {
     public void close() {
         dbHelper.close();
     }
-    public History createHistory(History new_history) {
+    public void createHistory(History new_history) {
         ContentValues values = new ContentValues();
 //        values.put(DBHelper.HISTORY__ID, new_history.getId());
         values.put(DBHelper.HISTORY_AUTHOR_CODE, new_history.getAuthorCode());
@@ -36,13 +36,13 @@ public class HistoryDataSource {
         values.put(DBHelper.HISTORY_TASK_ID, new_history.getTaskId());
         long insertId = database.insert(DBHelper.HISTORY_TABLE, null, values);
         
-        Cursor cursor = database.query(DBHelper.HISTORY_TABLE,
+        /*Cursor cursor = database.query(DBHelper.HISTORY_TABLE,
                 allColumns, DBHelper.HISTORY__ID + " = " + insertId, null,
                 null, null, null);
         cursor.moveToFirst();
         History newHistory = cursorToHistory(cursor);
         cursor.close();
-        return newHistory;
+        return newHistory;*/
     }
     public History[] getHistoriesByTaskId(long taskId) {
         History[] histories = null;
@@ -83,13 +83,22 @@ public class HistoryDataSource {
         cursor.close();
         return historys;
     }
-    public int deleteAllHistories() {
-        int count = database.delete(DBHelper.HISTORY_TABLE, "1", null);
-        return count;
-    }
     public int deleteHistoriesByTaskId(long id) {
         int count = database.delete(DBHelper.HISTORY_TABLE, "task_id = ?", new String[] {String.valueOf(id)});
         return count;
+    }
+    
+    public void insertOrUpdate(History history) {
+    	// History не может измениться, это по сути комментарий. Id отсутствует, поэтому смотрим соответствие даты и текста.
+    	Cursor cursor = database.query(DBHelper.HISTORY_TABLE, allColumns, 
+    			"date = ? AND message = ?", new String[] {history.getDate(), history.getMessage()}, null, null, null, "1");
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+        	Log.v("HistoryDataSource", "history with " + history.getDate() + " " + history.getMessage() + " is alreadey created");
+//        	updateHistory(history);
+        } else {
+        	createHistory(history);
+        }
     }
 
     private History cursorToHistory(Cursor cursor) {

@@ -34,7 +34,17 @@
 	        android:padding="10dp"
 	        />
 	    <ImageButton
-            android:id="@+id/saveButton"
+            android:id="@+id/addSubResolutionButton"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/ic_new_task"
+            android:layout_toLeftOf="@+id/saveButton"
+            android:background="@drawable/button_green2_selector"
+            />
+	    <ImageButton
+            android:id="@id/saveButton"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:layout_centerVertical="true"
@@ -73,10 +83,14 @@
                 />
             <Button
                 android:id="@+id/addDetailReference"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Добавить исполнителя"
-                android:background="@drawable/button_transparent_selector"
+                android:text="@string/resolution_detail_fragment_add_detail_text"
+                android:paddingLeft="50dp"
+                android:paddingRight="50dp"
+                android:layout_gravity="center_horizontal"
+                android:textColor="@color/white"
+                android:background="@drawable/button_green2_selector"
                 />
         </LinearLayout>
     </ScrollView>    

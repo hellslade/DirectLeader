@@ -10,6 +10,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 public class RabotnicDataSource {
     // Database fields
@@ -27,7 +28,7 @@ public class RabotnicDataSource {
     public void close() {
         dbHelper.close();
     }
-    public Rabotnic createRabotnik(Rabotnic new_rabotnik) {
+    public void createRabotnik(Rabotnic new_rabotnik) {
         ContentValues values = new ContentValues();
         values.put(DBHelper.RABOTNIC_CODE, new_rabotnik.getCode());
         values.put(DBHelper.RABOTNIC_CODERAB, new_rabotnik.getCodeRab());
@@ -39,13 +40,13 @@ public class RabotnicDataSource {
         values.put(DBHelper.RABOTNIC_POST_KIND, new_rabotnik.getPostKind());
         long insertId = database.insert(DBHelper.RABOTNIC_TABLE, null, values);
         
-        Cursor cursor = database.query(DBHelper.RABOTNIC_TABLE,
+        /*Cursor cursor = database.query(DBHelper.RABOTNIC_TABLE,
                 allColumns, DBHelper.RABOTNIC__ID + " = " + insertId, null,
                 null, null, null);
         cursor.moveToFirst();
         Rabotnic newRabotnik = cursorToRabotnic(cursor);
         cursor.close();
-        return newRabotnik;
+        return newRabotnik;*/
     }
     public boolean createRabotnikFromJSON(JSONObject json) {
         ContentValues values = new ContentValues();
@@ -126,7 +127,38 @@ public class RabotnicDataSource {
         cursor.close();
         return rabotnics;
     }
-    
+    public void updateRabotnik(Rabotnic new_rabotnik) {
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.RABOTNIC_CODE, new_rabotnik.getCode());
+        values.put(DBHelper.RABOTNIC_CODERAB, new_rabotnik.getCodeRab());
+//        values.put(DBHelper.RABOTNIC_ID, new_rabotnik.getId());
+        values.put(DBHelper.RABOTNIC_LOGIN, new_rabotnik.getLogin());
+        values.put(DBHelper.RABOTNIC_NAME, new_rabotnik.getName());
+        values.put(DBHelper.RABOTNIC_PHOTO, new_rabotnik.getPhoto());
+        values.put(DBHelper.RABOTNIC_PODR, new_rabotnik.getPodr());
+        values.put(DBHelper.RABOTNIC_POST_KIND, new_rabotnik.getPostKind());
+//        long insertId = database.insert(DBHelper.RABOTNIC_TABLE, null, values);
+        Log.v("RabotnicDataSource", "updateRabotnik " + new_rabotnik.getId());
+        int num = database.update(DBHelper.RABOTNIC_TABLE, values, "id=?", new String[]{String.valueOf(new_rabotnik.getId())});
+        
+        /*Cursor cursor = database.query(DBHelper.RABOTNIC_TABLE,
+                allColumns, DBHelper.RABOTNIC__ID + " = " + insertId, null,
+                null, null, null);
+        cursor.moveToFirst();
+        Rabotnic newRabotnik = cursorToRabotnic(cursor);
+        cursor.close();
+        return newRabotnik;*/
+    }
+    public void insertOrUpdate(Rabotnic rabotnik) {
+        Cursor cursor = database.query(DBHelper.RABOTNIC_TABLE,
+                allColumns, DBHelper.RABOTNIC_ID + " = " + rabotnik.getId(), null, null, null, null, "1");
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+        	updateRabotnik(rabotnik);
+        } else {
+        	createRabotnik(rabotnik);
+        }
+    }
     
     public List<Rabotnic> getAllRabotnics() {
         List<Rabotnic> rabotnics = new ArrayList<Rabotnic>();
@@ -145,11 +177,7 @@ public class RabotnicDataSource {
         cursor.close();
         return rabotnics;
     }
-    public int deleteAllRabotnics() {
-        int count = database.delete(DBHelper.RABOTNIC_TABLE, "1", null);
-        return count;
-    }
-
+    
     private Rabotnic cursorToRabotnic(Cursor cursor) {
 //        Log.v("RabotnicDataSource", "cursorToRabotnic() START");
         //int id, String address, String point, String work_hours, int brand, String last_modified

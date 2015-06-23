@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -34,6 +37,62 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements OnLoginListener, OnOpenFragmentListener, OnDocumentDownloadListener, OnPreferenceChangeListener {
     private static final String TAG = "MainActivity";
     
+    private static String lastSyncDate = "";
+    
+    class UpdateCheckFinishedTasksAsyncTask extends AsyncTask<Void, Void, Void> {
+        ProgressDialog pg = new ProgressDialog(MainActivity.this);
+        private PowerManager.WakeLock mWakeLock;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pg.setMessage(getResources().getString(R.string.update_db_process_task_message_text));
+            pg.setCancelable(false);
+            // take CPU lock to prevent CPU from going off if the user 
+            // presses the power button during download
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+            mWakeLock.acquire();
+            pg.show();
+        }
+        @Override
+        protected Void doInBackground(Void... params) {
+            // Получаем список завершенных Task
+        	TaskDataSource tds = new TaskDataSource(mDirect);
+        	tds.open();
+        	JSONArray jsonIds = tds.getAllTaskIds();
+            JSONObject result = mDirect.PostCheckFinishedTasks(jsonIds);
+            JSONArray data = new JSONArray();
+            int statusCode = 0;
+            if (result != null) {
+                data = result.optJSONArray("data");
+                statusCode = result.optInt("statusCode");
+            }
+            if (statusCode == 200) {
+                Log.v(TAG, "CheckFinishedTasks() ok " + data);
+                TaskDataSource task_ds = new TaskDataSource(mDirect);
+                task_ds.open();
+                
+                for (int i = 0; i < data.length(); i++) {
+                    final long taskId = Long.valueOf(data.optString(i, "-1"));
+                    if (taskId != -1) {
+                        task_ds.deleteTaskById(taskId);
+                    }
+                }
+                Log.v(TAG, "CheckFinishedTasks() UPDATED");
+            } else {
+                Log.v(TAG, "Почему-то не удалось получить данные. Обновление не произошло");
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            if (pg != null) {
+                pg.dismiss();
+            }
+            mWakeLock.release();
+        }
+    }
     class UpdateDBRabotnicAsyncTask extends AsyncTask<Void, Void, JSONObject> {
         ProgressDialog pg = new ProgressDialog(MainActivity.this);
         private PowerManager.WakeLock mWakeLock;
@@ -52,26 +111,36 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         @Override
         protected JSONObject doInBackground(Void... params) {
             // Обновление данных Rabotnic
+        	// Запоминаем текущую дату
+        	Calendar c = Calendar.getInstance();
+        	SimpleDateFormat df = new SimpleDateFormat(mDirect.mLastSyncDateFormat);
+        	lastSyncDate = df.format(c.getTime());
+        	Log.v(TAG, "lastSyncDate " + lastSyncDate);
             JSONObject result = mDirect.getRabotnics();
             JSONArray data = new JSONArray();
+            int statusCode = 0;
             if (result != null) {
                 data = result.optJSONArray("data");
+                statusCode = result.optInt("statusCode");
             }
-            if (data.length() > 0) {
+            if (statusCode == 200) {
                 Log.v(TAG, "getRabotnics() ok");
                 RabotnicDataSource rab_ds = new RabotnicDataSource(mDirect);
                 rab_ds.open();
-                int remove_count = rab_ds.deleteAllRabotnics();
-                Log.v(TAG, "remove_count " + remove_count);
+//                int remove_count = rab_ds.deleteAllRabotnics();
+//                Log.v(TAG, "remove_count " + remove_count);
                 JSONObject rabotnicJson;
                 for (int i = 0; i < data.length(); i++) {
                     rabotnicJson = data.optJSONObject(i);
                     if (rabotnicJson != null) {
                         final Rabotnic rabotnic = new Rabotnic(rabotnicJson);
-                        rab_ds.createRabotnik(rabotnic);
+//                        rab_ds.createRabotnik(rabotnic);
+                        rab_ds.insertOrUpdate(rabotnic);
                     }
                 }
                 Log.v(TAG, "getRabotnics() UPDATED");
+                // После обновления, нужно сохранить время последнего обновления
+                mDirect.saveLastSyncDateRabotnic(lastSyncDate);
             } else {
                 Log.v(TAG, "Почему-то не удалось получить данные. Обновление не произошло");
             }
@@ -104,32 +173,34 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
         @Override
         protected JSONObject doInBackground(Void... arg0) {
             // Обновление данных Task
+        	// Запоминаем текущую дату
+        	Calendar c = Calendar.getInstance();
+        	SimpleDateFormat df = new SimpleDateFormat(mDirect.mLastSyncDateFormat);
+        	lastSyncDate = df.format(c.getTime());
+        	Log.v(TAG, "lastSyncDate " + lastSyncDate);
             JSONObject result = mDirect.GetMyTasks();
             JSONArray data = new JSONArray();
+            int statusCode = 0;
             if (result != null) {
                 data = result.optJSONArray("data");
+                statusCode = result.optInt("statusCode");
             }
-            if (data.length() > 0) {
+            if (statusCode == 200) {
                 Log.v(TAG, "getMyTask() ok");
                 TaskDataSource task_ds = new TaskDataSource(mDirect);
                 task_ds.open();
-                // Получить список id favorites
-                JobDataSource jds = new JobDataSource(mDirect);
-                jds.open();
-                long[] ids = jds.getFavoriteJobsIds();
-                int remove_count = task_ds.deleteAllTasks();
-                Log.v(TAG, "remove_count " + remove_count);
                 JSONObject taskJson;
                 for (int i = 0; i < data.length(); i++) {
                     taskJson = data.optJSONObject(i);
                     if (taskJson != null) {
                         final Task task = new Task(taskJson);
-                        task_ds.createTask(task);
+//                        task_ds.createTask(task);
+                        task_ds.insertOrUpdate(task);
                     }
                 }
-                // Восстановить id favorites
-                jds.setFavoriteJobsIds(ids);
                 Log.v(TAG, "getMyTask() UPDATED");
+                // После обновления, нужно сохранить время последнего обновления
+                mDirect.saveLastSyncDateTask(lastSyncDate);
             } else {
                 Log.v(TAG, "Почему-то не удалось получить данные. Обновление не произошло");
             }
@@ -264,6 +335,7 @@ public class MainActivity extends Activity implements OnLoginListener, OnOpenFra
     @Override
     public void OnRefreshData() {
         Log.v(TAG, "OnRefreshData()");
+        new UpdateCheckFinishedTasksAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
         new UpdateDBRabotnicAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
         new UpdateDBTaskAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
         new UpdateDBClientSettingsAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);

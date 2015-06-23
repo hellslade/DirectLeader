@@ -71,7 +71,7 @@ public class Utils {
             SimpleDateFormat formatOutput =  new SimpleDateFormat(dateFormat);
             return  formatOutput.format(date);
         } catch (ParseException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Неудалось распарсить дату " + dateStr + " по формату " + dateFormat);
             return dateStr;
         }
     }

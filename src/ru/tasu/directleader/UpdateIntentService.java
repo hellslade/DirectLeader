@@ -1,16 +1,24 @@
 package ru.tasu.directleader;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import ru.tasu.directleader.MainActivity.UpdateCheckFinishedTasksAsyncTask;
+
+import android.app.ProgressDialog;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.util.Log;
 
 public class UpdateIntentService extends Service {
@@ -19,33 +27,71 @@ public class UpdateIntentService extends Service {
     
     private DirectLeaderApplication mDirect;
     
+    private static String lastSyncDate = "";
+    
+    class UpdateCheckFinishedTasksAsyncTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            // Получаем список завершенных Task
+        	TaskDataSource tds = new TaskDataSource(mDirect);
+        	tds.open();
+        	JSONArray jsonIds = tds.getAllTaskIds();
+            JSONObject result = mDirect.PostCheckFinishedTasks(jsonIds);
+            JSONArray data = new JSONArray();
+            int statusCode = 0;
+            if (result != null) {
+                data = result.optJSONArray("data");
+                statusCode = result.optInt("statusCode");
+            }
+            if (statusCode == 200) {
+                Log.v(TAG, "CheckFinishedTasks() ok " + data);
+                TaskDataSource task_ds = new TaskDataSource(mDirect);
+                task_ds.open();
+                
+                for (int i = 0; i < data.length(); i++) {
+                    final long taskId = Long.valueOf(data.optString(i, "-1"));
+                    if (taskId != -1) {
+                        task_ds.deleteTaskById(taskId);
+                    }
+                }
+                Log.v(TAG, "CheckFinishedTasks() UPDATED");
+            } else {
+                Log.v(TAG, "Почему-то не удалось получить данные. Обновление не произошло");
+            }
+            return null;
+        }
+    }
     class UpdateDBRabotnicAsyncTask extends AsyncTask<Void, Void, JSONObject> {
         @Override
         protected JSONObject doInBackground(Void... params) {
-            // Обновление данных Rabotnic
+        	// Обновление данных Rabotnic
+        	// Запоминаем текущую дату
+        	Calendar c = Calendar.getInstance();
+        	SimpleDateFormat df = new SimpleDateFormat(mDirect.mLastSyncDateFormat);
+        	lastSyncDate = df.format(c.getTime());
+        	Log.v(TAG, "lastSyncDate " + lastSyncDate);
             JSONObject result = mDirect.getRabotnics();
-            if (result == null) {
-                return null;
+            JSONArray data = new JSONArray();
+            int statusCode = 0;
+            if (result != null) {
+                data = result.optJSONArray("data");
+                statusCode = result.optInt("statusCode");
             }
-            JSONArray data = result.optJSONArray("data");
-            if (data.length() > 0) {
+            if (statusCode == 200) {
                 Log.v(TAG, "getRabotnics() ok");
                 RabotnicDataSource rab_ds = new RabotnicDataSource(mDirect);
                 rab_ds.open();
-                int remove_count = rab_ds.deleteAllRabotnics();
-                Log.v(TAG, "remove_count " + remove_count);
                 JSONObject rabotnicJson;
-                Log.v(TAG, "UPDATE CIRCLE START");
                 for (int i = 0; i < data.length(); i++) {
                     rabotnicJson = data.optJSONObject(i);
                     if (rabotnicJson != null) {
-                        rab_ds.createRabotnikFromJSON(rabotnicJson);
-//                        final Rabotnic rabotnic = new Rabotnic(rabotnicJson);
-//                        rab_ds.createRabotnik(rabotnic);
+                        final Rabotnic rabotnic = new Rabotnic(rabotnicJson);
+                        rab_ds.insertOrUpdate(rabotnic);
                     }
                 }
-                Log.v(TAG, "UPDATE CIRCLE FINISH");
                 Log.v(TAG, "getRabotnics() UPDATED");
+                // После обновления, нужно сохранить время последнего обновления
+                mDirect.saveLastSyncDateRabotnic(lastSyncDate);
             } else {
                 Log.v(TAG, "Почему-то не удалось получить данные. Обновление не произошло");
             }
@@ -56,34 +102,34 @@ public class UpdateIntentService extends Service {
     class UpdateDBTaskAsyncTask extends AsyncTask<Void, Void, JSONObject> {
         @Override
         protected JSONObject doInBackground(Void... arg0) {
-            // Обновление данных Task
+        	// Обновление данных Task
+        	// Запоминаем текущую дату
+        	Calendar c = Calendar.getInstance();
+        	SimpleDateFormat df = new SimpleDateFormat(mDirect.mLastSyncDateFormat);
+        	lastSyncDate = df.format(c.getTime());
+        	Log.v(TAG, "lastSyncDate " + lastSyncDate);
             JSONObject result = mDirect.GetMyTasks();
-            if (result == null) {
-                return null;
+            JSONArray data = new JSONArray();
+            int statusCode = 0;
+            if (result != null) {
+                data = result.optJSONArray("data");
+                statusCode = result.optInt("statusCode");
             }
-            JSONArray data = result.optJSONArray("data");
-            if (data.length() > 0) {
+            if (statusCode == 200) {
                 Log.v(TAG, "getMyTask() ok");
                 TaskDataSource task_ds = new TaskDataSource(mDirect);
                 task_ds.open();
-                // Получить список id favorites
-                JobDataSource jds = new JobDataSource(mDirect);
-                jds.open();
-                long[] ids = jds.getFavoriteJobsIds();
-                int remove_count = task_ds.deleteAllTasks();
-                Log.v(TAG, "remove_count " + remove_count);
                 JSONObject taskJson;
                 for (int i = 0; i < data.length(); i++) {
                     taskJson = data.optJSONObject(i);
                     if (taskJson != null) {
                         final Task task = new Task(taskJson);
-                        task_ds.createTask(task);
+                        task_ds.insertOrUpdate(task);
                     }
                 }
-                // Восстановить id favorites
-                jds.setFavoriteJobsIds(ids);
                 Log.v(TAG, "getMyTask() UPDATED");
-                return result;
+                // После обновления, нужно сохранить время последнего обновления
+                mDirect.saveLastSyncDateTask(lastSyncDate);
             } else {
                 Log.v(TAG, "Почему-то не удалось получить данные. Обновление не произошло");
             }
@@ -133,8 +179,9 @@ public class UpdateIntentService extends Service {
         String userCode = mDirect.getUserCode();
         if (!userCode.equalsIgnoreCase("")) {
             new ExecStoredActionsAsyncTask().execute();
-            new UpdateDBRabotnicAsyncTask().execute();
-            new UpdateDBTaskAsyncTask().execute();
+            new UpdateCheckFinishedTasksAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
+            new UpdateDBRabotnicAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
+            new UpdateDBTaskAsyncTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, null);
         }
         return super.onStartCommand(intent, flags, startId);
     }

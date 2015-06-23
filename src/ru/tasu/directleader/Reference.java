@@ -49,6 +49,9 @@ public class Reference {
 	}
 	public String getAttributeItemValue(String attrName) {
 		JSONObject obj = getAttributeByName(attrName);
+		if (obj == null) {
+			return null;
+		}
 		return obj.optString("Value");
 	}
 }

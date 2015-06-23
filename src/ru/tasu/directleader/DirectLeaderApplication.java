@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLEncoder;
+import java.security.acl.LastOwnerException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -56,7 +58,6 @@ public class DirectLeaderApplication extends Application {
     // URL's
     private static final String PORTAL_SERVICE = "http://tyumbitasu-16.hosting.parking.ru/PortalService.svc";
     private static final String DIRECTLEADER_SERVICE_DEMO = "http://tyumbitasu-14.hosting.parking.ru/WSMock.svc";
-    //    private static final String DIRECTLEADER_SERVICE = "http://directum51test.int.t-asu.ru:8090/ws.svc";
     // methods
     private static final String ADD_NEW_DEVICE = PORTAL_SERVICE + "/AddNewDevice?id=%s&organizationKey=%s&name=%s";
     private static final String REMOVE_DEVICE = PORTAL_SERVICE + "/RemoveDevice?id=%s";
@@ -69,13 +70,13 @@ public class DirectLeaderApplication extends Application {
     private static final String GET_EXEC_TASK_ACTION = "/ExecTaskAction?taskId=%s&actionName=%s"; //?taskId={TASKID}&actionName={ACTIONNAME}
     private static final String GET_CLIENT_SETTINGS = "/GetClientSettings";
     public  static final String GET_DOCUMENT = "/GetDocument?docId=%s"; //?docId={DOCID}
-    private static final String GET_MY_TASKS = "/GetMyTasks"; //?lastSyncDate={LASTSYNCDATE}&onlyInput={ONLYINPUT}&onlyMyJobs={ONLYMYJOBS}
-    private static final String GET_RABOTNIC = "/GetRabotnic"; //?lastSyncDate={LASTSYNCDATE}&podr={PODR}
+    private static final String GET_MY_TASKS = "/GetMyTasks"; //?lastSyncDate=%s&onlyInput={ONLYINPUT}&onlyMyJobs={ONLYMYJOBS}
+    private static final String GET_RABOTNIC = "/GetRabotnic"; //?lastSyncDate=%s&podr={PODR}
     private static final String GET_PING = "/Ping";
     private static final String GET_SEARCH_DOCS = "/SearchDocs?criteria=%s"; //?criteria={CRITERIA}
     private static final String POST_SAVE_REFERENCE = "/SaveReference";
+    private static final String POST_CHECK_FINISHED_TASKS = "/CheckFinishedTasks";
 //    private static final String POST_ADD_EXT_COMMENT = "/AddExtComments";
-//    private static final String POST_CHECK_FINISHED_TASKS = "/CheckFinishedTasks";
 //    private static final String GET_EXPORT_DOCUMENT = "/ExportDocument?docId=%s"; //?docId={DOCID}
 //    private static final String GET_DOC_IMGS = "/GetDocImgs?docId=%s"; //?docId={DOCID}
 //    private static final String GET_HEADER_INFO = "/GetHeaderInfo";
@@ -83,6 +84,10 @@ public class DirectLeaderApplication extends Application {
 //    private static final String GET_TASK = "/GetTask?id=%s"; //?id={ID}
 //    private static final String POST_IMPORT_FROM_FILE = "/ImportFromFile";
     
+    public static final String mLastSyncDateFormat = "dd.MM.yyyy HH:mm";
+    // Разные ключи, потому что были случаи, когда работники обновились, а задачи нет (по таймауту)
+    private static final String SETTINGS_LASTSYNCDATE_RABOTNIC_KEY = "lastsyncdate_rabotnic_key";
+    private static final String SETTINGS_LASTSYNCDATE_TASK_KEY = "lastsyncdate_task_key";
     // Query's keys
     public static final String mQUERY_DeviceId = "DeviceId";
     public static final String mQUERY_UserName = "UserName";
@@ -187,7 +192,23 @@ public class DirectLeaderApplication extends Application {
         e.remove(SETTINGS_SERVICE_URL_KEY);
         e.commit();
     }
+    public void saveLastSyncDateRabotnic(String syncdate) {
+    	Editor e = getSettings().edit();
+    	e.putString(SETTINGS_LASTSYNCDATE_RABOTNIC_KEY, syncdate);
+    	e.commit();
+    }
+    public void saveLastSyncDateTask(String syncdate) {
+    	Editor e = getSettings().edit();
+    	e.putString(SETTINGS_LASTSYNCDATE_TASK_KEY, syncdate);
+    	e.commit();
+    }
     
+    public String getLastSyncDateRabotnic() {
+    	return getSettings().getString(SETTINGS_LASTSYNCDATE_RABOTNIC_KEY, "");
+    }
+    public String getLastSyncDateTask() {
+    	return getSettings().getString(SETTINGS_LASTSYNCDATE_TASK_KEY, "");
+    }
     public String getDeviceId() {
         String android_id = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
         Log.v(TAG, "device id " + android_id);
@@ -336,8 +357,49 @@ public class DirectLeaderApplication extends Application {
         }
         return data;
     }
+    public JSONObject PostCheckFinishedTasks(JSONArray taskIds) {
+        String url = getDirectLeaderServiceURL() + POST_CHECK_FINISHED_TASKS;
+        HttpResponse response = sendDataPostJSONArray(url, taskIds);
+        if (response == null) {
+            return null;
+        }
+        // Обработка ответа
+        JSONObject data = new JSONObject();
+        JSONArray array = new JSONArray();
+        Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+        switch (response.getStatusLine().getStatusCode()) {
+            case 200: // Успешно
+                Log.v(TAG, "200");
+                array = ReadResponseJSONArray(response);
+                break;
+            case 400: // BAD REQUEST
+                Log.v(TAG, "400");
+                data = ReadResponseJSONObject(response);
+                break;
+            default:
+                Log.v(TAG, "default");
+                Log.v(TAG, "response.getStatusLine().getStatusCode() " + response.getStatusLine().getStatusCode());
+                data = ReadResponseJSONObject(response);
+        }
+        try {
+            data.put("statusCode", response.getStatusLine().getStatusCode());
+            data.put("data", array);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
     public JSONObject GetMyTasks() {
-        String url = getDirectLeaderServiceURL() + GET_MY_TASKS;
+    	String GETParams = "";
+        if (!getLastSyncDateTask().equalsIgnoreCase("")) {
+        	try {
+        		GETParams = String.format("?lastSyncDate=%s", URLEncoder.encode(getLastSyncDateTask(), "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+        }
+        String url = getDirectLeaderServiceURL() + GET_MY_TASKS + GETParams;
+        
         HttpResponse response = sendDataGet(url);
         if (response == null) {
             return null;
@@ -369,7 +431,16 @@ public class DirectLeaderApplication extends Application {
         return data;
     }
     public JSONObject getRabotnics() {
-        String url = getDirectLeaderServiceURL() + GET_RABOTNIC;
+    	String GETParams = "";
+        if (!getLastSyncDateRabotnic().equalsIgnoreCase("")) {
+        	try {
+				GETParams = String.format("?lastSyncDate=%s", URLEncoder.encode(getLastSyncDateRabotnic(), "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+        }
+        String url = getDirectLeaderServiceURL() + GET_RABOTNIC + GETParams;
+        
         HttpResponse response = sendDataGet(url);
         if (response == null) {
             return null;
@@ -435,7 +506,7 @@ public class DirectLeaderApplication extends Application {
             return null;
         }
         String url = getDirectLeaderServiceURL() + POST_CREATE_TASK;
-        HttpResponse response = sendDataPostJSON(url, taskJSON);
+        HttpResponse response = sendDataPostJSONObject(url, taskJSON);
         if (response == null) {
             return null;
         }
@@ -471,7 +542,7 @@ public class DirectLeaderApplication extends Application {
             return null;
         }
         String url = getDirectLeaderServiceURL() + POST_SAVE_REFERENCE;
-        HttpResponse response = sendDataPostJSON(url, json);
+        HttpResponse response = sendDataPostJSONObject(url, json);
         if (response == null) {
             return null;
         }
@@ -906,15 +977,33 @@ public class DirectLeaderApplication extends Application {
      * @param json JSONObject данные
      * @return HttpResponse
      */
-    private HttpResponse sendDataPostJSON(String url, JSONObject json) {
+    private HttpResponse sendDataPostJSONObject(String url, JSONObject json) {
+        return sendDataPostJSON(url, json.toString());
+    }
+    /**
+     * Отправка данных методом POST
+     * @param url Строка адреса
+     * @param json JSONArray данные
+     * @return HttpResponse
+     */
+    private HttpResponse sendDataPostJSONArray(String url, JSONArray json) {
+        return sendDataPostJSON(url, json.toString());
+    }
+    /**
+     * Отправка данных методом POST
+     * @param url Строка адреса
+     * @param json String данные
+     * @return HttpResponse
+     */
+    private HttpResponse sendDataPostJSON(String url, String jsonString) {
         Log.v(TAG, url);
         HttpClient httpclient = new DefaultHttpClient(getHttpParams());
         HttpPost httpquery = new HttpPost(url);
         HttpResponse result = null;
         try {
             //passes the results to a string builder/entity
-            Log.v(TAG, "json " + json);
-            StringEntity se = new StringEntity(json.toString(), HTTP.UTF_8);
+            Log.v(TAG, "json " + jsonString);
+            StringEntity se = new StringEntity(jsonString, HTTP.UTF_8);
             //sets the post request as the resulting string
             httpquery.setEntity(se);
          // Обязательные заголовки
@@ -941,11 +1030,11 @@ public class DirectLeaderApplication extends Application {
         HttpParams httpParameters = new BasicHttpParams();
         // Set the timeout in milliseconds until a connection is established.
         // The default value is zero, that means the timeout is not used. 
-        int timeoutConnection = 10000;
+        int timeoutConnection = 30000;
         HttpConnectionParams.setConnectionTimeout(httpParameters, timeoutConnection);
         // Set the default socket timeout (SO_TIMEOUT) 
         // in milliseconds which is the timeout for waiting for data.
-        int timeoutSocket = 20000;
+        int timeoutSocket = 40000;
         HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
         return httpParameters;
     }

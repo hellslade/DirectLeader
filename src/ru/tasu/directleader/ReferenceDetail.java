@@ -1,9 +1,6 @@
 package ru.tasu.directleader;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -11,19 +8,11 @@ import org.json.JSONObject;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 //ReferenceDetail: [
 //	[
 //		{
-//			DataType: "rdtInteger",
-//			HeadId: 167967,
-//			Id: 46261,
-//			IsVisible: false,
-//			Name: "ИДЗапГлавРазд",
-//			Title: "ИД записи главного раздела",
-//			TypeReference: "",
-//			Value: "167967"
-//		},{
 //			DataType: "rdtPick",
 //			HeadId: 167967,
 //			Id: 46261,
@@ -84,15 +73,10 @@ public class ReferenceDetail extends Reference implements Parcelable {
 	}
 	public void clearValues() {
 		// Очистить значения, необходимо при копировании
-		String value;
 		for (JSONObject attr : _data) {
-			if (attr.optString("Name").equalsIgnoreCase("ИДЗапГлавРазд")) {
-				value = "-1"; // Это значение нельзя делать пустым, иначе потеряется detail и не будет привязана к текущему header
-			} else {
-				value = "";
-			}
 			try {
-				attr.put("Value", value);
+				attr.put("Value", "");
+				attr.put("Id", -1);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}

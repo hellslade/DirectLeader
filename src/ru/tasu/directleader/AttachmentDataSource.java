@@ -29,7 +29,7 @@ public class AttachmentDataSource {
     public void close() {
         dbHelper.close();
     }
-    public Attachment createAttachment(Attachment new_attachment) {
+    public void createAttachment(Attachment new_attachment) {
         ContentValues values = new ContentValues();
 //        values.put(DBHelper.ATTACHMENT__ID, new_attachment.getId());
         values.put(DBHelper.ATTACHMENT_AUTHOR_NAME, new_attachment.getAuthorName());
@@ -45,13 +45,13 @@ public class AttachmentDataSource {
         values.put(DBHelper.ATTACHMENT_TASK_ID, new_attachment.getTaskId());
         long insertId = database.insert(DBHelper.ATTACHMENT_TABLE, null, values);
         
-        Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
+        /*Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
                 allColumns, DBHelper.ATTACHMENT__ID + " = " + insertId, null,
                 null, null, null);
         cursor.moveToFirst();
         Attachment newAttachment = cursorToAttachment(cursor);
         cursor.close();
-        return newAttachment;
+        return newAttachment;*/
     }
     public void deleteAttachment(Attachment attachment) {
         long id = attachment.getId();
@@ -59,7 +59,7 @@ public class AttachmentDataSource {
         database.delete(DBHelper.ATTACHMENT_TABLE, DBHelper.ATTACHMENT_ID
                 + " = " + id, null);
     }
-    public Attachment getAttachmentById(int id) {
+    public Attachment getAttachmentById(long id) {
         Attachment attachment = null;
         Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
                 allColumns, DBHelper.ATTACHMENT_ID + " = " + id, null, null, null, null);
@@ -122,13 +122,37 @@ public class AttachmentDataSource {
         cursor.close();
         return attachments;
     }
-    public int deleteAllAttachments() {
-        int count = database.delete(DBHelper.ATTACHMENT_TABLE, "1", null);
-        return count;
-    }
     public int deleteAttachmentsByTaskId(long id) {
         int count = database.delete(DBHelper.ATTACHMENT_TABLE, "task_id = ?", new String[] {String.valueOf(id)});
         return count;
+    }
+    public void updateAttachment(Attachment attachment) {
+    	ContentValues values = new ContentValues();
+      values.put(DBHelper.ATTACHMENT_AUTHOR_NAME, attachment.getAuthorName());
+      values.put(DBHelper.ATTACHMENT_CTITLE, attachment.getCTitle());
+      values.put(DBHelper.ATTACHMENT_CREATED, attachment.getCreated());
+      values.put(DBHelper.ATTACHMENT_EXT, attachment.getExt());
+//      values.put(DBHelper.ATTACHMENT_ID, attachment.getId());
+      values.put(DBHelper.ATTACHMENT_MODIFIED, attachment.getModified());
+      values.put(DBHelper.ATTACHMENT_NAME, attachment.getName());
+      values.put(DBHelper.ATTACHMENT_SIGNED, attachment.getSigned());
+      values.put(DBHelper.ATTACHMENT_SIZE, attachment.getSize());
+      values.put(DBHelper.ATTACHMENT_VERSION, attachment.getVersion());
+      values.put(DBHelper.ATTACHMENT_TASK_ID, attachment.getTaskId());
+      int num = database.update(DBHelper.ATTACHMENT_TABLE, values, "id=?", new String[]{String.valueOf(attachment.getId())});
+      
+//      Attachment newAttachment = getAttachmentById(attachment.getId());
+//      return newAttachment;
+    }
+    public void insertOrUpdate(Attachment attachment) {
+    	Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
+                allColumns, DBHelper.ATTACHMENT_ID + " = " + attachment.getId(), null, null, null, null, "1");
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+        	updateAttachment(attachment);
+        } else {
+        	createAttachment(attachment);
+        }
     }
     /**
      * ѕолучить общее количество документов

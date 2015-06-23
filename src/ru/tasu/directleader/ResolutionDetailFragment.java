@@ -118,11 +118,19 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 		            		((Switch)valueView).setChecked(obj.optString("Value").equalsIgnoreCase("Да") ? true : false);
 		            		
 		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtReference")) {
-		            		Rabotnic user = rds.getRabotnicByCodeRab(obj.optString("Value"));
-		            		valueView = getUserView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
-		            		if (user != null) {
-		            			((TextView)valueView).setText(user.getName());
-		            		}
+		            		if (obj.optString("TypeReference").equalsIgnoreCase("РАБ")) {
+			            		Rabotnic user = rds.getRabotnicByCodeRab(obj.optString("Value"));
+			            		valueView = getUserView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
+			            		if (user != null) {
+			            			((TextView)valueView).setText(user.getName());
+			            		}
+		            		} else {
+			            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
+		            			((TextView)valueView).setText(obj.optString("Value"));
+			            	}
+		            	} else {
+		            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
+	            			((TextView)valueView).setText(obj.optString("Value"));
 		            	}
 	            		if (valueView != null) {
 	            			valueView.setLayoutParams(lp);
@@ -139,8 +147,6 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     class GetResolutionHeaderAsyncTask extends AsyncTask<Void, Void, ReferenceHeader> {
         @Override
         protected ReferenceHeader doInBackground(Void... params) {
-        	JSONArray ref_header = mTask.getReferenceHeaderJSON();
-            mReferenceHeader = new ReferenceHeader(ref_header);
             return mReferenceHeader;
         }
         @Override
@@ -177,9 +183,20 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	            		((Switch)valueView).setChecked(obj.optString("Value").equalsIgnoreCase("Yes") ? true : false);
 	            		
 	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtReference")) {
-	            		Rabotnic user = rds.getRabotnicByCodeRab(obj.optString("Value"));
-	            		valueView = getUserView(getActivity(), obj.optString("Name"), mReferenceHeader);
-	            		((TextView)valueView).setText(user.getName());
+	            		if (obj.optString("TypeReference").equalsIgnoreCase("РАБ")) {
+		            		Rabotnic user = rds.getRabotnicByCodeRab(obj.optString("Value"));
+		            		valueView = getUserView(getActivity(), obj.optString("Name"), mReferenceHeader);
+		            		if (user != null) {
+		            			((TextView)valueView).setText(user.getName());
+			            	}
+	            		} else {
+		            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
+	            			((TextView)valueView).setText(obj.optString("Value"));
+		            	}
+	            		
+	            	} else {
+	            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
+            			((TextView)valueView).setText(obj.optString("Value"));
 	            	}
             		if (valueView != null) {
             			valueView.setLayoutParams(lp);
@@ -223,9 +240,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 //	    			}
 	        		detail_json_array.put(detailItem);
 	        	}
+	        	Log.v(TAG, "save reference detail " + detail_json_array);
 	        	detail.put(detail_json_array);
     		}
-        	
+    		Log.v(TAG, "save reference header " + header);
     		try {
 				json.put("ReferenceHeader", header);
 				json.put("ReferenceDetail", detail);
@@ -235,6 +253,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 			}
     		if (success) {
     			return mDirect.PostSaveReference(json);
+//    			return null;
     		} else {
     			return null;
     		}
@@ -253,13 +272,15 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     				if (result || message.equalsIgnoreCase("Сохранение прошло успешно")) {
     					// Сохранение резолюции прошло успешно
     					alertDialog.setTitle("Успешно");
-    					// Сохранить reference в Task
-    					mTask.setReferenceHeader(header);
-    					mTask.setReferenceDetail(detail);
-    					// Записать обновленный Task в БД
-    					TaskDataSource tds = new TaskDataSource(mDirect);
-    					tds.open();
-    					mTask = tds.updateTask(mTask);
+    					if (!isSubResolution) {
+	    					// Сохранить reference в Task
+	    					mTask.setReferenceHeader(header);
+	    					mTask.setReferenceDetail(detail);
+	    					// Записать обновленный Task в БД
+	    					TaskDataSource tds = new TaskDataSource(mDirect);
+	    					tds.open();
+	    					mTask = tds.updateTask(mTask);
+    					}
     				} else {
     					// В любом случае показать диалоговое окно с результатом.
     					alertDialog.setTitle("Ошибка");
@@ -295,12 +316,16 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     private OnOpenFragmentListener mListener;
     
     public static final String TASK_KEY = "task_key";
+    public static final String REFERENCE_HEADER_KEY = "reference_header_key";
+    public static final String REFERENCE_DETAIL_KEY = "reference_detail_key";
+    public static final String REFERENCE_SUB_RESOLUTION_KEY = "reference_sub_resolution_key";
     private Task mTask = null;
+    private boolean isSubResolution = false;
     
     private ReferenceHeader mReferenceHeader = null;
     private List<ReferenceDetail> mReferenceDetail = null;
     
-    private ImageButton saveButton;
+    private ImageButton saveButton, addSubResolutionButton;
     private LinearLayout referenceHeaderLayout, referenceDetailLayout;
 
     // View's for ReferenceHeader & ReferenceDetail
@@ -315,11 +340,16 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 			@Override
 			public void onCheckedChanged(CompoundButton arg0, boolean isChecked) {
 				String attrName = (String)view.getTag();
+				Log.v(TAG, "onCheckedChanged " + attrName);
 				String attrValue = isChecked == true ? trueValue : falseValue;
 				ref.setAttributeItemValue(attrName, attrValue);
 				if (layout != null) {
 	            	updateDetailSummary(layout, ref);
 	            }
+				if (isChecked) {
+					// Выключить все остальные checkbox'ы с таким же Name
+					setOffSwitchWithSameName(attrName, view);
+				}
 			}
 		}); 
 
@@ -482,6 +512,20 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	return view;
     }
     
+    private TextView getEmptyTextView(Context context, String attrName, final Reference ref) {
+    	return getEmptyTextView(context, attrName, ref, null);
+    }
+    private TextView getEmptyTextView(Context context, String attrName, final Reference ref, final View layout) {
+    	final TextView view = new TextView(context);
+    	view.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+    	view.setTag(attrName);
+//    	view.setBackgroundResource(R.drawable.transparent_back_selector);
+    	int padding = (int)(10 * getResources().getDisplayMetrics().density + 0.5f);
+    	view.setPadding(padding, padding, padding, padding);
+//    	view.setClickable(true);
+
+    	return view;
+    }
     
     private void updateDetailSummary(View detailItemLayout, Reference detail) {
     	RabotnicDataSource rds = new RabotnicDataSource(mDirect);
@@ -498,11 +542,55 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	propText = String.format(propText, detail.getAttributeItemValue("ДаНетТ"), detail.getAttributeItemValue("Дата2Т"), detail.getAttributeItemValue("Доп2Т"));
     	detailPropertyTextView.setText(propText);
     }
+    private void setOffSwitchWithSameName(String attrName, View v) {
+    	// Все переключатели с таким же AttributeName переведет в положение офф
+    	int cc = referenceDetailLayout.getChildCount();
+    	for (int i=0; i<cc; i++) {
+    		final LinearLayout detailItemLayout = (LinearLayout)referenceDetailLayout.getChildAt(i);
+    		final LinearLayout contentLayout = (LinearLayout) detailItemLayout.findViewById(R.id.contentLayout);
+    		final int ccl = contentLayout.getChildCount();
+    		for (int j=0; j<ccl; j++) {
+    			final LinearLayout itemLayout = (LinearLayout)contentLayout.getChildAt(j);
+    			final View view = itemLayout.getChildAt(1); // Всего 2 чайлда, нам нужен последний
+    			if (((String)view.getTag()).equalsIgnoreCase(attrName) && !view.equals(v)) {
+    				Switch swich = (Switch)view;
+    				if (swich.isChecked()) {
+    					swich.setChecked(false);
+    				}
+    			}
+    		}
+    	}
+    }
     private void addCloningReferenceDetail() {
+    	if (mReferenceDetail.size() == 0) {
+    		return;
+    	}
     	ReferenceDetail detail = mReferenceDetail.get(mReferenceDetail.size()-1);
+    	JSONObject obj = detail.getAttributeByName("PerformerT");
+    	if (obj.optString("Value").equalsIgnoreCase("")) {
+    		return;
+    	}
     	ReferenceDetail new_detail = new ReferenceDetail(detail);
     	new_detail.clearValues();
     	mReferenceDetail.add(new_detail);
+    }
+    private void createSubResolution() {
+    	if (mReferenceDetail.size() == 0) {
+    		return;
+    	}
+    	// Клонируем референс детаил
+    	ReferenceDetail detail = mReferenceDetail.get(mReferenceDetail.size()-1);
+    	ReferenceDetail new_detail = new ReferenceDetail(detail);
+    	new_detail.clearValues();
+    	// Клонируем референс хедер
+    	ReferenceHeader new_header = new ReferenceHeader(mReferenceHeader);
+    	new_header.clearValues();
+    	Bundle args = new Bundle();
+        args.putParcelable(ResolutionDetailFragment.TASK_KEY, mTask);
+        args.putParcelable(ResolutionDetailFragment.REFERENCE_HEADER_KEY, new_header);
+        args.putParcelable(ResolutionDetailFragment.REFERENCE_DETAIL_KEY, new_detail);
+        args.putBoolean(ResolutionDetailFragment.REFERENCE_SUB_RESOLUTION_KEY, true);
+        mListener.OnOpenFragment(ResolutionDetailFragment.class.getName(), args);
     }
     
     public static Fragment newInstance(Bundle args) {  // must pass some args
@@ -537,6 +625,18 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
         Log.v(TAG, "mTask ");
         
         initViews(rootView);
+
+        if (args.containsKey(REFERENCE_SUB_RESOLUTION_KEY)) {
+        	Log.v(TAG, "SubResolution");
+        	addSubResolutionButton.setVisibility(View.GONE);
+        	isSubResolution = args.getBoolean(REFERENCE_SUB_RESOLUTION_KEY);
+        	Log.v(TAG, "isSubResolution " + isSubResolution);
+        	mReferenceHeader = args.getParcelable(REFERENCE_HEADER_KEY);
+        	mReferenceDetail = new ArrayList<ReferenceDetail>();
+        	mReferenceDetail.add((ReferenceDetail)args.getParcelable(REFERENCE_DETAIL_KEY));
+        	Log.v(TAG, "mReferenceHeader " + mReferenceHeader);
+        	Log.v(TAG, "mReferenceDetail " + mReferenceDetail);
+        }
         
         setFonts();
         updateData();
@@ -545,21 +645,24 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     private void initViews(View v) {
     	referenceHeaderLayout = (LinearLayout) v.findViewById(R.id.referenceHeaderLayout);
     	referenceDetailLayout = (LinearLayout) v.findViewById(R.id.referenceDetailLayout);
+    	
     	saveButton = (ImageButton) v.findViewById(R.id.saveButton);
     	saveButton.setOnClickListener(this);
+    	
     	Button addDetailReference = (Button) v.findViewById(R.id.addDetailReference);
     	addDetailReference.setOnClickListener(this);
     	
+    	addSubResolutionButton = (ImageButton) v.findViewById(R.id.addSubResolutionButton);
+    	addSubResolutionButton.setOnClickListener(this);
+    	
+    	JSONArray ref_header = mTask.getReferenceHeaderJSON();
+        mReferenceHeader = new ReferenceHeader(ref_header);
+        
     	JSONArray ref_details = mTask.getReferenceDetailJSON();
         mReferenceDetail = new ArrayList<ReferenceDetail>();
         for (int i=0; i<ref_details.length(); i++) {
         	mReferenceDetail.add(new ReferenceDetail(ref_details.optJSONArray(i)));
         }
-    }
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-    	super.onActivityCreated(savedInstanceState);
-    	
     }
     private void setFonts() {
     }
@@ -577,6 +680,9 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     		case R.id.addDetailReference:
     			addCloningReferenceDetail();
     			updateData();
+    			break;
+    		case R.id.addSubResolutionButton:
+    			createSubResolution();
     			break;
     	}
         if (mListener != null) {

@@ -14,7 +14,7 @@ import android.os.Parcelable;
 import android.util.Log;
 
 public class Job implements Parcelable {
-private static final String TAG = "Job";
+	private static final String TAG = "Job";
     
     // Описание полей
     private JSONArray _action_list;

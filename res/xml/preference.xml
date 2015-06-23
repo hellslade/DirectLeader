@@ -6,6 +6,14 @@
 			android:title="@string/preferences_domain_title"
 			android:summary="@string/preferences_domain_summary">
         </EditTextPreference>
+        <EditTextPreference 
+            android:key="lastsyncdate_rabotnic_key"
+            android:title="lastsyncdate_rabotnic_key"
+            android:summary="Дата последнего обновления справочника Работники. Очистите, для сброса." />
+        <EditTextPreference 
+            android:key="lastsyncdate_task_key"
+            android:title="lastsyncdate_task_key"
+            android:summary="Дата последнего обновления Задач. Очистите, для сброса." />
     </PreferenceCategory>
     <PreferenceCategory android:title="Обновление данных">
         <CheckBoxPreference

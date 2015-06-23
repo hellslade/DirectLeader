@@ -315,8 +315,8 @@ References: [
         		this._reference_header = ref.optJSONArray("ReferenceHeader");
         	}
         }
-        Log.v(TAG, "this._reference_detail " + this._reference_detail);
-        Log.v(TAG, "this._reference_header " + this._reference_header);
+//        Log.v(TAG, "this._reference_detail " + this._reference_detail);
+//        Log.v(TAG, "this._reference_header " + this._reference_header);
         
         JSONArray attachments = data.optJSONArray("Attachments");
         if (attachments != null) {
@@ -384,7 +384,6 @@ References: [
         this._executed = data.optString("Executed");
         this._id = data.optLong("Id");
         this._importance = data.optString("Importance");
-        Log.v(TAG, "this._importance " + this._importance);
         this._route_name = data.optString("RouteName");
         this._state = data.optString("State");
         this._title = data.optString("Title");   

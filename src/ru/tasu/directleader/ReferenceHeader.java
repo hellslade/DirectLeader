@@ -1,6 +1,5 @@
 package ru.tasu.directleader;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -9,7 +8,6 @@ import org.json.JSONObject;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 //ReferenceHeader: [
 //	{
@@ -29,6 +27,14 @@ import android.util.Log;
 //		TypeReference: "",
 //		Value: "В работу"
 //	},{
+//		DataType: "rdtReference",
+//		Id: 167967,
+//		IsVisible: true,
+//		Name: "MainRRCAssignment",
+//		Title: "Главное поручение",
+//		TypeReference: "RRCAssignments",
+//		Value: null
+//  },{
 //		DataType: "rdtDate",
 //		Id: 167967,
 //		IsVisible: true,
@@ -66,11 +72,41 @@ import android.util.Log;
 public class ReferenceHeader extends Reference implements Parcelable {
 	private static final String TAG = "ReferenceHeader";
 	
+	public ReferenceHeader(ReferenceHeader source) {
+		for (JSONObject json : source._data) {
+			try {
+				final JSONObject copy = new JSONObject(json.toString());
+				this._data.add(copy);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	public ReferenceHeader(JSONArray json) {
 		updateData(json);
 	}
 	public ReferenceHeader(Parcel in) {
 		in.readList(_data, List.class.getClassLoader());
+	}
+	public void clearValues() {
+		// Очистить значения, необходимо при копировании
+		for (JSONObject attr : _data) {
+			if (attr.optString("Name").equalsIgnoreCase("MainRRCAssignment")) {
+				try {
+					attr.put("Value", attr.optString("Id"));
+					attr.put("Id", -1);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				continue;
+			}
+			try {
+				attr.put("Value", "");
+				attr.put("Id", -1);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	public String getResolutionTitle() {
 //		Name: "Наименование",

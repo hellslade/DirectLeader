@@ -131,6 +131,7 @@
     
     <!-- Окно резолюции (Resolution)-->
     <string name="resolution_detail_fragment_property_text" formatted="false">Ответственный:\u00A0%s, Срок исполнения:\u00A0%s, Поручение:\u00A0%s</string>
+    <string name="resolution_detail_fragment_add_detail_text">Добавить исполнителя</string>
     
     <!-- Окно Сотрудники -->
     <string name="staff_fragment_sort_fio_text">ФИО</string>
