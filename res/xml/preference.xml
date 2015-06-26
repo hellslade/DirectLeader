@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="Подключение">
+    <PreferenceCategory android:title="@string/preferences_category_connection_title">
 		<EditTextPreference
 			android:key="domain_key"
 			android:title="@string/preferences_domain_title"
 			android:summary="@string/preferences_domain_summary">
         </EditTextPreference>
-        <EditTextPreference 
+		
+        <EditTextPreference
             android:key="lastsyncdate_rabotnic_key"
             android:title="lastsyncdate_rabotnic_key"
             android:summary="Дата последнего обновления справочника Работники. Очистите, для сброса." />
@@ -15,7 +16,27 @@
             android:title="lastsyncdate_task_key"
             android:summary="Дата последнего обновления Задач. Очистите, для сброса." />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Обновление данных">
+    <PreferenceCategory android:title="@string/preferences_category_timeout_title">
+        <EditTextPreference
+            android:key="timeout_task"
+            android:title="@string/preferences_timeout_task_title"
+            android:summary="@string/preferences_timeout_task_summary"
+            android:defaultValue="600"
+            />
+        <EditTextPreference
+            android:key="timeout_rabotnic"
+            android:title="@string/preferences_timeout_rabotnic_title"
+            android:summary="@string/preferences_timeout_rabotnic_summary"
+            android:defaultValue="600"
+            />
+        <EditTextPreference
+            android:key="timeout_attachments"
+            android:title="@string/preferences_timeout_attachments_title"
+            android:summary="@string/preferences_timeout_attachments_summary"
+            android:defaultValue="600"
+            />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/preferences_category_update_title">
         <CheckBoxPreference
 	        android:key="update_enabled"
 	        android:title="@string/preferences_update_enabled_title"

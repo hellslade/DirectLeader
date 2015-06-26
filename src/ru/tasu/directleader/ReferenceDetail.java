@@ -72,14 +72,49 @@ public class ReferenceDetail extends Reference implements Parcelable {
 		in.readList(_data, List.class.getClassLoader());
 	}
 	public void clearValues() {
+		clearValues(false);
+	}
+	public void clearValues(boolean resetHeadId) {
 		// Очистить значения, необходимо при копировании
 		for (JSONObject attr : _data) {
 			try {
 				attr.put("Value", "");
-				attr.put("Id", -1);
+				resetId(attr);
+				if (resetHeadId) {
+					resetHeadId(attr);
+				}
+				
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	public void resetId(JSONObject attr) {
+		try {
+			// Получаем Id
+			long id = attr.optLong("Id");
+			// Берем по модулю, т.к. id уже может быть отрицательным
+			id = Math.abs(id);
+			// Увеличиваем
+			id++;
+			// Присваиваем отрицательное значение
+			attr.put("Id", -id);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	public void resetHeadId(JSONObject attr) {
+		try {
+			// Получаем HeadId
+			long headId = attr.optLong("HeadId");
+			// Берем по модулю, т.к. id уже может быть отрицательным
+			headId = Math.abs(headId);
+			// Увеличиваем
+			//headId++;
+			// Присваиваем отрицательное значение
+			attr.put("HeadId", -headId);
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
 	}
 	public static final Parcelable.Creator<ReferenceDetail> CREATOR = new Parcelable.Creator<ReferenceDetail>() {

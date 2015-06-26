@@ -341,7 +341,12 @@ public class AuthorizeFragment extends Fragment implements OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.loginButton:
-                new AuthorizeAsyncTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null);
+            	if (!loginEditText.getText().toString().isEmpty()) {
+            		new AuthorizeAsyncTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null);
+            	} else {
+            		final String text = getResources().getString(R.string.authorize_login_empty_message_text);
+            		Toast.makeText(getActivity(), text, Toast.LENGTH_LONG).show();
+            	}
                 break;
             case R.id.continueButton:
                 if (mListener != null) {

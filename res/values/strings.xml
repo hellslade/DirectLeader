@@ -40,6 +40,13 @@
     <string name="preferences_update_enabled_summary_off">Обновление в фоновом режиме отключено</string>
     <string name="preferences_interval_title">Интервал обновления</string>
     <string name="preferences_interval_summary">Интервал запуска сервиса обновления в секундах</string>
+    <string name="preferences_category_timeout_title">Timeout</string>
+    <string name="preferences_timeout_task_title">Задачи</string>
+    <string name="preferences_timeout_task_summary">Timeout на обновление списка задач (сек.)</string>
+    <string name="preferences_timeout_rabotnic_title">Сотрудники</string>
+    <string name="preferences_timeout_rabotnic_summary">Timeout на обновление списка сотрудников (сек.)</string>
+    <string name="preferences_timeout_attachments_title">Документы</string>
+    <string name="preferences_timeout_attachments_summary">Timeout на загрузку документов (сек.)</string>
     
     <string name="users_fragment_search_hint_text">Поиск</string>
     
@@ -63,6 +70,7 @@
     <string name="authorize_deactivate_warning_message_text">После деактивации, устройству будут недоступны данные Directum, устройство перейдет в Demo режим.</string>
     <string name="authorize_geturl_failed_message_text">Ошибка. Проверьте подключение к Интернет и доступность сервера.</string>
     <string name="authorize_geturl_success_message_text" formatted="false">Настройки получены. Приложение настроено на url %s</string>
+    <string name="authorize_login_empty_message_text">Имя пользователя не может быть пустым.</string>
     
     <!-- Окно создания задачи -->
     <string name="create_task_dialog_fragment_theme_text">Тема*</string>

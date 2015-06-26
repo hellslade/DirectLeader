@@ -262,14 +262,15 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     		if (pg != null) {
     			pg.dismiss();
     		}
+//    		boolean needToClose = false;
     		if (json != null) {
     			final int statusCode = json.optInt("statusCode");
     			if (statusCode == 200) {
     				// Получен успешный ответ от сервера, теперь нужно проверить переменную result
-    				boolean result = json.optBoolean("result");
+    				boolean result = json.optBoolean("Result");
     				final String message = json.optString("Message");
     				AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-    				if (result || message.equalsIgnoreCase("Сохранение прошло успешно")) {
+    				if (result) {// || message.equalsIgnoreCase("Сохранение прошло успешно")) {
     					// Сохранение резолюции прошло успешно
     					alertDialog.setTitle("Успешно");
     					if (!isSubResolution) {
@@ -281,16 +282,29 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	    					tds.open();
 	    					mTask = tds.updateTask(mTask);
     					}
+//    					needToClose = true;
+    					alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+    				        public void onClick(DialogInterface dialog, int which) {
+    				            dialog.dismiss();
+    				            // Also need to close myself
+    				            getFragmentManager().popBackStackImmediate();
+    				        }
+    					});
     				} else {
     					// В любом случае показать диалоговое окно с результатом.
     					alertDialog.setTitle("Ошибка");
-    				}
-    				alertDialog.setMessage(message);
-    				alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+    					alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
     				        public void onClick(DialogInterface dialog, int which) {
     				            dialog.dismiss();
     				        }
-				    });
+    					});
+    				}
+    				alertDialog.setMessage(message);
+//    				alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+//    				        public void onClick(DialogInterface dialog, int which) {
+//    				            dialog.dismiss();
+//    				        }
+//				    });
     				alertDialog.show();
     			} else {
     				AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
@@ -307,6 +321,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     			final String text = getResources().getString(R.string.reference_save_progress_nointernet_message_text);
     			Toast.makeText(mDirect, text, Toast.LENGTH_LONG).show();
     		}
+//    		if (needToClose) {
+//    			// Need to close myself
+//    			getFragmentManager().popBackStackImmediate();
+//    		}
     		super.onPostExecute(json);
     	};
     }
@@ -581,7 +599,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	// Клонируем референс детаил
     	ReferenceDetail detail = mReferenceDetail.get(mReferenceDetail.size()-1);
     	ReferenceDetail new_detail = new ReferenceDetail(detail);
-    	new_detail.clearValues();
+    	new_detail.clearValues(true);
     	// Клонируем референс хедер
     	ReferenceHeader new_header = new ReferenceHeader(mReferenceHeader);
     	new_header.clearValues();

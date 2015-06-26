@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -136,13 +137,19 @@ public class BookCompoundView extends RelativeLayout implements OnClickListener 
     }
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
+    	super.onSizeChanged(w, h, oldw, oldh);
         // captionImageView должен быть вдвое меньше bookOverlayLayout
-        int width = bookOverlayLayout.getMeasuredWidth();
+//        int width = bookOverlayLayout.getMeasuredWidth();
 //        Log.v(TAG, "bookOverlayLayout.getWidth() " + width);
-        captionImageView.getLayoutParams().width = width/2;
+        //captionImageView.getLayoutParams().width = width/2;
+//        Log.v(TAG, "oldw " + oldw);
+//        Log.v(TAG, "w " + w);
+//        Log.v(TAG, "captionTextSize " + captionTextSize);
+//        captionTextSize *= width/textW;
+//        Log.v(TAG, "captionTextSize " + captionTextSize);
+//        captionTextView.setTextSize(captionTextSize);
     }
-    
+        
     public void setTypeface(Typeface tf) {
         greenView.setTypeface(tf);
         yellowView.setTypeface(tf);

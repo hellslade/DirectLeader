@@ -94,8 +94,9 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         protected void onPostExecute(Attachment[] attachments) {
             super.onPostExecute(attachments);
             documentsLayout.removeAllViews();
-            
+            Log.v(TAG, "attachments.length " + attachments.length);
             for (Attachment a : attachments) {
+            	Log.v(TAG, "a.getId() " + a.getId());
                 final RelativeLayout itemLayout = (RelativeLayout) getActivity().getLayoutInflater().inflate(R.layout.document_item_layout, null);
                 final TextView documentNameTextView = (TextView) itemLayout.findViewById(R.id.documentNameTextView);
                 documentNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);

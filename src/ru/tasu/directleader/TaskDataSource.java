@@ -281,10 +281,12 @@ public class TaskDataSource {
         Attachment[] attachments = task.getAttachment();
         AttachmentDataSource attachment_ds = new AttachmentDataSource(mContext);
         attachment_ds.open();
+        attachment_ds.deleteAttachmentsByTaskId(task.getId());
         for (Attachment attach : attachments) {
+//        	Log.v("updateTaskWithJobs", "attach.getId() " + attach.getId());
             attach.setTaskId(task.getId());
-//            attachment_ds.createAttachment(attach);
-            attachment_ds.insertOrUpdate(attach);
+            attachment_ds.createAttachment(attach);
+//            attachment_ds.insertOrUpdate(attach);
         }
         History[] histories = task.getHistory();
         HistoryDataSource history_ds = new HistoryDataSource(mContext);
@@ -314,17 +316,16 @@ public class TaskDataSource {
         	createTask(task);
         }
     }
-    @Deprecated
-    public int deleteAllTasks123() {
+    public int deleteAllTasks() {
         AttachmentDataSource attachment_ds = new AttachmentDataSource(mContext);
         HistoryDataSource history_ds = new HistoryDataSource(mContext);
         JobDataSource job_ds = new JobDataSource(mContext);
         attachment_ds.open();
         history_ds.open();
         job_ds.open();
-//        attachment_ds.deleteAllAttachments();
-//        history_ds.deleteAllHistories();
-//        job_ds.deleteAllJobs();
+        attachment_ds.deleteAllAttachments();
+        history_ds.deleteAllHistories();
+        job_ds.deleteAllJobs();
         int count = database.delete(DBHelper.TASK_TABLE, "1", null);
         return count;
     }

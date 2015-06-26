@@ -83,6 +83,10 @@ public class DocumentDownloadDialogFragment extends DialogFragment {
             try {
                 URL url = new URL(sUrl[0]);
                 connection = (HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(10000);
+                String interv = mSettings.getString("timeout_attachments", "20");
+                int interval = Integer.valueOf(interv)*1000; // В настройках интервал в секундах
+                connection.setReadTimeout(interval);
                 connection.addRequestProperty(mDirect.mQUERY_DeviceId, mDirect.getDeviceId());
                 connection.addRequestProperty(mDirect.mQUERY_UserName, mDirect.getUserName());
                 connection.addRequestProperty(mDirect.mQUERY_Password, mDirect.getPassword());

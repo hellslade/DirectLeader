@@ -379,7 +379,11 @@ public class JobDataSource {
         	createJob(job);
         }
     }
-
+    public int deleteAllJobs() {
+    	int count = database.delete(DBHelper.JOB_TABLE, "1", null);
+        return count;
+    }
+    
     private Job cursorToJob(Cursor cursor) {
         //int id, String address, String point, String work_hours, int brand, String last_modified
 //        DBHelper.JOB__ID, DBHelper.JOB_ACTION_LIST, DBHelper.JOB_END_DATE, DBHelper.JOB_FINAL_DATE, DBHelper.JOB_ID, DBHelper.JOB_MAIN_TASK_JOB, 

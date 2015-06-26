@@ -6,13 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.security.acl.LastOwnerException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -36,10 +35,9 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.provider.Settings.Secure;
-import android.util.Base64;
 import android.util.Log;
 
 public class DirectLeaderApplication extends Application {
@@ -184,7 +182,23 @@ public class DirectLeaderApplication extends Application {
 //        e.remove(SETTINGS_ACTIVATE_KEY);
 //        e.remove(SETTINGS_SERVICE_URL_KEY);
         e.remove(SETTINGS_ORGANIZATION_KEY);
+        e.remove(SETTINGS_LASTSYNCDATE_RABOTNIC_KEY);
+        e.remove(SETTINGS_LASTSYNCDATE_TASK_KEY);
         e.commit();
+        
+        // Clear DB data
+        TaskDataSource tds = new TaskDataSource(this);
+        RabotnicDataSource rds = new RabotnicDataSource(this);
+        tds.open();
+        rds.open();
+        tds.deleteAllTasks();
+        rds.deleteAllRabotnics();
+        
+        // Clear Settings file
+        File path = getApplicationCacheDir(this);
+        File settingsFile = new File(path, mSettingsFilename);
+        settingsFile.delete();
+        // */
     }
     public void clearServiceURL() {
         Editor e = getSettings().edit();
@@ -241,6 +255,45 @@ public class DirectLeaderApplication extends Application {
         return mSettings.getString(SETTINGS_ORGANIZATION_KEY, "");
     }
     
+    private int getTimeout4URL(String url) {
+    	String interval = "30"; // По умолчанию 30 секунд
+    	List<String> timeout_task = new ArrayList<String>();
+    	timeout_task.add(GET_MY_TASKS);
+    	timeout_task.add(POST_CHECK_FINISHED_TASKS);
+    	timeout_task.add(GET_EXEC_JOB_ACTION);
+    	timeout_task.add(GET_EXEC_TASK_ACTION);
+    	timeout_task.add(POST_CREATE_TASK);
+    	timeout_task.add(POST_SAVE_REFERENCE);
+    	
+    	List<String> timeout_rabotnic = new ArrayList<String>();
+    	timeout_rabotnic.add(GET_RABOTNIC);
+    	timeout_rabotnic.add(GET_CLIENT_SETTINGS);
+    	
+    	List<String> timeout_attachments = new ArrayList<String>();
+    	timeout_attachments.add(GET_DOCUMENT);
+    	
+//    	Log.v(TAG, "getTimeout4URL url " + url);
+    	
+    	for (String u : timeout_task) {
+    		if (url.contains(u)) {
+    			interval = getSettings().getString("timeout_task", "30");
+    		}
+    	}
+    	for (String u : timeout_rabotnic) {
+    		if (url.contains(u)) {
+    			interval = getSettings().getString("timeout_rabotnic", "30");
+    		}
+    	}
+    	for (String u : timeout_attachments) {
+    		if (url.contains(u)) {
+    			interval = getSettings().getString("timeout_attachments", "30");
+    		}
+    	}
+    	
+//        Log.v(TAG, "getTimeout4URL interval " + interval);
+        int timeoutSocket = Integer.valueOf(interval)*1000; // В настройках интервал в секундах
+    	return timeoutSocket;
+    }
     public String getDirectLeaderServiceURL() {
         if (!isDeviceActivated()) {
             return DIRECTLEADER_SERVICE_DEMO;
@@ -869,7 +922,7 @@ public class DirectLeaderApplication extends Application {
             return null;
         }
         Log.v(TAG, url);
-        HttpClient httpclient = new DefaultHttpClient(getHttpParams());
+        HttpClient httpclient = new DefaultHttpClient(getHttpParams(url));
         HttpGet httpquery = new HttpGet(url);
         HttpResponse result = null;
         try {
@@ -910,7 +963,7 @@ public class DirectLeaderApplication extends Application {
      */
     private HttpResponse sendDataGet(String url) {
         Log.v(TAG, url);
-        HttpClient httpclient = new DefaultHttpClient(getHttpParams());
+        HttpClient httpclient = new DefaultHttpClient(getHttpParams(url));
         HttpGet httpquery = new HttpGet(url);
         HttpResponse result = null;
         try {
@@ -946,7 +999,7 @@ public class DirectLeaderApplication extends Application {
      */
     private HttpResponse sendDataGetPortal(String url) {
         Log.v(TAG, url);
-        HttpClient httpclient = new DefaultHttpClient(getHttpParams());
+        HttpClient httpclient = new DefaultHttpClient(getHttpParams(url));
         HttpGet httpquery = new HttpGet(url);
         HttpResponse result = null;
         try {
@@ -997,7 +1050,7 @@ public class DirectLeaderApplication extends Application {
      */
     private HttpResponse sendDataPostJSON(String url, String jsonString) {
         Log.v(TAG, url);
-        HttpClient httpclient = new DefaultHttpClient(getHttpParams());
+        HttpClient httpclient = new DefaultHttpClient(getHttpParams(url));
         HttpPost httpquery = new HttpPost(url);
         HttpResponse result = null;
         try {
@@ -1026,15 +1079,17 @@ public class DirectLeaderApplication extends Application {
         httpquery = null;
         return result;
     }
-    private HttpParams getHttpParams() {
+    
+    private HttpParams getHttpParams(String url) {
         HttpParams httpParameters = new BasicHttpParams();
         // Set the timeout in milliseconds until a connection is established.
         // The default value is zero, that means the timeout is not used. 
-        int timeoutConnection = 30000;
+        int timeoutConnection = 10000;
         HttpConnectionParams.setConnectionTimeout(httpParameters, timeoutConnection);
         // Set the default socket timeout (SO_TIMEOUT) 
         // in milliseconds which is the timeout for waiting for data.
-        int timeoutSocket = 40000;
+//        int timeoutSocket = 40000;
+        int timeoutSocket = getTimeout4URL(url);
         HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
         return httpParameters;
     }

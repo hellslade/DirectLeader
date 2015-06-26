@@ -148,11 +148,18 @@ public class AttachmentDataSource {
     	Cursor cursor = database.query(DBHelper.ATTACHMENT_TABLE,
                 allColumns, DBHelper.ATTACHMENT_ID + " = " + attachment.getId(), null, null, null, null, "1");
         cursor.moveToFirst();
+//        Log.v("Attachment insertOrUpdate", "cursor.getCount() " + cursor.getCount());
         if (cursor.getCount() > 0) {
+//        	Log.v("", "updateAttachment");
         	updateAttachment(attachment);
         } else {
+//        	Log.v("", "createAttachment");
         	createAttachment(attachment);
         }
+    }
+    public int deleteAllAttachments() {
+    	int count = database.delete(DBHelper.ATTACHMENT_TABLE, "1", null);
+        return count;
     }
     /**
      * ѕолучить общее количество документов

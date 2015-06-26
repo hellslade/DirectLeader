@@ -88,6 +88,10 @@ public class HistoryDataSource {
         return count;
     }
     
+    public int deleteAllHistories() {
+    	int count = database.delete(DBHelper.HISTORY_TABLE, "1", null);
+        return count;
+    }
     public void insertOrUpdate(History history) {
     	// History не может измениться, это по сути комментарий. Id отсутствует, поэтому смотрим соответствие даты и текста.
     	Cursor cursor = database.query(DBHelper.HISTORY_TABLE, allColumns, 

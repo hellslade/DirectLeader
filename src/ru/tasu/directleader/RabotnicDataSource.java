@@ -177,6 +177,10 @@ public class RabotnicDataSource {
         cursor.close();
         return rabotnics;
     }
+    public int deleteAllRabotnics() {
+    	int count = database.delete(DBHelper.RABOTNIC_TABLE, "1", null);
+        return count;
+    }
     
     private Rabotnic cursorToRabotnic(Cursor cursor) {
 //        Log.v("RabotnicDataSource", "cursorToRabotnic() START");
