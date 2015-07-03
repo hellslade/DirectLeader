@@ -26,7 +26,7 @@
     <string name="action_all">Все</string>
     <string name="action_favorite">Избранные</string>
     <string name="action_important">Важные</string>
-    <string name="action_attachment_camera">Снимок на камеру</string>
+    <string name="action_attachment_get_photo">Сделать снимок</string>
     <string name="action_attachment_pick_device">Выбрать с устройства</string>
     <string name="action_attachment_search_directum">Поиск в Directum</string>
     

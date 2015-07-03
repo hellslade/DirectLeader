@@ -1,9 +1,5 @@
 package ru.tasu.directleader;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.json.JSONObject;
 
 import android.os.Parcel;
@@ -144,6 +140,9 @@ public class Attachment implements Parcelable {
     }
     public int getVersion() {
         return this._version;
+    }
+    public void setCTitle(String ctitle) {
+    	this._ctitle = ctitle;
     }
     public void setTaskTitle(String title) {
         this._task_title = title;

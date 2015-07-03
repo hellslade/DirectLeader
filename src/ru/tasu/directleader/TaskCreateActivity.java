@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -19,32 +20,35 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ru.tasu.directleader.DocumentDownloadDialogFragment.OnDocumentDownloadListener;
 import ru.tasu.directleader.UsersDialogFragment.OnUserSelectListener;
 import ru.tasu.directleader.UsersDialogFragment.UserType;
-import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.DialogFragment;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.DocumentsContract;
+import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.provider.DocumentFile;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -58,12 +62,15 @@ import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class TaskCreateActivity extends Activity implements OnClickListener, OnUserSelectListener {
+public class TaskCreateActivity extends Activity implements OnClickListener, OnUserSelectListener, OnDocumentDownloadListener {
     private static final String TAG = "TaskCreateActivity";
     public static final String TITLE_KEY = "title_key";
     
-    public final int FILE_PICK_REQUEST_CODE = 0x000001;
-    public final int DIRECTUM_PICK_REQUEST_CODE = 0x000002;
+    public static final int FILE_PICK_REQUEST_CODE = 0x000001;
+    public static final int DIRECTUM_PICK_REQUEST_CODE = 0x000002;
+    public static final int IMAGE_CAPTURE_REQUEST_CODE = 0x000003;
+    
+    private File mCurrentPhotoPath = null;
     
     class GetClientSettingsAsyncTask extends AsyncTask<Void, Void, JSONObject> {
         @Override
@@ -346,6 +353,61 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         });
         // */
         mRecyclerView.setOnTouchListener(touchListener);
+        mRecyclerView.addOnItemTouchListener(  
+        	    new RecyclerItemClickListener(this, new OnItemClickListener() {
+        	        @Override 
+        	        public void onItemClick(View view, int position) {
+        	        	Attachment attachment = mDataSet.get(position);
+        	        	if (attachment.getId() == -1) { // local file
+        					File myFile = new File(attachment.getName());
+        					try {
+        		                FileOpen.openFile(TaskCreateActivity.this, myFile);
+        		            } catch (IOException e) {
+        		                Log.v(TAG, "Неудалось открыть документ " + e.getMessage());
+        		            }
+        				} else { // directum file
+        					showDownloadDialog(attachment);
+        				}
+        	        }
+        	        @Override
+        	        public void onItemLongClick(View view, final int position) {
+        	        	Log.v(TAG, "Rename the attachment");
+        	        	final Attachment attachment = mDataSet.get(position);
+        	        	if (attachment.getId() == -1) { // local file
+        	        		AlertDialog.Builder builder = new AlertDialog.Builder(TaskCreateActivity.this);
+        	                builder.setTitle("Введите новое имя файла:");
+
+        	                // Set up the input
+        	                LinearLayout ll = new LinearLayout(TaskCreateActivity.this);
+        	                ll.setOrientation(LinearLayout.VERTICAL);
+        	                final EditText inputName = new EditText(TaskCreateActivity.this);
+        	                inputName.setText(attachment.getCTitle());
+        	                ll.addView(inputName);
+        	                builder.setView(ll);
+        	                
+        	                // Set up the buttons
+        	                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { 
+        	                    @Override
+        	                    public void onClick(DialogInterface dialog, int which) {
+        	                        String name = inputName.getText().toString();
+        	                        attachment.setCTitle(name);
+        	                        mAdapter.notifyItemChanged(position);
+        	                    }
+        	                });
+        	                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        	                    @Override
+        	                    public void onClick(DialogInterface dialog, int which) {
+        	                        dialog.cancel();
+        	                    }
+        	                });
+
+        	                builder.show();
+        	        	} else {
+        	        		Toast.makeText(mDirect, "Нельзя переименовать файл из Directum", Toast.LENGTH_LONG).show();
+        	        	}
+        	        }
+        	      })
+        	  );
     }
     private SwipeDismissTouchListener.DismissCallbacks swipeDismissListener = new SwipeDismissTouchListener.DismissCallbacks() {
         @Override
@@ -571,7 +633,22 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         @Override
         public boolean onMenuItemClick(MenuItem item) {
             switch (item.getItemId()) {
-                case R.id.action_attachment_camera:
+                case R.id.action_attachment_get_photo:
+            	    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            	    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+//            	        startActivityForResult(takePictureIntent, IMAGE_CAPTURE_REQUEST_CODE);
+            	    	File photoFile = null;
+            	        try {
+            	            photoFile = createImageFile();
+            	        } catch (IOException ex) {
+            	        	Log.v(TAG, "" + ex.getLocalizedMessage());
+            	        }
+            	        // Continue only if the File was successfully created
+            	        if (photoFile != null) {
+            	            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+            	            startActivityForResult(takePictureIntent, IMAGE_CAPTURE_REQUEST_CODE);
+            	        }
+            	    }
                     break;
                 case R.id.action_attachment_pick_device:
                     Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -589,6 +666,17 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
             return true;
         }
     };
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = timeStamp + ".jpg";
+        File storageDir = mDirect.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = new File(storageDir, imageFileName);
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image;
+        return image;
+    }
     private void showUsersDialog(UserType type) {
         Log.v(TAG, "showUsersDialog " + type.ordinal());
         Usertype = type;
@@ -656,6 +744,25 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
         popup.show();
     }
     
+    private void showDownloadDialog(Attachment doc) {
+        Log.v(TAG, "showDownloadDialog " + doc.getName());
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        DialogFragment newFragment = DocumentDownloadDialogFragment.newInstance(doc);
+        newFragment.show(ft, "download_dialog");
+    }
+	@Override
+	public void onDocumentDownload(Attachment doc) {
+		// открытие документа.
+        boolean exist = mDirect.checkDocumentExist(doc);
+        if (exist) {
+            File myFile = mDirect.getDocumentFile(doc);
+            try {
+                FileOpen.openFile(this, myFile);
+            } catch (IOException e) {
+                Log.v(TAG, "Неудалось открыть документ " + e.getMessage());
+            }
+        }		
+	}
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.v(TAG, "onActivityResult " + data);
@@ -698,10 +805,87 @@ public class TaskCreateActivity extends Activity implements OnClickListener, OnU
                     }
                 }
                 mAdapter.notifyDataSetChanged();
-//                mDataSet.re
                 mDataSet.addAll(mAttachments);
                 mAdapter.notifyDataSetChanged();
             }
         }
+        if (requestCode == IMAGE_CAPTURE_REQUEST_CODE) {
+        	if (resultCode == Activity.RESULT_OK) {
+        		Log.v(TAG, "mCurrentPhotoPath " + mCurrentPhotoPath);
+        		if (mCurrentPhotoPath != null) {
+	        		String name = mCurrentPhotoPath.getAbsolutePath(); // Полный путь к файлу
+	                String ctitle = mCurrentPhotoPath.getName().substring(0, mCurrentPhotoPath.getName().lastIndexOf("."));
+	                String ext = name.substring(name.lastIndexOf(".")+1);
+	                Log.v(TAG, "ext " + ext);
+	                long id = -1;
+	                final Attachment f = new Attachment("", ctitle, "", ext, id, "", name, false, 0, 0);
+	                mDataSet.add(f);
+	                mAdapter.notifyItemInserted(mDataSet.size());
+	                mCurrentPhotoPath = null;
+        		} else {
+        			Toast.makeText(mDirect, "Неудалось прикрепить снимок. Обратитесь к разработчику.", Toast.LENGTH_LONG).show();
+        		}
+        	}
+        }
+    }
+    @Override
+	public void onSaveInstanceState(Bundle outState) {
+		if (mCurrentPhotoPath != null) {
+			outState.putSerializable("captureURI", mCurrentPhotoPath);
+		}
+		super.onSaveInstanceState(outState);
+	}
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    	if (savedInstanceState != null) {
+			if (savedInstanceState.containsKey("captureURI")) {
+				try {
+					mCurrentPhotoPath = (File)savedInstanceState.getSerializable("captureURI");
+				} catch (ClassCastException ex) {
+					Log.v(TAG, "mCurrentPhotoPath ClassCastException " + ex.getMessage());
+				}
+			}
+		}
+    	super.onRestoreInstanceState(savedInstanceState);
+    }
+    class RecyclerItemClickListener implements RecyclerView.OnItemTouchListener {  
+        private OnItemClickListener mListener;
+
+        GestureDetector mGestureDetector;
+
+        public RecyclerItemClickListener(Context context, OnItemClickListener listener) {
+            mListener = listener;
+            mGestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onSingleTapUp(MotionEvent e) {
+                    return true;
+                }
+                @Override
+                public void onLongPress(MotionEvent e) {
+                	View childView = mRecyclerView.findChildViewUnder(e.getX(), e.getY());
+                    if(childView != null && mListener != null)
+                    {
+                        mListener.onItemLongClick(childView, mRecyclerView.getChildPosition(childView));
+                    }
+                }
+            });
+        }
+
+        @Override
+        public boolean onInterceptTouchEvent(RecyclerView view, MotionEvent e) {
+            View childView = view.findChildViewUnder(e.getX(), e.getY());
+            if (childView != null && mListener != null && mGestureDetector.onTouchEvent(e)) {
+                mListener.onItemClick(childView, view.getChildPosition(childView));
+            }
+            return false;
+        }
+
+        @Override
+        public void onTouchEvent(RecyclerView view, MotionEvent motionEvent) {
+        }
+    }
+    interface OnItemClickListener {
+        public void onItemClick(View view, int position);
+        public void onItemLongClick(View view, int position);
     }
 }

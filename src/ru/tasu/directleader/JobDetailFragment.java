@@ -10,8 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import ru.tasu.directleader.TaskDetailFragment.GetResolutionAsyncTask;
-
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
@@ -39,7 +37,6 @@ import android.widget.PopupMenu;
 import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class JobDetailFragment extends Fragment implements OnClickListener {
     private static final String TAG = "JobDetailFragment";
@@ -266,7 +263,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         if (mJob == null) {
             // Закрыть фрагмент?
         }
-        Log.v(TAG, "mJob " + mJob.getStartDate());
+        Log.v(TAG, "mJob " + mJob.getId());
         
         actionsView = (Button)rootView.findViewById(R.id.actionsView);
         subtaskView = (Button)rootView.findViewById(R.id.subtaskView);
@@ -461,6 +458,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
             	}
                 Bundle args = new Bundle();
                 args.putParcelable(ResolutionDetailFragment.TASK_KEY, task);
+                args.putParcelable(ResolutionDetailFragment.JOB_KEY, mJob);
                 mListener.OnOpenFragment(ResolutionDetailFragment.class.getName(), args);
                 //saveScrollViewPosition();
             }

@@ -101,24 +101,24 @@ public class RabotnicDataSource {
     public Rabotnic[] getAllRabotnicsWithTaskCount() {
         Rabotnic[] rabotnics = null;
         
-        String sql = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code GROUP BY (rabotnic._id);";
+        String sql = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.state=0 GROUP BY (rabotnic._id);";
         Cursor cursor = database.rawQuery(sql, null);
         cursor.moveToFirst();
         rabotnics = new Rabotnic[cursor.getCount()];
         int i = 0;
         while (!cursor.isAfterLast()) {
             final Rabotnic rabotnic = cursorToRabotnic(cursor);
-            rabotnic.setTotalJobs(cursor.getInt(8));
+            rabotnic.setTotalJobs(cursor.getInt(9));
             // Получим просроченные задания
-            final String sqlOverdue = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.final_date < date() AND j.final_date <> '1899-12-30 00:00:00' AND rabotnic.code == ?;";
+            final String sqlOverdue = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.state=0 AND j.final_date < date() AND j.final_date <> '1899-12-30 00:00:00' AND rabotnic.code == ?;";
             final Cursor cursorOverdue = database.rawQuery(sqlOverdue, new String[]{rabotnic.getCode()});
             cursorOverdue.moveToFirst();
-            rabotnic.setOverdueJobs(cursorOverdue.getInt(8));
+            rabotnic.setOverdueJobs(cursorOverdue.getInt(9));
             // Получим текущие задания
-            final String sqlCurrent = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.final_date = date() AND rabotnic.code == ?;";
+            final String sqlCurrent = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.state=0 AND j.final_date = date() AND rabotnic.code == ?;";
             final Cursor cursorCurrent = database.rawQuery(sqlCurrent, new String[]{rabotnic.getCode()});
             cursorCurrent.moveToFirst();
-            rabotnic.setCurrentJobs(cursorCurrent.getInt(8));
+            rabotnic.setCurrentJobs(cursorCurrent.getInt(9));
             rabotnics[i++] = rabotnic;
             
             cursor.moveToNext();

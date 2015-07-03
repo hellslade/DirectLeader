@@ -110,33 +110,6 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
             }
         }
     }
-    class GetResolutionAsyncTask extends AsyncTask<Void, Void, ReferenceHeader> {
-        @Override
-        protected ReferenceHeader doInBackground(Void... params) {
-            JSONArray ref_header = mTask.getReferenceHeaderJSON();
-            if (ref_header.length() == 0) {
-            	return null;
-            }
-            return new ReferenceHeader(ref_header);
-        }
-        @Override
-        protected void onPostExecute(ReferenceHeader ref_header) {
-            super.onPostExecute(ref_header);
-            resolutionLayout.removeAllViews();
-            
-            if (ref_header != null) {
-                final RelativeLayout itemLayout = (RelativeLayout) getActivity().getLayoutInflater().inflate(R.layout.resolution_item_layout, null);
-                final TextView resolutionNameTextView = (TextView) itemLayout.findViewById(R.id.resolutionNameTextView);
-                resolutionNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-                resolutionNameTextView.setText(ref_header.getResolutionTitle());
-                itemLayout.setTag(ref_header);
-                itemLayout.setOnClickListener(resolutionClickListener);
-                resolutionLayout.addView(itemLayout);
-            } else {
-            	resolutionListLabel.setVisibility(View.GONE);
-            }
-        }
-    }
     class GetHistoriesAsyncTask extends AsyncTask<Void, Void, History[]> {
         @Override
         protected History[] doInBackground(Void... params) {
@@ -231,8 +204,8 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
     // 
     private TextView dateTextView, stateTextView, importanceTextView, flagTextView, documentsTextView, jobsTextView, subtasksTextView, commentsTextView;
     
-    private TextView documentsListLabel, historiesLabel, performersListLabel, resolutionListLabel;
-    private LinearLayout documentsLayout, historiesLayout, performersLayout, resolutionLayout;
+    private TextView documentsListLabel, historiesLabel, performersListLabel;
+    private LinearLayout documentsLayout, historiesLayout, performersLayout;
     
     private RelativeLayout taskCountLayout;
     private ScrollView mScrollView;
@@ -305,7 +278,6 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         historiesLabel = (TextView) v.findViewById(R.id.historiesLabel);
         documentsListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         performersListLabel = (TextView) v.findViewById(R.id.performersListLabel);
-        resolutionListLabel = (TextView) v.findViewById(R.id.resolutionListLabel);
         
         dateTextView = (TextView) v.findViewById(R.id.dateTextView);
         stateTextView = (TextView) v.findViewById(R.id.stateTextView);
@@ -319,7 +291,6 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         documentsLayout = (LinearLayout) v.findViewById(R.id.documentsLayout);
         historiesLayout = (LinearLayout) v.findViewById(R.id.historiesLayout);
         performersLayout = (LinearLayout) v.findViewById(R.id.performersLayout);
-        resolutionLayout = (LinearLayout) v.findViewById(R.id.resolutionLayout);
         taskCountLayout = (RelativeLayout) v.findViewById(R.id.taskCountLayout);
         taskCountLayout.setOnClickListener(new OnClickListener() {
             @Override
@@ -345,7 +316,6 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         
         historiesLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         performersListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-        resolutionListLabel.setTypeface(mDirect.mPFDinDisplayPro_Reg);
         
         for (TextView tv : new TextView[]{dateTextView, stateTextView, importanceTextView,
                 flagTextView, documentsTextView, jobsTextView, subtasksTextView, commentsTextView}) {
@@ -386,7 +356,6 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
         new GetJobsAsyncTask().execute();
         new GetDocumentsAsyncTask().execute();
         new GetHistoriesAsyncTask().execute();
-        new GetResolutionAsyncTask().execute();
     }
     OnClickListener actionsClickListener = new OnClickListener() {
         @Override
@@ -447,20 +416,7 @@ public class TaskDetailFragment extends Fragment implements OnClickListener {
             }
         }
     };
-    OnClickListener resolutionClickListener = new OnClickListener() {
-        @Override
-        public void onClick(View v) {
-        	Log.v(TAG, "resolutionClickListener ");
-        	if (mListener != null) {
-        		// Открытие резолюции
-//        		ReferenceHeader ref_header = (ReferenceHeader)v.getTag();
-                Bundle args = new Bundle();
-                args.putParcelable(ResolutionDetailFragment.TASK_KEY, mTask);
-                mListener.OnOpenFragment(ResolutionDetailFragment.class.getName(), args);
-                //saveScrollViewPosition();
-            }
-        }
-    };
+    
     private int scrollX, scrollY;
     private void saveScrollViewPosition() {
     	scrollX = mScrollView.getScrollX();

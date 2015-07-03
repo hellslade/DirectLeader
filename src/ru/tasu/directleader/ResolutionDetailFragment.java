@@ -180,7 +180,12 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	            		
 	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtPick")) {
 	            		valueView = getCheckBoxView(getActivity(), obj.optString("Name"), mReferenceHeader);
-	            		((Switch)valueView).setChecked(obj.optString("Value").equalsIgnoreCase("Yes") ? true : false);
+	            		String value = obj.optString("Value");
+	            		Log.v(TAG, "Value " + value);
+	            		((Switch)valueView).setChecked(value.equalsIgnoreCase("Yes") ? true : false);
+	            		if (value.equalsIgnoreCase("")) {
+	            			mReferenceHeader.setAttributeItemValue(obj.optString("Name"), "No");
+	    				}
 	            		
 	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtReference")) {
 	            		if (obj.optString("TypeReference").equalsIgnoreCase("РАБ")) {
@@ -226,18 +231,12 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     		
     		List<JSONObject> data = mReferenceHeader.getData();
     		for (JSONObject headerItem : data) {
-//    			if (headerItem.optString("Value").equalsIgnoreCase("null")) {
-//    				headerItem.put("Value", "");
-//    			}
     			header.put(headerItem);
     		}
     		for (ReferenceDetail ref_detail : mReferenceDetail) {
 	        	data = ref_detail.getData();
 	        	final JSONArray detail_json_array = new JSONArray();
 	        	for (JSONObject detailItem : data) {
-//	    			if (detailItem.optString("Value").equalsIgnoreCase("null")) {
-//	    				detailItem.put("Value", "");
-//	    			}
 	        		detail_json_array.put(detailItem);
 	        	}
 	        	Log.v(TAG, "save reference detail " + detail_json_array);
@@ -245,6 +244,9 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     		}
     		Log.v(TAG, "save reference header " + header);
     		try {
+    			if (isSubResolution) {
+    				json.put("AttachToJob", mJob.getId());
+    			}
 				json.put("ReferenceHeader", header);
 				json.put("ReferenceDetail", detail);
 			} catch (JSONException e) {
@@ -262,7 +264,6 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     		if (pg != null) {
     			pg.dismiss();
     		}
-//    		boolean needToClose = false;
     		if (json != null) {
     			final int statusCode = json.optInt("statusCode");
     			if (statusCode == 200) {
@@ -270,10 +271,40 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     				boolean result = json.optBoolean("Result");
     				final String message = json.optString("Message");
     				AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-    				if (result) {// || message.equalsIgnoreCase("Сохранение прошло успешно")) {
+    				if (result) {
     					// Сохранение резолюции прошло успешно
     					alertDialog.setTitle("Успешно");
-    					if (!isSubResolution) {
+    					if (!isSubResolution) { // Главная резолюция
+    						// Заменить ключи 
+    						/*"CreatedKeysDetail":[{
+    							"Key":2147483647,
+    							"Value":2147483647
+    						}],*/
+    						JSONArray detailKeys = json.optJSONArray("CreatedKeysDetail");
+    						for (int i=0; i<detailKeys.length(); i++) {
+    							final JSONObject pair = detailKeys.optJSONObject(i);
+    							final int key = pair.optInt("Key");
+    							final int value = pair.optInt("Value");
+    							for (int j=0; j<detail.length(); j++) {
+    								final JSONArray detailItem = detail.optJSONArray(j);
+									for (int k=0; k<detailItem.length(); k++) {
+										final JSONObject item = detailItem.optJSONObject(k);
+										if (item.optInt("Id") == key) {
+											try {
+												item.put("Id", value);
+											} catch (JSONException e) {
+												Log.v(TAG, "" + e.getMessage());
+											}
+										}
+									}
+									Log.v(TAG, "detailItem " + detailItem);
+    							}
+    						}
+    						// Теоретически, ключи в хедере не могут изменяться, при сохранении главной резолюции
+    						/*"CreatedKeysHead":[{
+    							"Key":2147483647,
+    							"Value":2147483647
+    						}],*/
 	    					// Сохранить reference в Task
 	    					mTask.setReferenceHeader(header);
 	    					mTask.setReferenceDetail(detail);
@@ -281,15 +312,29 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	    					TaskDataSource tds = new TaskDataSource(mDirect);
 	    					tds.open();
 	    					mTask = tds.updateTask(mTask);
+	    					alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+	    				        public void onClick(DialogInterface dialog, int which) {
+	    				            dialog.dismiss();
+	    				        }
+	    					});
+    					} else { // Подчиненная резолюция
+    						boolean resultAttach = json.optBoolean("ResultAttach");
+    						if (resultAttach) { // Если удалось создать документ, то нужно его приаттачить в заданию
+    							Attachment attachment = new Attachment(json.optJSONObject("ResultDocument"));
+    							attachment.setTaskId(mTask.getId());
+    							// Сохранить документ в БД
+    							AttachmentDataSource ads = new AttachmentDataSource(mDirect);
+    							ads.open();
+    							ads.createAttachment(attachment);
+    						}
+	    					alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+	    				        public void onClick(DialogInterface dialog, int which) {
+	    				            dialog.dismiss();
+	    				            // Also need to close myself
+	    				            getFragmentManager().popBackStackImmediate();
+	    				        }
+	    					});
     					}
-//    					needToClose = true;
-    					alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
-    				        public void onClick(DialogInterface dialog, int which) {
-    				            dialog.dismiss();
-    				            // Also need to close myself
-    				            getFragmentManager().popBackStackImmediate();
-    				        }
-    					});
     				} else {
     					// В любом случае показать диалоговое окно с результатом.
     					alertDialog.setTitle("Ошибка");
@@ -300,11 +345,6 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     					});
     				}
     				alertDialog.setMessage(message);
-//    				alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
-//    				        public void onClick(DialogInterface dialog, int which) {
-//    				            dialog.dismiss();
-//    				        }
-//				    });
     				alertDialog.show();
     			} else {
     				AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
@@ -321,10 +361,6 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     			final String text = getResources().getString(R.string.reference_save_progress_nointernet_message_text);
     			Toast.makeText(mDirect, text, Toast.LENGTH_LONG).show();
     		}
-//    		if (needToClose) {
-//    			// Need to close myself
-//    			getFragmentManager().popBackStackImmediate();
-//    		}
     		super.onPostExecute(json);
     	};
     }
@@ -334,10 +370,12 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     private OnOpenFragmentListener mListener;
     
     public static final String TASK_KEY = "task_key";
+    public static final String JOB_KEY = "job_key";
     public static final String REFERENCE_HEADER_KEY = "reference_header_key";
     public static final String REFERENCE_DETAIL_KEY = "reference_detail_key";
     public static final String REFERENCE_SUB_RESOLUTION_KEY = "reference_sub_resolution_key";
     private Task mTask = null;
+    private Job mJob = null;
     private boolean isSubResolution = false;
     
     private ReferenceHeader mReferenceHeader = null;
@@ -363,10 +401,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 				ref.setAttributeItemValue(attrName, attrValue);
 				if (layout != null) {
 	            	updateDetailSummary(layout, ref);
-	            }
-				if (isChecked) {
-					// Выключить все остальные checkbox'ы с таким же Name
-					setOffSwitchWithSameName(attrName, view);
+					if (isChecked) {
+						// Выключить все остальные checkbox'ы с таким же Name
+						setOffSwitchWithSameName(attrName, view);
+					}
 				}
 			}
 		}); 
@@ -605,6 +643,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	new_header.clearValues();
     	Bundle args = new Bundle();
         args.putParcelable(ResolutionDetailFragment.TASK_KEY, mTask);
+        args.putParcelable(ResolutionDetailFragment.JOB_KEY, mJob);
         args.putParcelable(ResolutionDetailFragment.REFERENCE_HEADER_KEY, new_header);
         args.putParcelable(ResolutionDetailFragment.REFERENCE_DETAIL_KEY, new_detail);
         args.putBoolean(ResolutionDetailFragment.REFERENCE_SUB_RESOLUTION_KEY, true);
@@ -637,10 +676,12 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
         
         Bundle args = getArguments();
         mTask = args.getParcelable(TASK_KEY);
-        if (mTask == null) {
+        mJob = args.getParcelable(JOB_KEY);
+        if (mJob == null || mTask == null) {
             // Закрыть фрагмент?
+        	Toast.makeText(mDirect, "mJob == " + mJob + "; mTask == " + mTask, Toast.LENGTH_LONG).show();
+        	getFragmentManager().popBackStackImmediate();
         }
-        Log.v(TAG, "mTask ");
         
         initViews(rootView);
 

@@ -326,7 +326,6 @@ public class DirectLeaderApplication extends Application {
      */
     public File getDocumentFile(Attachment doc) {
         String dirPath = getDocumentPath(doc);
-        // ИмяФайла состоит из ID документа. Потому что возможны длинные имена файлов со спец.символами
         String filename = String.format("%s.%s", normalizeFilename(doc.getName()), doc.getExt());
         return new File(dirPath, filename);
     }
