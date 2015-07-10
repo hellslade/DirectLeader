@@ -48,8 +48,18 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_marginRight="20dp"
+            android:layout_marginRight="10dp"
             android:src="@drawable/ic_save"
+            android:layout_toLeftOf="@+id/saveAndAttachButton"
+            android:background="@drawable/button_green2_selector"
+            />
+	    <ImageButton
+            android:id="@id/saveAndAttachButton"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="20dp"
+            android:src="@drawable/ic_save_and_attach"
             android:layout_alignParentRight="true"
             android:background="@drawable/button_green2_selector"
             />

@@ -45,7 +45,15 @@ public class Reference {
 		}
 		return result;
 	}
+	/**
+	 * ¬ернет атрибут по имени.
+	 * @param attrName ≈сли им€ атрибута "" (пуста€ строка), то вернет любой атрибут из существующих 
+	 * @return
+	 */
 	protected JSONObject getAttributeByName(String attrName) {
+		if (attrName.isEmpty()) {
+			return _data.get(0);
+		}
 		for (JSONObject attr : _data) {
 			final String name = attr.optString("Name");
 			if (name.equalsIgnoreCase(attrName)) {

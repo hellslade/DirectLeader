@@ -1,14 +1,11 @@
 package ru.tasu.directleader;
 
-import java.util.List;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 //ReferenceDetail: [
 //	[

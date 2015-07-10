@@ -61,6 +61,9 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
             if (refs != null) {
             	referenceDetailLayout.removeAllViews();
 	            for (ReferenceDetail detail : refs) {
+	            	if (detail.getAttributeByName("").optInt("Id") == 0) {
+	            		continue;
+	            	}
 	                final LinearLayout detailItemLayout = (LinearLayout) getActivity().getLayoutInflater().inflate(R.layout.resolution_detail_item_layout, null);
 	                final ExpandablePanel panel = (ExpandablePanel) detailItemLayout.findViewById(R.id.expandablePanel);
 	                panel.setOnExpandListener(new ExpandablePanel.OnExpandListener() {
@@ -95,10 +98,17 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	            		final TextView detailNameTextView = (TextView) itemLayout.findViewById(R.id.detailNameTextView);
 	            		detailNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
 	            		detailNameTextView.setText(obj.optString("Title"));
-	            		View valueView = null;
+	            		
+	            		final ImageButton clearButton = (ImageButton) itemLayout.findViewById(R.id.clearButton);
+	            		
+	            		final View valueView;
 	            		if (obj.optString("DataType").equalsIgnoreCase("rdtString")) {
 	            			valueView = getTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
 	            			((TextView)valueView).setText(obj.optString("Value"));
+	            			// Сделать видимой кнопку очищения
+	            			clearButton.setVisibility(View.VISIBLE);
+	            			// Сохранить референсе в тэге
+	            			clearButton.setTag(detail);
 	            			
 		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtText")) {
 		            		valueView = getEditTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
@@ -107,6 +117,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtDate")) {
 		            		valueView = getDateView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
 		            		((TextView)valueView).setText(obj.optString("Value"));
+		            		// Сделать видимой кнопку очищения
+	            			clearButton.setVisibility(View.VISIBLE);
+	            			// Сохранить референсе в тэге
+	            			clearButton.setTag(detail);
 		            		
 		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtPick")) {
 		            		valueView = getCheckBoxView(getActivity(), obj.optString("Name"), detail, "Да", "Нет", detailItemLayout);
@@ -123,13 +137,28 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 			            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
 		            			((TextView)valueView).setText(obj.optString("Value"));
 			            	}
+		            		// Сделать видимой кнопку очищения
+	            			clearButton.setVisibility(View.VISIBLE);
+	            			// Сохранить референсе в тэге
+	            			clearButton.setTag(detail);
 		            	} else {
 		            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
 	            			((TextView)valueView).setText(obj.optString("Value"));
 		            	}
 	            		if (valueView != null) {
 	            			valueView.setLayoutParams(lp);
-	            			itemLayout.addView(valueView);
+	            			itemLayout.addView(valueView, 1);
+	            			
+	            			clearButton.setOnClickListener(new OnClickListener() {
+	            				@Override
+	            				public void onClick(View v) {
+	            					String attrName = (String)valueView.getTag();
+	            					String attrValue = "";
+	            					((TextView)valueView).setText(attrValue);
+	            					final Reference ref = (Reference)v.getTag();
+	            					ref.setAttributeItemValue(attrName, attrValue);
+	            				}
+	            			});
 	            		}
 	            		contentLayout.addView(itemLayout);
 	            	}
@@ -160,7 +189,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
             		final TextView headerNameTextView = (TextView) headerItemLayout.findViewById(R.id.headerNameTextView);
             		headerNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
             		headerNameTextView.setText(obj.optString("Title"));
-            		View valueView = null;
+            		
+            		final ImageButton clearButton = (ImageButton) headerItemLayout.findViewById(R.id.clearButton);
+            		
+            		final View valueView;
             		if (obj.optString("DataType").equalsIgnoreCase("rdtString")) {
             			if (isSubResolution && obj.optString("Name").equalsIgnoreCase("Наименование") && obj.optString("Value").isEmpty()) {
 //            				((TextView)valueView).setText(subResolutionTitle);
@@ -168,6 +200,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
             			}
             			valueView = getTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
             			((TextView)valueView).setText(obj.optString("Value"));
+            			// Сделать видимой кнопку очищения
+            			clearButton.setVisibility(View.VISIBLE);
+            			// Сохранить референсе в тэге
+            			clearButton.setTag(mReferenceHeader);
             			
 	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtText")) {
 	            		valueView = getEditTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
@@ -176,6 +212,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtDate")) {
 	            		valueView = getDateView(getActivity(), obj.optString("Name"), mReferenceHeader);
 	            		((TextView)valueView).setText(obj.optString("Value"));
+	            		// Сделать видимой кнопку очищения
+            			clearButton.setVisibility(View.VISIBLE);
+            			// Сохранить референсе в тэге
+            			clearButton.setTag(mReferenceHeader);
 	            		
 	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtPick")) {
 	            		valueView = getCheckBoxView(getActivity(), obj.optString("Name"), mReferenceHeader);
@@ -197,6 +237,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 		            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
 	            			((TextView)valueView).setText(obj.optString("Value"));
 		            	}
+	            		// Сделать видимой кнопку очищения
+            			clearButton.setVisibility(View.VISIBLE);
+            			// Сохранить референсе в тэге
+            			clearButton.setTag(mReferenceHeader);
 	            		
 	            	} else {
 	            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
@@ -204,15 +248,27 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	            	}
             		if (valueView != null) {
             			valueView.setLayoutParams(lp);
-            			headerItemLayout.addView(valueView);
+            			headerItemLayout.addView(valueView, 1);
+            			
+            			clearButton.setOnClickListener(new OnClickListener() {
+	            			@Override
+	            			public void onClick(View v) {
+	            				String attrName = (String)valueView.getTag();
+	    				    	String attrValue = "";
+	    				    	((TextView)valueView).setText(attrValue);
+	    				    	final Reference ref = (Reference)v.getTag();
+	    				    	ref.setAttributeItemValue(attrName, attrValue);
+	            			}
+	            		});
             		}
+            		
             		
             		referenceHeaderLayout.addView(headerItemLayout);
             	}
             }
         }
     }
-    class SaveReferenceAsyncTask extends AsyncTask<Void, Void, JSONObject> {
+    class SaveReferenceAsyncTask extends AsyncTask<Boolean, Void, JSONObject> {
     	ProgressDialog pg = new ProgressDialog(getActivity());
     	JSONArray detail = new JSONArray(); // Array of JSONArray of JSONObject
 		JSONArray header = new JSONArray(); // Array of JSONObject
@@ -224,7 +280,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     		super.onPreExecute();
     	}
     	@Override
-    	protected JSONObject doInBackground(Void... params) {
+    	protected JSONObject doInBackground(Boolean... params) {
     		boolean success = true;
     		JSONObject json = new JSONObject();
     		
@@ -243,7 +299,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     		}
 //    		Log.v(TAG, "save reference header " + header);
     		try {
-    			if (isSubResolution) {
+    			if (params.length > 0 && params[0]) {
     				json.put("AttachToJob", mJob.getId());
     			}
 				json.put("ReferenceHeader", header);
@@ -304,7 +360,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     							"Key":2147483647,
     							"Value":2147483647
     						}],*/
-	    					// Сохранить reference в Task
+	    					// Сохранить reference в Resolution
 	    					mResolution.setReferenceHeader(header);
 	    					mResolution.setReferenceDetail(detail);
 	    					// Записать обновленный Resolution в БД
@@ -369,16 +425,6 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 							ResolutionDataSource rds = new ResolutionDataSource(mDirect);
 							rds.open();
 							rds.createResolution(resl);
-							// Сохраняем документ
-    						boolean resultAttach = json.optBoolean("ResultAttach");
-    						if (resultAttach) { // Если удалось создать документ, то нужно его приаттачить в заданию
-    							Attachment attachment = new Attachment(json.optJSONObject("ResultDocument"));
-    							attachment.setTaskId(mResolution.getTaskId());
-    							// Сохранить документ в БД
-    							AttachmentDataSource ads = new AttachmentDataSource(mDirect);
-    							ads.open();
-    							ads.createAttachment(attachment);
-    						}
 	    					alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
 	    				        public void onClick(DialogInterface dialog, int which) {
 	    				            dialog.dismiss();
@@ -387,6 +433,16 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	    				        }
 	    					});
     					}
+    					// Сохраняем документ
+						boolean resultAttach = json.optBoolean("ResultAttach");
+						if (resultAttach) { // Если удалось создать документ, то нужно его приаттачить в заданию
+							Attachment attachment = new Attachment(json.optJSONObject("ResultDocument"));
+							attachment.setTaskId(mResolution.getTaskId());
+							// Сохранить документ в БД
+							AttachmentDataSource ads = new AttachmentDataSource(mDirect);
+							ads.open();
+							ads.insertOrUpdate(attachment);
+						}
     				} else {
     					// В любом случае показать диалоговое окно с результатом.
     					alertDialog.setTitle("Ошибка");
@@ -421,13 +477,9 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     private static DirectLeaderApplication mDirect;
     private OnOpenFragmentListener mListener;
     
-    @Deprecated
-    public static final String TASK_KEY = "task_key";
     public static final String JOB_KEY = "job_key";
     public static final String RESOLUTION_KEY = "resolution_key";
-//    public static final String REFERENCE_HEADER_KEY = "reference_header_key";
     public static final String REFERENCE_SUBRESOLUTION_TITLE_KEY = "reference_subresolution_title_key";
-//    public static final String REFERENCE_DETAIL_KEY = "reference_detail_key";
     public static final String REFERENCE_SUB_RESOLUTION_KEY = "reference_sub_resolution_key";
 //    private Task mTask = null;
     private Job mJob = null;
@@ -438,7 +490,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     private ReferenceHeader mReferenceHeader = null;
     private List<ReferenceDetail> mReferenceDetail = null;
     
-    private ImageButton saveButton, addSubResolutionButton;
+    private ImageButton saveButton, addSubResolutionButton, saveAndAttachButton;
     private LinearLayout referenceHeaderLayout, referenceDetailLayout;
 
     // View's for ReferenceHeader & ReferenceDetail
@@ -583,7 +635,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 				builder.show();
 			}
 		}); 
-
+    	
     	return view;
     }
     private TextView getDateView(Context context, String attrName, final Reference ref) {
@@ -709,12 +761,9 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	}
     	String new_title = String.format("Подчиненная резолюция от %s %s (%s)", mReferenceHeader.getAttributeItemValue("Дата"), text, mReferenceHeader.getAttributeByName("Наименование").optString("Id"));
     	Bundle args = new Bundle();
-//        args.putParcelable(ResolutionDetailFragment.TASK_KEY, mTask);
         args.putParcelable(ResolutionDetailFragment.JOB_KEY, mJob);
         args.putParcelable(ResolutionDetailFragment.RESOLUTION_KEY, new_resolution);
         args.putString(ResolutionDetailFragment.REFERENCE_SUBRESOLUTION_TITLE_KEY, new_title);
-//        args.putParcelable(ResolutionDetailFragment.REFERENCE_HEADER_KEY, new_header);
-//        args.putParcelable(ResolutionDetailFragment.REFERENCE_DETAIL_KEY, new_detail);
         args.putBoolean(ResolutionDetailFragment.REFERENCE_SUB_RESOLUTION_KEY, true);
         mListener.OnOpenFragment(ResolutionDetailFragment.class.getName(), args);
     }
@@ -758,21 +807,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
         if (args.containsKey(REFERENCE_SUB_RESOLUTION_KEY)) {
 //        	Log.v(TAG, "SubResolution");
         	addSubResolutionButton.setVisibility(View.GONE);
+        	saveButton.setVisibility(View.GONE);
         	isSubResolution = args.getBoolean(REFERENCE_SUB_RESOLUTION_KEY);
         	Log.v(TAG, "isSubResolution " + isSubResolution);
-        	// mResolution = args.getParcelable(RESOLUTION_KEY);
-//        	mReferenceHeader = new ReferenceHeader(mResolution.getReferenceHeaderJSON());
-//        	JSONArray ref_details = mResolution.getReferenceDetailJSON();
-//            mReferenceDetail = new ArrayList<ReferenceDetail>();
-//            for (int i=0; i<ref_details.length(); i++) {
-//            	mReferenceDetail.add(new ReferenceDetail(ref_details.optJSONArray(i)));
-//            }
-//        	mReferenceHeader = args.getParcelable(REFERENCE_HEADER_KEY);
-//        	mReferenceDetail = new ArrayList<ReferenceDetail>();
-//        	mReferenceDetail.add((ReferenceDetail)args.getParcelable(REFERENCE_DETAIL_KEY));
         	subResolutionTitle = args.getString(REFERENCE_SUBRESOLUTION_TITLE_KEY);
-//        	Log.v(TAG, "mReferenceHeader " + mReferenceHeader);
-//        	Log.v(TAG, "mReferenceDetail " + mReferenceDetail);
         }
         
         setFonts();
@@ -785,6 +823,9 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	
     	saveButton = (ImageButton) v.findViewById(R.id.saveButton);
     	saveButton.setOnClickListener(this);
+    	
+    	saveAndAttachButton = (ImageButton) v.findViewById(R.id.saveAndAttachButton);
+    	saveAndAttachButton.setOnClickListener(this);
     	
     	Button addDetailReference = (Button) v.findViewById(R.id.addDetailReference);
     	addDetailReference.setOnClickListener(this);
@@ -800,11 +841,14 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
         for (int i=0; i<ref_details.length(); i++) {
         	mReferenceDetail.add(new ReferenceDetail(ref_details.optJSONArray(i)));
         }
+        
+        /*
+        @Deprecated Всегда будет один пустой элемент для копирования
         if (mReferenceDetail.size() == 0) {
     		addDetailReference.setVisibility(View.GONE);
     	} else {
     		addDetailReference.setVisibility(View.VISIBLE);
-    	}
+    	} // */
     }
     private void setFonts() {
     }
@@ -818,6 +862,9 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	switch (v.getId()) {
     		case R.id.saveButton:
     			new SaveReferenceAsyncTask().execute();
+    			break;
+    		case R.id.saveAndAttachButton:
+    			new SaveReferenceAsyncTask().execute(true);
     			break;
     		case R.id.addDetailReference:
     			addCloningReferenceDetail();
