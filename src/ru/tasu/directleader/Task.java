@@ -2,8 +2,10 @@ package ru.tasu.directleader;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -69,8 +71,7 @@ public class Task implements Parcelable {
     private Rabotnic _author;
     private int _attachment_count;
     private int _history_count;
-    private JSONArray _reference_detail;
-    private JSONArray _reference_header;
+    private List<Resolution> _resolution = new ArrayList<Resolution>();
     
 /*    
 References: [
@@ -175,12 +176,8 @@ References: [
         updateData(json);
     }
     public Task(JSONArray action_list, JSONArray attachments, JSONArray history, JSONArray jobs, JSONArray observers, JSONArray participants, JSONArray subtask_ids,
-    		JSONArray reference_detail, JSONArray reference_header, 
             String author_code, String created, String deadline, String executed, long id, String importance, String route_name, String state, String title) {
         this._action_list = action_list;
-        
-        this._reference_detail = reference_detail;
-        this._reference_header = reference_header;
         
         if (attachments != null) {
             this._attachments = new Attachment[attachments.length()];
@@ -252,16 +249,6 @@ References: [
         } catch (JSONException e) {
             Log.v(TAG, "_action_list read exception " + e.getMessage());
         }
-        try {
-            this._reference_detail = new JSONArray(in.readString());
-        } catch (JSONException e) {
-            Log.v(TAG, "_reference_detail read exception " + e.getMessage());
-        }
-        try {
-            this._reference_header = new JSONArray(in.readString());
-        } catch (JSONException e) {
-            Log.v(TAG, "_reference_header read exception " + e.getMessage());
-        }
         this._author_code = in.readString();
         this._created = in.readString();
         this._deadline = in.readString();
@@ -303,20 +290,13 @@ References: [
 //        Log.v(TAG, "data " + data);
         this._action_list = data.optJSONArray("ActionList");
         
-        this._reference_detail = new JSONArray();
-        this._reference_header = new JSONArray();
         JSONArray _reference = data.optJSONArray("References");
         if (_reference != null && _reference.length() > 0) {
-        	JSONObject ref = _reference.optJSONObject(0);
-        	if (ref != null && ref.has("ReferenceDetail")) {
-        		this._reference_detail = ref.optJSONArray("ReferenceDetail");
-        	}
-        	if (ref != null && ref.has("ReferenceHeader")) {
-        		this._reference_header = ref.optJSONArray("ReferenceHeader");
+        	for (int i=0; i<_reference.length(); i++) {
+        		final JSONObject ref = _reference.optJSONObject(i);
+        		this._resolution.add(new Resolution(ref));
         	}
         }
-//        Log.v(TAG, "this._reference_detail " + this._reference_detail);
-//        Log.v(TAG, "this._reference_header " + this._reference_header);
         
         JSONArray attachments = data.optJSONArray("Attachments");
         if (attachments != null) {
@@ -390,24 +370,6 @@ References: [
     }
     public String getActionList() {
         return this._action_list.toString();
-    }
-    public String getReferenceDetail() {
-        return this._reference_detail.toString();
-    }
-    public String getReferenceHeader() {
-        return this._reference_header.toString();
-    }
-    public JSONArray getReferenceDetailJSON() {
-        return this._reference_detail;
-    }
-    public JSONArray getReferenceHeaderJSON() {
-        return this._reference_header;
-    }
-    public void setReferenceHeader(JSONArray json) {
-    	this._reference_header = json;
-    }
-    public void setReferenceDetail(JSONArray json) {
-    	this._reference_detail = json;
     }
     public String getAuthorCode() {
         return this._author_code;
@@ -489,6 +451,9 @@ References: [
     }
     public Job[] getJob() {
         return this._jobs;
+    }
+    public List<Resolution> getResolutions() {
+    	return this._resolution;
     }
     public void setAttachment(Attachment[] attachments) {
         this._attachments = attachments;
@@ -573,8 +538,6 @@ References: [
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
         parcel.writeString(this._action_list.toString());
-        parcel.writeString(this._reference_detail.toString());
-        parcel.writeString(this._reference_header.toString());
         parcel.writeString(this._author_code);
         parcel.writeString(this._created);
         parcel.writeString(this._deadline);
@@ -605,5 +568,7 @@ References: [
         
         parcel.writeInt(this._subtask_ids.length); // Длина списка. Нужно чтобы потом создать правильной длины список
         parcel.writeLongArray(this._subtask_ids);
+        
+        parcel.writeTypedList(this._resolution);
     }
 }

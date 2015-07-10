@@ -86,7 +86,16 @@ public class ReferenceHeader extends Reference implements Parcelable {
 		updateData(json);
 	}
 	public ReferenceHeader(Parcel in) {
-		in.readList(_data, List.class.getClassLoader());
+		String jsonString = in.readString();
+		try {
+			JSONArray array = new JSONArray(jsonString);
+			for (int i=0; i<array.length(); i++) {
+				final JSONObject json = array.getJSONObject(i);
+				_data.add(json);
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 	}
 	public void clearValues() {
 		// Очистить значения, необходимо при копировании
@@ -133,6 +142,13 @@ public class ReferenceHeader extends Reference implements Parcelable {
     }
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
-    	parcel.writeList(_data);
+    	// JSONObject is not parcellable, need to convert it in String object
+    	String jsonString = "";
+    	JSONArray array = new JSONArray();
+    	for (JSONObject json : _data) {
+    		array.put(json);
+    	}
+    	jsonString = array.toString();
+    	parcel.writeString(jsonString);
     }
 }

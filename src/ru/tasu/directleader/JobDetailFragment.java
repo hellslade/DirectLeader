@@ -3,6 +3,7 @@ package ru.tasu.directleader;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -91,34 +92,29 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
             }
         }
     }
-    class GetResolutionAsyncTask extends AsyncTask<Void, Void, ReferenceHeader> {
+    class GetResolutionAsyncTask extends AsyncTask<Void, Void, Resolution[]> {
         @Override
-        protected ReferenceHeader doInBackground(Void... params) {
-        	TaskDataSource tds = new TaskDataSource(mDirect);
-        	tds.open();
-        	Task task = tds.getTaskById(mJob.getMainTaskJob());
-        	if (task == null) {
-        		return null;
-        	}
-        	JSONArray ref_header = task.getReferenceHeaderJSON();
-            if (ref_header.length() == 0) {
-            	return null;
-            }
-            return new ReferenceHeader(ref_header);
+        protected Resolution[] doInBackground(Void... params) {
+        	ResolutionDataSource rds = new ResolutionDataSource(mDirect);
+        	rds.open();
+        	return rds.getResolutionsByTaskId(mJob.getMainTaskJob());
         }
         @Override
-        protected void onPostExecute(ReferenceHeader ref_header) {
-            super.onPostExecute(ref_header);
+        protected void onPostExecute(Resolution[] resolutions) {
+            super.onPostExecute(resolutions);
             resolutionLayout.removeAllViews();
             
-            if (ref_header != null) {
-                final RelativeLayout itemLayout = (RelativeLayout) getActivity().getLayoutInflater().inflate(R.layout.resolution_item_layout, null);
-                final TextView resolutionNameTextView = (TextView) itemLayout.findViewById(R.id.resolutionNameTextView);
-                resolutionNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
-                resolutionNameTextView.setText(ref_header.getResolutionTitle());
-                itemLayout.setTag(ref_header);
-                itemLayout.setOnClickListener(resolutionClickListener);
-                resolutionLayout.addView(itemLayout);
+            if (resolutions.length != 0) {
+            	for (Resolution resl : resolutions) {
+            		final ReferenceHeader ref_header = new ReferenceHeader(resl.getReferenceHeaderJSON());
+	                final RelativeLayout itemLayout = (RelativeLayout) getActivity().getLayoutInflater().inflate(R.layout.resolution_item_layout, null);
+	                final TextView resolutionNameTextView = (TextView) itemLayout.findViewById(R.id.resolutionNameTextView);
+	                resolutionNameTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
+	                resolutionNameTextView.setText(ref_header.getResolutionTitle());
+	                itemLayout.setTag(resl);
+	                itemLayout.setOnClickListener(resolutionClickListener);
+	                resolutionLayout.addView(itemLayout);
+            	}
             } else {
             	resolutionListLabel.setVisibility(View.GONE);
             }
@@ -450,15 +446,16 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         	Log.v(TAG, "resolutionClickListener ");
         	if (mListener != null) {
         		// Открытие резолюции
-        		TaskDataSource tds = new TaskDataSource(mDirect);
-            	tds.open();
-            	Task task = tds.getTaskById(mJob.getMainTaskJob());
-            	if (task == null) {
-            		return;
-            	}
+//        		TaskDataSource tds = new TaskDataSource(mDirect);
+//            	tds.open();
+//            	Task task = tds.getTaskById(mJob.getMainTaskJob());
+//            	if (task == null) {
+//            		return;
+//            	}
                 Bundle args = new Bundle();
-                args.putParcelable(ResolutionDetailFragment.TASK_KEY, task);
+//                args.putParcelable(ResolutionDetailFragment.TASK_KEY, task);
                 args.putParcelable(ResolutionDetailFragment.JOB_KEY, mJob);
+                args.putParcelable(ResolutionDetailFragment.RESOLUTION_KEY, (Resolution)v.getTag());
                 mListener.OnOpenFragment(ResolutionDetailFragment.class.getName(), args);
                 //saveScrollViewPosition();
             }

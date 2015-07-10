@@ -143,7 +143,6 @@ public class ReferenceDetail extends Reference implements Parcelable {
     }
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
-    	Log.v(TAG, "writeToParcel");
     	// JSONObject is not parcellable, need to convert it in String object
     	String jsonString = "";
     	JSONArray array = new JSONArray();
@@ -151,7 +150,6 @@ public class ReferenceDetail extends Reference implements Parcelable {
     		array.put(json);
     	}
     	jsonString = array.toString();
-//    	parcel.writeList(_data);
     	parcel.writeString(jsonString);
     }
 }

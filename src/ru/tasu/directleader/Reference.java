@@ -28,6 +28,13 @@ public class Reference {
 	public List<JSONObject> getData() {
 		return this._data;
 	}
+	public JSONArray getDataJSONArray() {
+		JSONArray array = new JSONArray();
+    	for (JSONObject json : _data) {
+    		array.put(json);
+    	}
+    	return array;
+	}
 	public List<JSONObject> getVisibleAttributes() {
 		List<JSONObject> result = new ArrayList<JSONObject>();
 		for (JSONObject attr : _data) {

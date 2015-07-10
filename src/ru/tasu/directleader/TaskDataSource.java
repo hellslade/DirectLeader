@@ -20,7 +20,7 @@ public class TaskDataSource {
     private Context mContext; 
     private String[] allColumns = {DBHelper.TASK__ID, DBHelper.TASK_ACTION_LIST, DBHelper.TASK_AUTHOR_CODE, DBHelper.TASK_CREATED, DBHelper.TASK_DEADLINE, DBHelper.TASK_EXECUTED,
             DBHelper.TASK_ID, DBHelper.TASK_IMPORTANCE, DBHelper.TASK_OBSERVERS, DBHelper.TASK_PARTICIPANTS, DBHelper.TASK_ROUTE_NAME, 
-            DBHelper.TASK_STATE, DBHelper.TASK_SUBTASK_IDS, DBHelper.TASK_TITLE, DBHelper.TASK_REFERENCE_DETAIL, DBHelper.TASK_REFERENCE_HEADER};
+            DBHelper.TASK_STATE, DBHelper.TASK_SUBTASK_IDS, DBHelper.TASK_TITLE};
 
     public TaskDataSource(Context context) {
         dbHelper = DBHelper.getInstance(context);
@@ -34,7 +34,7 @@ public class TaskDataSource {
     }
     public void createTask(Task new_task) {
         ContentValues values = new ContentValues();
-//        values.put(DBHelper.Task__ID, new_Task.getId());
+//        values.put(DBHelper.Task__ID, new_task.getId());
         values.put(DBHelper.TASK_ACTION_LIST, new_task.getActionList());
         values.put(DBHelper.TASK_AUTHOR_CODE, new_task.getAuthorCode());
         values.put(DBHelper.TASK_CREATED, new_task.getCreated());
@@ -48,8 +48,6 @@ public class TaskDataSource {
         values.put(DBHelper.TASK_STATE, new_task.getState());
         values.put(DBHelper.TASK_SUBTASK_IDS, new_task.getSubtaskIds());
         values.put(DBHelper.TASK_TITLE, new_task.getTitle());
-        values.put(DBHelper.TASK_REFERENCE_DETAIL, new_task.getReferenceDetail());
-        values.put(DBHelper.TASK_REFERENCE_HEADER, new_task.getReferenceHeader());
         long insertId = database.insert(DBHelper.TASK_TABLE, null, values);
         
         // Нужно создать соответствующие записи в таблице attachment, job, history
@@ -72,6 +70,13 @@ public class TaskDataSource {
         job_ds.open();
         for (Job job : jobs) {
             job_ds.createJob(job);
+        }
+        List<Resolution> resolutions = new_task.getResolutions();
+        ResolutionDataSource rds = new ResolutionDataSource(mContext);
+        rds.open();
+        for (Resolution resl : resolutions) {
+        	resl.setTaskId(new_task.getId());
+        	rds.createResolution(resl);
         }
         
         /*Cursor cursor = database.query(DBHelper.TASK_TABLE,
@@ -237,6 +242,7 @@ public class TaskDataSource {
         cursor.close();
         return title;
     }
+    @Deprecated
     public Task updateTask(Task task) {
     	ContentValues values = new ContentValues();
     	values.put(DBHelper.TASK_ACTION_LIST, task.getActionList());
@@ -252,8 +258,6 @@ public class TaskDataSource {
         values.put(DBHelper.TASK_STATE, task.getState());
         values.put(DBHelper.TASK_SUBTASK_IDS, task.getSubtaskIds());
         values.put(DBHelper.TASK_TITLE, task.getTitle());
-        values.put(DBHelper.TASK_REFERENCE_DETAIL, task.getReferenceDetail());
-        values.put(DBHelper.TASK_REFERENCE_HEADER, task.getReferenceHeader());
 		int num = database.update(DBHelper.TASK_TABLE, values, "id=?", new String[]{String.valueOf(task.getId())});
 		
     	return getTaskById(task.getId());
@@ -273,8 +277,6 @@ public class TaskDataSource {
         values.put(DBHelper.TASK_STATE, task.getState());
         values.put(DBHelper.TASK_SUBTASK_IDS, task.getSubtaskIds());
         values.put(DBHelper.TASK_TITLE, task.getTitle());
-        values.put(DBHelper.TASK_REFERENCE_DETAIL, task.getReferenceDetail());
-        values.put(DBHelper.TASK_REFERENCE_HEADER, task.getReferenceHeader());
 		int num = database.update(DBHelper.TASK_TABLE, values, "id=?", new String[]{String.valueOf(task.getId())});
 		
 		// Update соответствующих записей в таблицах attachment, job, history
@@ -303,6 +305,14 @@ public class TaskDataSource {
 //            job_ds.createJob(job);
             job_ds.insertOrUpdate(job);
         }
+        List<Resolution> resolutions = task.getResolutions();
+        ResolutionDataSource rds = new ResolutionDataSource(mContext);
+        rds.open();
+        rds.deleteResolutionsByTaskId(task.getId());
+        for (Resolution resl : resolutions) {
+        	resl.setTaskId(task.getId());
+        	rds.createResolution(resl);
+        }
         
 //    	return getTaskById(task.getId());
     }
@@ -320,12 +330,15 @@ public class TaskDataSource {
         AttachmentDataSource attachment_ds = new AttachmentDataSource(mContext);
         HistoryDataSource history_ds = new HistoryDataSource(mContext);
         JobDataSource job_ds = new JobDataSource(mContext);
+        ResolutionDataSource resl_ds = new ResolutionDataSource(mContext);
         attachment_ds.open();
         history_ds.open();
         job_ds.open();
+        resl_ds.open();
         attachment_ds.deleteAllAttachments();
         history_ds.deleteAllHistories();
         job_ds.deleteAllJobs();
+        resl_ds.deleteAllResolutions();
         int count = database.delete(DBHelper.TASK_TABLE, "1", null);
         return count;
     }
@@ -358,8 +371,6 @@ public class TaskDataSource {
 //        JSONArray action_list, JSONArray attachments, JSONArray history, JSONArray jobs, JSONArray observers, JSONArray participants, JSONArray subtask_ids,
 //        String author_code, String created, String deadline, String executed, long id, String importance, String route_name, String state, String title
         JSONArray action_list = new JSONArray();
-        JSONArray ref_detail = new JSONArray();
-        JSONArray ref_header = new JSONArray();
         JSONArray attachments = new JSONArray();
         JSONArray history = new JSONArray();
         JSONArray jobs = new JSONArray();
@@ -371,14 +382,11 @@ public class TaskDataSource {
             observers = new JSONArray(cursor.getString(8));
             participants = new JSONArray(cursor.getString(9));
             subtask_ids = new JSONArray(cursor.getString(12));
-            ref_detail = new JSONArray(cursor.getString(14));
-            ref_header = new JSONArray(cursor.getString(15));
         } catch (JSONException e) {
             e.printStackTrace();
         }
         
         Task task = new Task(action_list, attachments, history, jobs, observers, participants, subtask_ids, 
-        		ref_detail, ref_header, 
                 cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getLong(6), cursor.getString(7), cursor.getString(10), 
                 cursor.getString(11), cursor.getString(13));
 //      Log.v("cursorToStore", cursor.getInt(0)+" "+cursor.getString(1)+" "+cursor.getString(2)+" "+cursor.getString(3)+" "+cursor.getInt(4)+" "+cursor.getString(5));

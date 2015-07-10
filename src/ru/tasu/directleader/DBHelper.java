@@ -147,8 +147,6 @@ private static final String TAG = "DBHelper";
     public static final String TASK_STATE = "state";
     public static final String TASK_SUBTASK_IDS = "subtask_ids";
     public static final String TASK_TITLE = "title";
-    public static final String TASK_REFERENCE_DETAIL = "reference_detail";
-    public static final String TASK_REFERENCE_HEADER = "reference_header";
     private static final String TASK_CREATE_TABLE = 
             String.format("create table %s (" +
                     "%s integer primary key, " +
@@ -164,12 +162,26 @@ private static final String TAG = "DBHelper";
                     "%s text, " +
                     "%s text, " +
                     "%s text, " +
-                    "%s text, " +
-                    "%s text, " +
                     "%s text)",
                     TASK_TABLE,
                     TASK__ID, TASK_ACTION_LIST, TASK_AUTHOR_CODE, TASK_CREATED, TASK_DEADLINE, TASK_EXECUTED, TASK_ID, TASK_IMPORTANCE, 
-                    TASK_OBSERVERS, TASK_PARTICIPANTS, TASK_ROUTE_NAME, TASK_STATE, TASK_SUBTASK_IDS, TASK_TITLE, TASK_REFERENCE_DETAIL, TASK_REFERENCE_HEADER);
+                    TASK_OBSERVERS, TASK_PARTICIPANTS, TASK_ROUTE_NAME, TASK_STATE, TASK_SUBTASK_IDS, TASK_TITLE);
+    
+    public static final String RESOLUTION_TABLE = "resolution";
+    public static final String RESOLUTION__ID = "_id";
+    public static final String RESOLUTION_ID = "id";
+    public static final String RESOLUTION_TASK_ID = "task_id";
+    public static final String RESOLUTION_DETAIL = "detail";
+    public static final String RESOLUTION_HEADER = "header";
+    private static final String RESOLUTION_CREATE_TABLE = 
+            String.format("create table %s (" +
+                    "%s integer primary key, " +
+                    "%s integer, " +
+                    "%s integer, " +
+                    "%s text, " +
+                    "%s text)",
+                    RESOLUTION_TABLE,
+                    RESOLUTION__ID, RESOLUTION_ID, RESOLUTION_TASK_ID, RESOLUTION_DETAIL, RESOLUTION_HEADER);
     
     static public File getCacheDir(Context context) {
         File cache = null;
@@ -200,7 +212,6 @@ private static final String TAG = "DBHelper";
     }
     public DBHelper(Context context) {
         super(context, DB_PATH, null, DB_VERSION);
-//      this.mContext = context;
         Log.v("DB PATH", this.DB_PATH);
     }
     @Override
@@ -210,6 +221,7 @@ private static final String TAG = "DBHelper";
         sqLiteDatabase.execSQL(JOB_CREATE_TABLE);
         sqLiteDatabase.execSQL(RABOTNIC_CREATE_TABLE);
         sqLiteDatabase.execSQL(TASK_CREATE_TABLE);
+        sqLiteDatabase.execSQL(RESOLUTION_CREATE_TABLE);
         
         sqLiteDatabase.execSQL(RABOTNIC_CREATE_INDEX);
     }

@@ -15,11 +15,11 @@ class TaskAttachmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     
     private DirectLeaderApplication mDirect;
     
-    private OnItemClickListener mOnItemClickListener;
+//    private OnItemClickListener mOnItemClickListener;
     
     public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView nameTextView;
-        private Attachment mAttachment;
+//        private Attachment mAttachment;
         public ViewHolder(View v) {
             super(v);
             nameTextView = (TextView)v.findViewById(R.id.nameTextView);
@@ -34,9 +34,9 @@ class TaskAttachmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
             });*/
         }
-        public void bind(Attachment attachment) {
+        /*public void bind(Attachment attachment) {
             mAttachment = attachment;
-        }
+        }*/
         
     }
 
@@ -56,7 +56,7 @@ class TaskAttachmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void onBindViewHolder(RecyclerView.ViewHolder vh, int position) {
         ViewHolder holder = (ViewHolder)vh;
         final Attachment attach = mDataSet.get(position);
-        holder.bind(attach);
+//        holder.bind(attach);
         if (attach.getId() == -1) { // local file
         	holder.nameTextView.setText(attach.getCTitle());
         } else { // Directum file
@@ -68,10 +68,10 @@ class TaskAttachmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public int getItemCount() {
         return mDataSet.size();
     }
-    public void setOnItemClickListener(OnItemClickListener listener) {
+    /*public void setOnItemClickListener(OnItemClickListener listener) {
         mOnItemClickListener = listener;
-    }
-    public static interface OnItemClickListener {
-        public void onItemClick(Attachment attachment);
-    }
+    }*/
+//    public static interface OnItemClickListener {
+//        public void onItemClick(Attachment attachment);
+//    }
 }
