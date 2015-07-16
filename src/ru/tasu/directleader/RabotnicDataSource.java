@@ -106,19 +106,22 @@ public class RabotnicDataSource {
         cursor.moveToFirst();
         rabotnics = new Rabotnic[cursor.getCount()];
         int i = 0;
+        Log.v("getAllRabotnicsWithTaskCount", "cursor.count " + cursor.getCount());
+        final String sqlOverdue = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.state=0 AND j.final_date < date() AND j.final_date <> '1899-12-30 00:00:00' AND rabotnic.code == ?;";
+        final String sqlCurrent = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.state=0 AND j.final_date = date() AND rabotnic.code == ?;";
         while (!cursor.isAfterLast()) {
             final Rabotnic rabotnic = cursorToRabotnic(cursor);
             rabotnic.setTotalJobs(cursor.getInt(9));
             // Получим просроченные задания
-            final String sqlOverdue = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.state=0 AND j.final_date < date() AND j.final_date <> '1899-12-30 00:00:00' AND rabotnic.code == ?;";
             final Cursor cursorOverdue = database.rawQuery(sqlOverdue, new String[]{rabotnic.getCode()});
             cursorOverdue.moveToFirst();
             rabotnic.setOverdueJobs(cursorOverdue.getInt(9));
+            cursorOverdue.close();
             // Получим текущие задания
-            final String sqlCurrent = "SELECT rabotnic.*, count(j._id) from rabotnic LEFT JOIN job as j ON j.performer=rabotnic.code AND j.state=0 AND j.final_date = date() AND rabotnic.code == ?;";
             final Cursor cursorCurrent = database.rawQuery(sqlCurrent, new String[]{rabotnic.getCode()});
             cursorCurrent.moveToFirst();
             rabotnic.setCurrentJobs(cursorCurrent.getInt(9));
+            cursorCurrent.close();
             rabotnics[i++] = rabotnic;
             
             cursor.moveToNext();

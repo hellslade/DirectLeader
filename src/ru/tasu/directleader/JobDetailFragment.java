@@ -102,6 +102,7 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         @Override
         protected void onPostExecute(Resolution[] resolutions) {
             super.onPostExecute(resolutions);
+            Log.v(TAG, "resolutions " + resolutions.length);
             resolutionLayout.removeAllViews();
             
             if (resolutions.length != 0) {
@@ -342,11 +343,12 @@ public class JobDetailFragment extends Fragment implements OnClickListener {
         if (endDateString.equals("1899-12-30")) {
             endDateString = "";
         }
-        Log.v(TAG, "mJob.getAuthor() " + mJob.getAuthor());
-        String property = String.format(getResources().getString(R.string.job_detail_fragment_property_text), mJob.getAuthor().getName(), startDateString, endDateString);
+        final String jobAuthorName = mJob.getAuthor() != null ? mJob.getAuthor().getName() : "";
+        String property = String.format(getResources().getString(R.string.job_detail_fragment_property_text), jobAuthorName, startDateString, endDateString);
         propertyTextView.setText(property);
         
-        performerTextView.setText(mJob.getUser().getName());
+        final String jobUserName = mJob.getUser() != null ? mJob.getUser().getName() : "";
+        performerTextView.setText(jobUserName);
         String dateString = mJob.getFinalDate(true);
         if (dateString.equals("1899-12-30")) {
             dateTextView.setVisibility(View.INVISIBLE);

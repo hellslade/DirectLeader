@@ -144,8 +144,8 @@ public class TaskDataSource {
         while (!cursor.isAfterLast()) {
             final Task task = cursorToTask(cursor);
             // Получить attachement, history для текущей task
-            task.setAttachmentCount(cursor.getInt(17));
-            task.setHistoryCount(cursor.getInt(16));
+            task.setAttachmentCount(cursor.getInt(15));
+            task.setHistoryCount(cursor.getInt(14));
             // Получить автора задания
             task.setAuthor(rabotnic_ds.getRabotnicByCode(task.getAuthorCode()));
             tasks.add(task);

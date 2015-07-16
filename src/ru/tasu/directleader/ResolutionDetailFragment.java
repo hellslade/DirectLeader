@@ -3,7 +3,9 @@ package ru.tasu.directleader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -60,7 +62,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
             rds.open();
             if (refs != null) {
             	referenceDetailLayout.removeAllViews();
-	            for (ReferenceDetail detail : refs) {
+	            for (final ReferenceDetail detail : refs) {
 	            	if (detail.getAttributeByName("").optInt("Id") == 0) {
 	            		continue;
 	            	}
@@ -79,6 +81,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	            	
 	            	final TextView detailAuthorTextView = (TextView) detailItemLayout.findViewById(R.id.detailAuthorTextView);
 	            	final TextView detailPropertyTextView = (TextView) detailItemLayout.findViewById(R.id.detailPropertyTextView);
+	            	final ImageButton deleteButton = (ImageButton) detailItemLayout.findViewById(R.id.deleteButton);
 	            	detailAuthorTextView.setTypeface(mDirect.mPFDinDisplayPro_Bold);
 	            	detailPropertyTextView.setTypeface(mDirect.mPFDinDisplayPro_Reg);
 	            	
@@ -89,6 +92,16 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	            	String propText = getResources().getString(R.string.resolution_detail_fragment_property_text);
 	            	propText = String.format(propText, detail.getAttributeItemValue("ДаНетТ"), detail.getAttributeItemValue("Дата2Т"), detail.getAttributeItemValue("Доп2Т"));
 	            	detailPropertyTextView.setText(propText);
+	            	
+	            	deleteButton.setOnClickListener(new OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							long detailId = detail.getAttributeByName("").optLong("Id");
+							mDeletedDetailIds.add(detailId); // Запоминаем id для удаления
+							referenceDetailLayout.removeView(detailItemLayout); // Удаляем из layout'a
+							mReferenceDetail.remove(detail); // Удаляем из Reference
+						}
+					});
 	            	
 	            	final LinearLayout contentLayout = (LinearLayout) detailItemLayout.findViewById(R.id.contentLayout);
 	            	
@@ -103,44 +116,55 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	            		
 	            		final View valueView;
 	            		if (obj.optString("DataType").equalsIgnoreCase("rdtString")) {
-	            			valueView = getTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
-	            			((TextView)valueView).setText(obj.optString("Value"));
-	            			// Сделать видимой кнопку очищения
-	            			clearButton.setVisibility(View.VISIBLE);
-	            			// Сохранить референсе в тэге
-	            			clearButton.setTag(detail);
+	            			valueView = getTextView(getActivity(), obj.optString("Name"), detail, clearButton, detailItemLayout);
+	            			String value = obj.optString("Value");
+	            			((TextView)valueView).setText(value);
+	            			if (!value.isEmpty()) {
+		            			// Сделать видимой кнопку очищения
+		            			clearButton.setVisibility(View.VISIBLE);
+		            			// Сохранить референсе в тэге
+		            			clearButton.setTag(detail);
+	            			}
 	            			
 		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtText")) {
 		            		valueView = getEditTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
 		            		((EditText)valueView).setText(obj.optString("Value"));
 		            		
 		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtDate")) {
-		            		valueView = getDateView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
-		            		((TextView)valueView).setText(obj.optString("Value"));
-		            		// Сделать видимой кнопку очищения
-	            			clearButton.setVisibility(View.VISIBLE);
-	            			// Сохранить референсе в тэге
-	            			clearButton.setTag(detail);
+		            		valueView = getDateView(getActivity(), obj.optString("Name"), detail, clearButton, detailItemLayout);
+		            		String value = obj.optString("Value");
+	            			((TextView)valueView).setText(value);
+	            			if (!value.isEmpty()) {
+			            		// Сделать видимой кнопку очищения
+		            			clearButton.setVisibility(View.VISIBLE);
+		            			// Сохранить референсе в тэге
+		            			clearButton.setTag(detail);
+	            			}
 		            		
 		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtPick")) {
 		            		valueView = getCheckBoxView(getActivity(), obj.optString("Name"), detail, "Да", "Нет", detailItemLayout);
 		            		((Switch)valueView).setChecked(obj.optString("Value").equalsIgnoreCase("Да") ? true : false);
 		            		
 		            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtReference")) {
+		            		String value = "";
 		            		if (obj.optString("TypeReference").equalsIgnoreCase("РАБ")) {
 			            		Rabotnic user = rds.getRabotnicByCodeRab(obj.optString("Value"));
-			            		valueView = getUserView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
+			            		valueView = getUserView(getActivity(), obj.optString("Name"), detail, clearButton, detailItemLayout);
 			            		if (user != null) {
-			            			((TextView)valueView).setText(user.getName());
+			            			value = user.getName();
+			            			((TextView)valueView).setText(value);
 			            		}
 		            		} else {
 			            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
-		            			((TextView)valueView).setText(obj.optString("Value"));
+			            		value = obj.optString("Value");
+		            			((TextView)valueView).setText(value);
 			            	}
-		            		// Сделать видимой кнопку очищения
-	            			clearButton.setVisibility(View.VISIBLE);
-	            			// Сохранить референсе в тэге
-	            			clearButton.setTag(detail);
+		            		if (!value.isEmpty()) {
+			            		// Сделать видимой кнопку очищения
+		            			clearButton.setVisibility(View.VISIBLE);
+		            			// Сохранить референсе в тэге
+		            			clearButton.setTag(detail);
+		            		}
 		            	} else {
 		            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), detail, detailItemLayout);
 	            			((TextView)valueView).setText(obj.optString("Value"));
@@ -157,6 +181,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	            					((TextView)valueView).setText(attrValue);
 	            					final Reference ref = (Reference)v.getTag();
 	            					ref.setAttributeItemValue(attrName, attrValue);
+	            					v.setVisibility(View.GONE);
 	            				}
 	            			});
 	            		}
@@ -198,24 +223,30 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 //            				((TextView)valueView).setText(subResolutionTitle);
             				mReferenceHeader.setAttributeItemValue(obj.optString("Name"), subResolutionTitle);
             			}
-            			valueView = getTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
-            			((TextView)valueView).setText(obj.optString("Value"));
-            			// Сделать видимой кнопку очищения
-            			clearButton.setVisibility(View.VISIBLE);
-            			// Сохранить референсе в тэге
-            			clearButton.setTag(mReferenceHeader);
+            			valueView = getTextView(getActivity(), obj.optString("Name"), mReferenceHeader, clearButton);
+            			String value = obj.optString("Value");
+            			((TextView)valueView).setText(value);
+            			if (!value.isEmpty()) {
+		        			// Сделать видимой кнопку очищения
+		        			clearButton.setVisibility(View.VISIBLE);
+		        			// Сохранить референсе в тэге
+		        			clearButton.setTag(mReferenceHeader);
+            			}
             			
 	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtText")) {
 	            		valueView = getEditTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
 	            		((EditText)valueView).setText(obj.optString("Value"));
 	            		
 	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtDate")) {
-	            		valueView = getDateView(getActivity(), obj.optString("Name"), mReferenceHeader);
-	            		((TextView)valueView).setText(obj.optString("Value"));
-	            		// Сделать видимой кнопку очищения
-            			clearButton.setVisibility(View.VISIBLE);
-            			// Сохранить референсе в тэге
-            			clearButton.setTag(mReferenceHeader);
+	            		valueView = getDateView(getActivity(), obj.optString("Name"), mReferenceHeader, clearButton);
+	            		String value = obj.optString("Value");
+            			((TextView)valueView).setText(value);
+            			if (!value.isEmpty()) {
+		        			// Сделать видимой кнопку очищения
+		        			clearButton.setVisibility(View.VISIBLE);
+		        			// Сохранить референсе в тэге
+		        			clearButton.setTag(mReferenceHeader);
+            			}
 	            		
 	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtPick")) {
 	            		valueView = getCheckBoxView(getActivity(), obj.optString("Name"), mReferenceHeader);
@@ -227,20 +258,25 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	    				}
 	            		
 	            	} else if (obj.optString("DataType").equalsIgnoreCase("rdtReference")) {
+	            		String value = "";
 	            		if (obj.optString("TypeReference").equalsIgnoreCase("РАБ")) {
 		            		Rabotnic user = rds.getRabotnicByCodeRab(obj.optString("Value"));
-		            		valueView = getUserView(getActivity(), obj.optString("Name"), mReferenceHeader);
+		            		valueView = getUserView(getActivity(), obj.optString("Name"), mReferenceHeader, clearButton);
 		            		if (user != null) {
-		            			((TextView)valueView).setText(user.getName());
+		            			value = user.getName();
+		            			((TextView)valueView).setText(value);
 			            	}
 	            		} else {
 		            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
-	            			((TextView)valueView).setText(obj.optString("Value"));
+		            		value = obj.optString("Value");
+		            		((TextView)valueView).setText(value);
 		            	}
-	            		// Сделать видимой кнопку очищения
-            			clearButton.setVisibility(View.VISIBLE);
-            			// Сохранить референсе в тэге
-            			clearButton.setTag(mReferenceHeader);
+            			if (!value.isEmpty()) {
+		        			// Сделать видимой кнопку очищения
+		        			clearButton.setVisibility(View.VISIBLE);
+		        			// Сохранить референсе в тэге
+		        			clearButton.setTag(mReferenceHeader);
+            			}
 	            		
 	            	} else {
 	            		valueView = getEmptyTextView(getActivity(), obj.optString("Name"), mReferenceHeader);
@@ -258,10 +294,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	    				    	((TextView)valueView).setText(attrValue);
 	    				    	final Reference ref = (Reference)v.getTag();
 	    				    	ref.setAttributeItemValue(attrName, attrValue);
+	    				    	v.setVisibility(View.GONE);
 	            			}
 	            		});
             		}
-            		
             		
             		referenceHeaderLayout.addView(headerItemLayout);
             	}
@@ -304,6 +340,13 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     			}
 				json.put("ReferenceHeader", header);
 				json.put("ReferenceDetail", detail);
+				if (mDeletedDetailIds.size() > 0) {
+					JSONArray ids = new JSONArray();
+					for (Long l : mDeletedDetailIds) {
+						ids.put(l);
+					}
+					json.put("DeleteReferenceDetailId", ids);	
+				}
 			} catch (JSONException e) {
 				success = false;
 				e.printStackTrace();
@@ -366,6 +409,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 	    					// Записать обновленный Resolution в БД
 	    					ResolutionDataSource rds = new ResolutionDataSource(mDirect);
 	    					rds.open();
+	    					Log.v(TAG, "Обновляем резолюцию " + mResolution);
 	    					mResolution = rds.updateResolutionById(mResolution);
 	    					alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
 	    				        public void onClick(DialogInterface dialog, int which) {
@@ -424,6 +468,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 							Resolution resl = new Resolution(detail.toString(), header.toString(), 0, mJob.getMainTaskJob());
 							ResolutionDataSource rds = new ResolutionDataSource(mDirect);
 							rds.open();
+							Log.v(TAG, "Создаем резолюцию " + resl);
 							rds.createResolution(resl);
 	    					alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
 	    				        public void onClick(DialogInterface dialog, int which) {
@@ -486,6 +531,8 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     private Resolution mResolution;
     private boolean isSubResolution = false;
     private String subResolutionTitle = "";
+    
+    private HashSet<Long> mDeletedDetailIds = new HashSet<Long>();
     
     private ReferenceHeader mReferenceHeader = null;
     private List<ReferenceDetail> mReferenceDetail = null;
@@ -555,10 +602,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 
     	return view;
     }
-    private TextView getUserView(Context context, String attrName, final Reference ref) {
-    	return getUserView(context, attrName, ref, null);
+    private TextView getUserView(Context context, String attrName, final Reference ref, final ImageButton button) {
+    	return getUserView(context, attrName, ref, button, null);
     }
-    private TextView getUserView(Context context, String attrName, final Reference ref, final View layout) {
+    private TextView getUserView(Context context, String attrName, final Reference ref, final ImageButton button, final View layout) {
     	final TextView view = new TextView(context);
     	view.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     	view.setTag(attrName);
@@ -577,6 +624,13 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 						String attrName = (String)view.getTag();
 						String attrValue = user.getCodeRab();
 						ref.setAttributeItemValue(attrName, attrValue);
+						if (button != null) {
+	    		            if (!attrValue.isEmpty()) {
+	    		            	button.setVisibility(View.VISIBLE);
+	    		            } else {
+	    		            	button.setVisibility(View.GONE);
+	    		            }
+    		            }
 						if (layout != null) {
     		            	updateDetailSummary(layout, ref);
     		            }
@@ -588,10 +642,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 
     	return view;
     }
-    private TextView getTextView(Context context, String attrName, final Reference ref) {
-    	return getTextView(context, attrName, ref, null);
+    private TextView getTextView(Context context, String attrName, final Reference ref, final ImageButton button) {
+    	return getTextView(context, attrName, ref, button, null);
     }
-    private TextView getTextView(Context context, String attrName, final Reference ref, final View layout) {
+    private TextView getTextView(Context context, String attrName, final Reference ref, final ImageButton button, final View layout) {
     	final TextView view = new TextView(context);
     	view.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     	view.setTag(attrName);
@@ -620,6 +674,13 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
 				    	String attrValue = input.getText().toString();
 				    	view.setText(attrValue);
 				    	ref.setAttributeItemValue(attrName, attrValue);
+				    	if (button != null) {
+	    		            if (!attrValue.isEmpty()) {
+	    		            	button.setVisibility(View.VISIBLE);
+	    		            } else {
+	    		            	button.setVisibility(View.GONE);
+	    		            }
+    		            }
 				    	if (layout != null) {
     		            	updateDetailSummary(layout, ref);
     		            }
@@ -638,10 +699,10 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	
     	return view;
     }
-    private TextView getDateView(Context context, String attrName, final Reference ref) {
-    	return getDateView(context, attrName, ref, null);
+    private TextView getDateView(Context context, String attrName, final Reference ref, final ImageButton button) {
+    	return getDateView(context, attrName, ref, button, null);
     }
-    private TextView getDateView(Context context, String attrName, final Reference ref, final View layout) {
+    private TextView getDateView(Context context, String attrName, final Reference ref, final ImageButton button, final View layout) {
     	final TextView view = new TextView(context);
     	view.setTypeface(mDirect.mPFDinDisplayPro_Reg);
     	view.setTag(attrName);
@@ -664,6 +725,13 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     		            String attrValue = sdf.format(c.getTime());
     		            view.setText(attrValue);
     		            ref.setAttributeItemValue(attrName, attrValue);
+    		            if (button != null) {
+	    		            if (!attrValue.isEmpty()) {
+	    		            	button.setVisibility(View.VISIBLE);
+	    		            } else {
+	    		            	button.setVisibility(View.GONE);
+	    		            }
+    		            }
 //    		            view.setTag(String.format("%s-%s-%s", year, monthOfYear, dayOfMonth));
     		            if (layout != null) {
     		            	updateDetailSummary(layout, ref);
@@ -732,7 +800,7 @@ public class ResolutionDetailFragment extends Fragment implements OnClickListene
     	}
     	ReferenceDetail detail = mReferenceDetail.get(mReferenceDetail.size()-1);
     	JSONObject obj = detail.getAttributeByName("PerformerT");
-    	if (obj.optString("Value").equalsIgnoreCase("")) {
+    	if (detail.getAttributeByName("").optInt("Id") != 0 && obj.optString("Value").equalsIgnoreCase("")) {
     		return;
     	}
     	ReferenceDetail new_detail = new ReferenceDetail(detail);

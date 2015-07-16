@@ -8,6 +8,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 public class ResolutionDataSource {
     // Database fields
@@ -33,7 +34,7 @@ public class ResolutionDataSource {
         values.put(DBHelper.RESOLUTION_DETAIL, resolution.getReferenceDetail());
         values.put(DBHelper.RESOLUTION_HEADER, resolution.getReferenceHeader());
         long insertId = database.insert(DBHelper.RESOLUTION_TABLE, null, values);
-        
+//        Log.v("createResolution", "RESOLUTION_TASK_ID " + resolution.getTaskId() + " resolution id " + resolution.getId());
         /*Cursor cursor = database.query(DBHelper.HISTORY_TABLE,
                 allColumns, DBHelper.HISTORY__ID + " = " + insertId, null,
                 null, null, null);
@@ -76,11 +77,13 @@ public class ResolutionDataSource {
     }
     public Resolution updateResolutionById(Resolution resolution) {
         ContentValues values = new ContentValues();
-        values.put(DBHelper.RESOLUTION_TASK_ID, resolution.getTaskId());
+//        values.put(DBHelper.RESOLUTION_TASK_ID, resolution.getTaskId());
         values.put(DBHelper.RESOLUTION_DETAIL, resolution.getReferenceDetail());
         values.put(DBHelper.RESOLUTION_HEADER, resolution.getReferenceHeader());
 //        long insertId = database.insert(DBHelper.RESOLUTION_TABLE, null, values);
-        int num = database.update(DBHelper.RESOLUTION_TABLE, values, "id=?", new String[]{String.valueOf(resolution.getId())});
+//        Log.v("updateResolutionById", "resolution.getId() " + resolution.getId());
+        int num = database.update(DBHelper.RESOLUTION_TABLE, values, "id=? AND task_id=?", new String[]{String.valueOf(resolution.getId()), String.valueOf(resolution.getTaskId())});
+//        Log.v("updateResolutionById", "num " + num);
         
         Cursor cursor = database.query(DBHelper.RESOLUTION_TABLE,
                 allColumns, DBHelper.RESOLUTION_ID + " = " + resolution.getId(), null, null, null, null);

@@ -98,7 +98,7 @@ public class HistoryDataSource {
     			"date = ? AND message = ?", new String[] {history.getDate(), history.getMessage()}, null, null, null, "1");
         cursor.moveToFirst();
         if (cursor.getCount() > 0) {
-        	Log.v("HistoryDataSource", "history with " + history.getDate() + " " + history.getMessage() + " is alreadey created");
+        	//Log.v("HistoryDataSource", "history with " + history.getDate() + " " + history.getMessage() + " is alreadey created");
 //        	updateHistory(history);
         } else {
         	createHistory(history);

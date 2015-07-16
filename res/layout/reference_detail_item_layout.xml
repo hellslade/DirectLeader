@@ -25,6 +25,6 @@
         android:src="@drawable/ic_clear"
         android:visibility="gone"
         android:layout_weight="1"
-        android:background="@drawable/button_transparent_home_selector"
+        android:background="@null"
         />
 </LinearLayout>
